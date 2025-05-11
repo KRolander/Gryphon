@@ -1,19 +1,13 @@
 <script setup>
-import EmailForm from "./components/EmailForm.vue"
+import NavBar from './components/NavBar.vue'
 </script>
 
 <template>
   <v-app>
-    <header>
-      <div>
-        <div class="text-h2 font-weight-bold">Vuetify</div>
-      </div>
-    </header>
+    <NavBar/>
   
     <v-main>
-        <v-btn>Pula sex</v-btn>
-        
-      <!-- <EmailForm/> -->
+      <RouterView/>
     </v-main>
   </v-app>
 </template>
