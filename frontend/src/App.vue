@@ -3,15 +3,19 @@ import EmailForm from "./components/EmailForm.vue"
 </script>
 
 <template>
-  <header>
-    <div>
-      <div>Input an email below</div>
-    </div>
-  </header>
-
-  <main>
-    <EmailForm/>
-  </main>
+  <v-app>
+    <header>
+      <div>
+        <div class="text-h2 font-weight-bold">Vuetify</div>
+      </div>
+    </header>
+  
+    <v-main>
+        <v-btn>Pula sex</v-btn>
+        
+      <!-- <EmailForm/> -->
+    </v-main>
+  </v-app>
 </template>
 
 <style scoped>

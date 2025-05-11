@@ -17,6 +17,7 @@ export default {
     <div>
         <input type="text" ref="emailField">
         <button @click="submitEmail">Submit</button>
+        <v-btn>Button</v-btn>
     </div>
 </template>
 
