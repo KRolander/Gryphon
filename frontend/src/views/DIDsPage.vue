@@ -94,6 +94,10 @@
 </template>
 
 <script lang="js">
+/* ----------------------- IMPORTS ----------------------- */
+import DIDService from '@/services/DIDService';
+
+/* ----------------------- CONFIG ----------------------- */
 export default {
   name: "DIDsPage",
   data() {
@@ -120,13 +124,16 @@ export default {
   },
   methods: {
     // Method to handle the creation of a new DID
-    createDID() {
+    async createDID() {
       if (this.valid) {
         // 1. Send to backend
-        // to be added very soon hopefully
+        const res = await DIDService.createDID(this.newDIDname)
+        console.log(res.data)
+
+        // Check if the response has a public key
 
         // 2. Add to the list
-        this.DIDs.push({ name: this.newDIDname, did: "did:ssi:" + this.newDIDname });
+        this.DIDs.push({ name: this.newDIDname, did: res.data});
 
         // 3. Reset the form
         this.newDIDname = "";
