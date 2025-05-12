@@ -22,7 +22,50 @@
 
           <!-- Add button together with icon -->
           <template v-slot:append>
-            <v-btn>Add <v-icon icon="mdi-plus-circle" end></v-icon></v-btn>
+            <v-dialog v-model="dialogOpen" max-width="500">
+              <!-- Activator button -->
+              <template v-slot:activator="{ props: activatorProps }">
+                <v-btn
+                  v-bind="activatorProps"
+                  variant="flat"
+                  @click="dialogOpen = true"
+                >
+                  Add <v-icon icon="mdi-plus-circle" end></v-icon
+                ></v-btn>
+              </template>
+
+              <!-- Dialog -->
+              <template v-slot:default="{ isActive }">
+                <v-card title="Create DID">
+                  <v-card-text>
+                    <v-form v-model="valid" @submit.prevent="createDID">
+                      <v-text-field
+                        v-model="newDIDname"
+                        :counter="20"
+                        :rules="DIDNameRules"
+                        label="Name"
+                        required
+                      ></v-text-field>
+                    </v-form>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-btn
+                      text="Close"
+                      class="ma-2s"
+                      @click="isActive.value = false"
+                    ></v-btn>
+
+                    <v-spacer></v-spacer>
+
+                    <v-btn class="ma-2" variant="outlined" @click="createDID()">
+                      Create
+                      <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </template>
+            </v-dialog>
           </template>
 
           <!-- Card content -->
@@ -55,8 +98,44 @@ export default {
   name: "DIDsPage",
   data() {
     return {
-      DIDs: [{ name: "DID1", did: "did:ssi:asofsabnfoasfboisn" }, { name: "DID2", did: "did:ssi:asofsabnfoasfbasdasd" }],
-    };
+      DIDs: [],
+
+      // Dialog state
+      dialogOpen: false,
+      valid: false,
+      newDIDname: "",
+      DIDNameRules: [
+        value => {
+          if (value) return true
+
+          return 'Name is required.'
+        },
+        value => {
+          if (value?.length <= 20) return true
+
+          return 'Name must be less than 10 characters.'
+        },
+      ],
+    }
+  },
+  methods: {
+    // Method to handle the creation of a new DID
+    createDID() {
+      if (this.valid) {
+        // 1. Send to backend
+        // to be added very soon hopefully
+
+        // 2. Add to the list
+        this.DIDs.push({ name: this.newDIDname, did: "did:ssi:" + this.newDIDname });
+
+        // 3. Reset the form
+        this.newDIDname = "";
+        this.valid = false;
+
+        // 4. Close the dialog
+        this.dialogOpen = false;
+      }
+    },
   },
   computed: {
     emptyDIDList() {
