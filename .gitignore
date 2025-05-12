@@ -1,3 +1,7 @@
 # chaincode module
-chaincode/node_modules/
-chaincode/build/
+node_modules/
+build/
+
+# Editor files
+.vscode/
+*.code-workspace
