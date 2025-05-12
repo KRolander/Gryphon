@@ -143,6 +143,11 @@ export default {
     },
     // Computed properties can be added here if needed
   },
+  mounted() {
+    console.log("DIDsPage mounted");
+    // Fetch the DIDs from the backend when the component is mounted
+    // to be added very soon hopefully
+  },
 };
 </script>
 

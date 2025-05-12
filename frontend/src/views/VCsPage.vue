@@ -8,6 +8,9 @@
       <div class="mb-8 text-center">
         <div class="text-body-1 font-weight-light mb-n1">Welcome to</div>
         <h1 class="text-h1 font-weight-bold">Your VCs</h1>
+        <div class="text-body-1 font-weight-light mb-n1">
+          (will be added soon)
+        </div>
       </div>
     </div>
   </v-container>
