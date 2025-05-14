@@ -1,4 +1,4 @@
 import { Contract } from "fabric-contract-api";
-import { DID } from "./src/DID";
+import { DID } from "./DID";
 
 export const contracts: (typeof Contract)[] = [DID];
