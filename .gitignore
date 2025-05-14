@@ -1,7 +1,11 @@
+# Editor files
+.vscode/
+*.code-workspace
+
 # chaincode module
 node_modules/
 build/
 
-# Editor files
-.vscode/
-*.code-workspace
+# Network binaries
+bin/
+builders/
