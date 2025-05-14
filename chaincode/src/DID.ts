@@ -4,25 +4,25 @@ import sortKeysRecursive from "sort-keys-recursive";
 import { DIDDocument } from "../types/DIDDocument";
 
 export class DID extends Contract {
-    // Utility function that checks if a DID already exists on the ledger
+    // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
-        const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the ledger
+        const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the world state
         return DIDDocJSON && DIDDocJSON.length > 0;
     }
 
-    // StoreDID transaction
-    // This function will be called when we want to store a new DID document
+    // StoreDID transaction records a new pair of the given DID and DIDDocument to the world state
     @Transaction()
     public async storeDID(
         ctx: Context,
         DID: string,
         DIDDocument: DIDDocument,
     ): Promise<void> {
-        // Check if the DID already exists
+        // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
 
         if (DIDExists) {
+            // TODO Make custom error types to use instead of the generic one
             throw new Error(`The DID document with DID ${DID} already exists`);
         }
 
