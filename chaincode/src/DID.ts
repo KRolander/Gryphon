@@ -1,9 +1,14 @@
-import { Context, Contract, Transaction } from "fabric-contract-api";
+import fabricContractApi from "fabric-contract-api";
+const { Contract, Transaction } = fabricContractApi;
 import stringify from "json-stringify-deterministic";
 import sortKeysRecursive from "sort-keys-recursive";
-import { DIDDocument } from "../types/DIDDocument";
+import type { Context } from "fabric-contract-api";
+import DIDDocument from "../types/DIDDocument.js";
 
-export class DID extends Contract {
+export default class DID extends Contract {
+    constructor() {
+        super();
+    }
     // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
