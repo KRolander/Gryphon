@@ -2,25 +2,31 @@
     "name": "identity_management_system_chaincode",
     "version": "1.0.0",
     "main": "build/src/index.js",
-
+    "type": "module",
     "dependencies": {
         "fabric-contract-api": "^2.5.8",
         "fabric-shim": "^2.5.8",
         "json-stringify-deterministic": "^1.0.12",
         "sort-keys-recursive": "^2.1.10"
     },
-
     "devDependencies": {
-        "gts": "^6.0.2",
-        "typescript": "^5.8.3",
-        "@types/node": "^22.7.5"
+        "@types/node": "^22.7.5",
+        "@typescript-eslint/eslint-plugin": "^6.0.0",
+        "@typescript-eslint/parser": "^6.0.0",
+        "chai": "^5.2.0",
+        "chai-as-promised": "^8.0.1",
+        "eslint": "^8.57.0",
+        "mocha": "^11.2.2",
+        "sinon": "^20.0.0",
+        "sinon-chai": "^4.0.0",
+        "typescript": "^5.8.3"
     },
-        "scripts": {
+    "scripts": {
         "start": "fabric-chaincode-node start",
-        "lint": "gts lint",
+        "lint": "eslint .",
         "clean": "gts clean",
         "compile": "tsc",
         "build": "tsc",
-        "fix": "gts fix"
+        "fix": "eslint . --fix"
     }
 }
