@@ -58,13 +58,35 @@ describe("test DID chaincode", () => {
 
             let didkey = "did:hlf:123";
             let diddoc = {
-                id: "did:hlf:123",
+                id: didkey,
                 valid: true,
             };
 
             await contract.storeDID(ctx, didkey, diddoc);
             expect(mockStub.states[didkey].toString(), "getDIDDoc").to.eql(stringify(diddoc));
 
+        })
+
+        it("should throw an error if the DID is already in the ledger", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "did:hlf:123";
+            let diddoc1 = {
+                id: didkey,
+                valid: true,
+            };
+            let diddoc2 = {
+                id: didkey,
+                valid: false,
+            };
+
+            await contract.storeDID(ctx, didkey, diddoc1);
+            return contract.storeDID(ctx, didkey, diddoc2)
+              .should.eventually.be.rejectedWith("The DID document with DID did:hlf:123 already exists");
         })
     })
 });
