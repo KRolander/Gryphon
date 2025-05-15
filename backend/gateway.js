@@ -31,9 +31,73 @@ const mspId = envOrDefault("MSP_ID", "Org1MSP");
 const peerEndpoint = envOrDefault("PEER_ENDPOINT", "localhost:7051");
 
 // Gateway peer SSL host name
-const peerHostAlias = envOrDefault("PEER_HOST_ALIAS", "peer0.org1.example.com");
+const peerHostAlias = envOrDefault("PEER_HOST_ALIAS", "peer0.org1.example.com"); //connecting to localhost would cause the TLS handshake to fail.
+                                                                                //therefore, this commnad tells the SDK to treat localhost as peer0
 
 const utf8Decoder = new TextDecoder();
 let gateway = null;
 let network = null;
 let contract = null;
+
+//GATEWAY
+
+//Initializes the gateway that will be used for the connection
+async function  startGateway() {
+    const client  = await newGRPCConnection(); // Create a new gRPC connection
+
+    gateway = connect({
+        client,
+        identity: await newIdentity(), // Create a new identity
+        signer: await newSigner(), // Create a new signer
+        hash: hash.sha256,
+        // Default timeouts for different gRPC calls
+        evaluateOptions: () => {
+          return { deadline: Date.now() + 5000 }; // 5 seconds
+        },
+        endorseOptions: () => {
+          return { deadline: Date.now() + 15000 }; // 15 seconds
+        },
+        submitOptions: () => {
+          return { deadline: Date.now() + 5000 }; // 5 seconds
+        },
+        commitStatusOptions: () => {
+          return { deadline: Date.now() + 60000 }; // 1 minute
+        },
+      });
+}
+
+
+// Initializes the client
+async function newGRPCConnection() {
+    const tlsRootCert = await fs.readFile(tlsCertPath); // Read the TLS certificate
+    const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
+
+    return new grpc.Client(peerEndpoint, tlsCredentials, {
+    "grpc.ssl_target_name_override": peerHostAlias,
+    });
+  }
+
+  // Creates a new identity
+  async function newIdentity() {
+    const certPath = await getFirstDirFileName(certDirectoryPath);
+    const credentials = await fs.readFile(certPath);
+    return { mspId, credentials };
+  }
+
+  // Reads the first file in the directory
+  async function getFirstDirFileName(dirPath) {
+    const files = await fs.readdir(dirPath);
+    const file = files[0];
+    if (!file) {
+      throw new Error(`No files in directory: ${dirPath}`);
+    }
+    return path.join(dirPath, file);
+  }
+
+  // Create a new signer
+  async function newSigner() {
+  const keyPath = await getFirstDirFileName(keyDirectoryPath);
+  const privateKeyPem = await fs.readFile(keyPath);
+  const privateKey = crypto.createPrivateKey(privateKeyPem);
+  return signers.newPrivateKeySigner(privateKey);
+}
