@@ -110,5 +110,18 @@ describe("test DID chaincode", () => {
             let ret = await contract.DIDExists(ctx, didkey);
             expect(ret).to.be.true;
         });
+
+        it("should return false if the DID is not in the ledger", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "definitely:not:in:ledger";
+
+            let ret = await contract.DIDExists(ctx, didkey);
+            expect(ret).to.be.false;
+        });
     });
 });

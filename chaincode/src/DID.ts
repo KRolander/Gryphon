@@ -12,6 +12,7 @@ export default class DID extends Contract {
     // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
+        // TODO Fix bug where DIDExists returns true when DID has not been stored
         const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the world state
         return DIDDocJSON && DIDDocJSON.length > 0;
     }
