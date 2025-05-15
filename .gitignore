@@ -9,3 +9,6 @@ build/
 # Network binaries
 bin/
 builders/
+
+#node-modules
+backend/node_modules
