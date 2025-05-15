@@ -16,6 +16,15 @@ export default class DID extends Contract {
         return DIDDocJSON && DIDDocJSON.length > 0;
     }
 
+    @Transaction(false)
+    async getDIDDoc(ctx: Context, DID: string): Promise<string>{
+        const DIDDocJSON = await  ctx.stub.getState(DID);
+        if (DIDDocJSON.length === 0){
+            throw new Error(`There is no document with DID ${DID}`);
+        }
+        return DIDDocJSON.toString();
+    }
+
     // StoreDID transaction records a new pair of the given DID and DIDDocument to the world state
     @Transaction()
     public async storeDID(
