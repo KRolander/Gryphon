@@ -4,12 +4,12 @@
 To install the necessary prerequisites, go to [Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.5/prereqs.html)
 
 ### Running the example network
-First you need to install the binaries necessary for running the network.
-To install the binaries, run:
+First you need to install the binaries and the docker images necessary for running the network.
+To install binaries and docker images, run:
 
 ```bash
 cd network/example
-./install-fabric.sh --fabric-version 2.5.13 binary
+./install-fabric.sh --fabric-version 2.5.13 docker binary
 ```
 After installing the binaries, to start the network, run
 
