@@ -26,9 +26,10 @@
     "scripts": {
         "start": "fabric-chaincode-node start",
         "lint": "eslint . --ext .ts,.js",
-        "clean": "gts clean",
+        "test": "mocha test/**/*.js --reporter spec",
+        "clean": "rimraf build",
         "compile": "tsc",
         "build": "tsc",
-        "fix": "eslint . --fix"
+        "fix": "eslint . --ext .ts,.js --fix"
     }
 }
