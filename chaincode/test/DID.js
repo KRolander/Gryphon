@@ -1,0 +1,70 @@
+"use strict";
+
+import * as chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
+import chaiAsPromised from "chai-as-promised"
+
+const { expect } = chai;
+const should = chai.should();
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
+
+import { Context } from "fabric-contract-api";
+import { ChaincodeStub  } from "fabric-shim";
+import DIDContract from "../build/src/DID.js";
+// import DIDDocument from "../types/DIDDocument.js";
+import { beforeEach, afterEach, describe, it } from "node:test";
+import stringify from "json-stringify-deterministic";
+
+describe("test DID chaincode", () => {
+
+    let sandbox = sinon.createSandbox();
+    let mockStub;
+
+    beforeEach(() => {
+        mockStub = sandbox.createStubInstance(ChaincodeStub);
+
+        // Mock the method putState, by storing the pair (key, value) on a stubbed data structure
+        mockStub.putState.callsFake((key, value) => {
+            if (!mockStub.states) {
+                mockStub.states = {};
+            }
+            mockStub.states[key] = value;
+        });
+
+        // Mock the method getState, by querying the stubbed dictionary
+        mockStub.getState.callsFake(async (key) => {
+            let ret;
+            if (mockStub.states) {
+                ret = mockStub.states[key];
+            }
+            return Promise.resolve(ret)
+        })
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    describe("Issue a DID", () => {
+
+        it("should register the DID and DID document to the ledger", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "did:hlf:123";
+            let diddoc = {
+                id: "did:hlf:123",
+                valid: true,
+            };
+
+            await contract.storeDID(ctx, didkey, diddoc);
+            expect(mockStub.states[didkey].toString(), "getDIDDoc").to.eql(stringify(diddoc));
+
+        })
+    })
+});
