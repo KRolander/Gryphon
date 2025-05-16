@@ -68,7 +68,18 @@ async function  startGateway() {
           return { deadline: Date.now() + 60000 }; // 1 minute
         },
       });
+
+  try {
+    // Create the network
+    network = gateway.getNetwork(channelName); // Get the network from the gateway
+
+    // Retrieve the contract from the network
+    contract = network.getContract(chaincodeName); // Get the contract from the network
+  } catch (error) {
+    console.error("Error starting gateway:", error); // Log the error
+  }
 }
+
 
 
 // Initializes the client
@@ -123,3 +134,18 @@ async function parseResponse(response){
     const result = JSON.parse(responseJson);
     return result;
 }
+
+function getGateway() {
+  return gateway;
+}
+
+function getContract() {
+  return contract;
+}
+
+module.exports = {
+  startGateway,
+  getGateway,
+  storeDID,
+  getContract,
+};
