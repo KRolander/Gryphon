@@ -1,25 +1,36 @@
 {
     "name": "identity_management_system_chaincode",
     "version": "1.0.0",
-    "main": "index.ts",
-
+    "main": "build/src/index.js",
+    "type": "module",
     "dependencies": {
-        "gts": "^6.0.2",
-        "typescript": "^5.8.3",
-        "@types/node": "^22.7.5",
         "fabric-contract-api": "^2.5.8",
         "fabric-shim": "^2.5.8",
         "json-stringify-deterministic": "^1.0.12",
+        "reflect-metadata": "^0.2.2",
         "sort-keys-recursive": "^2.1.10"
     },
-        "scripts": {
+    "devDependencies": {
+        "@types/node": "^22.7.5",
+        "@typescript-eslint/eslint-plugin": "^8.32.1",
+        "@typescript-eslint/parser": "^8.32.1",
+        "chai": "^5.2.0",
+        "chai-as-promised": "^8.0.1",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-prettier": "^5.4.0",
+        "mocha": "^11.2.2",
+        "sinon": "^20.0.0",
+        "sinon-chai": "^4.0.0",
+        "typescript": "^5.8.3"
+    },
+    "scripts": {
         "start": "fabric-chaincode-node start",
-        "lint": "gts lint",
-        "clean": "gts clean",
+        "lint": "eslint . --ext .ts,.js",
+        "test": "mocha test/**/*.js --reporter spec",
+        "clean": "rimraf build",
         "compile": "tsc",
-        "fix": "gts fix",
-        "prepare": "npm.cmd run compile",
-        "pretest": "npm.cmd run compile",
-        "posttest": "npm.cmd run lint"
+        "build": "tsc",
+        "fix": "eslint . --ext .ts,.js --fix"
     }
 }
