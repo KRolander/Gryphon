@@ -9,7 +9,7 @@ const {
   getGateway,
   storeDID,
   getContract,
-} = require("../gateway/gateway");
+} = require("../gateway");
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
 const utf8Decoder = new TextDecoder();

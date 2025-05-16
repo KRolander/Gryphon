@@ -20,7 +20,7 @@ const {
     keyDirectoryPath,
     certDirectoryPath,
     tlsCertPath
-} = require("../utility/gatewayUtilities"); // TODO Implement gatewayUtilities
+} = require("./utility/gatewayUtilities"); 
 
 //CONFIG
 const channelName = envOrDefault("CHANNEL_NAME", "mychannel"); //the name of the channel from the fabric-network
