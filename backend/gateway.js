@@ -117,19 +117,19 @@ async function newGRPCConnection() {
   return signers.newPrivateKeySigner(privateKey);
 }
 
-async function storeDID(contract,DID,DIDDocument){ //make sure the contract valid
-    const response = contract.submitTransaction('storeDID',DID,DIDDocument);
+async function storeDID(contract, DID, DIDDocument) { //make sure the contract valid
+    const response = contract.submitTransaction('storeDID', DID, DIDDocument);
     return parseResponse(response);
 }
 
-async function getDID(contract,DID){
-    const response = contract.evaluateTransaction('getDIDDoc',DID);
+async function getDID(contract, DID) {
+    const response = contract.evaluateTransaction('getDIDDoc', DID);
     return parseResponse(response);
 }
 
 
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
-async function parseResponse(response){
+async function parseResponse(response) {
     const responseJson = utf8Decoder.decode(response);
     const result = JSON.parse(responseJson);
     return result;
