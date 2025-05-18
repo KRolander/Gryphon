@@ -27,11 +27,25 @@ app.get("/", (req, res) => {
 // register routes
 app.use("/did", didRouter);
 
+const { startGateway, getContract, getNetwork } = require("./gateway");
+
+(async () => {
+  try {
+    const gateway = await startGateway();
+    const network = await getNetwork();
+
+    if (!network) {
+      throw new Error("Fabric network not started. Make sure the network is up.");
+    }
+
+    console.log("✅ Connected to Fabric network.");
+  } catch (err) {
+    console.error("❌ Failed to connect to Fabric network:", err.message);
+    process.exit(1); // Exit the process on failure
+  }
+})();
+
 // start server
 app.listen(port, () => {
   console.log(`Gateway setup`);
 });
-
-//Note for myself: The gateway isn't supposed to start with the application. The gateway only starts when 
-//there is a transaction initiated by the client. In this case (if we check the did.js file), we can see that whenever 
-//the user creates a DID, the startGateway() method is invoked
