@@ -114,14 +114,41 @@ async function newGRPCConnection() {
   return signers.newPrivateKeySigner(privateKey);
 }
 
-async function storeDID(contract, DID, DIDDocument) { //make sure the contract valid
-    const response = contract.submitTransaction('storeDID', DID, DIDDocument);
-    return parseResponse(response);
+async function generateDIDDocument(DID, publicKeyJwk) {
+  const didDoc = new DIDDocument({
+    id: DID,
+    // authentication: [{
+    //     id: "did:hlf:org1:12345#keys-1",
+    //     type: "EcdsaSecp256r1VerificationKey2019",
+    //     publicKeyPem: "<PUBLIC_KEY_PEM>"
+    // }]
+  });
+
+  const didDocJson = didDoc.toJSON();
+  return didDocJson;
+}
+
+async function storeDID(contract) { //make sure the contract valid
+  const DID = `did:hlf:${uuidv4()}`;
+  const DIDDocument = new DIDDocument({
+    id: DID,
+    // authentication: [{
+    //     id: "did:hlf:org1:12345#keys-1",
+    //     type: "EcdsaSecp256r1VerificationKey2019",
+    //     publicKeyPem: "<PUBLIC_KEY_PEM>"
+    // }]
+  });
+
+  //const DIDDocJson = DIDDocument.toJSON();
+  const DIDDocStr = stringify(sortKeysRecursive(DIDDocument));
+
+  contract.submitTransaction('storeDID', DID, DIDDocStr);
+  return DIDDocStr;
 }
 
 async function getDID(contract, DID) {
-    const response = contract.evaluateTransaction('getDIDDoc', DID);
-    return parseResponse(response);
+  const response = contract.evaluateTransaction('getDIDDoc', DID);
+  return parseResponse(response);
 }
 
 
@@ -152,4 +179,5 @@ module.exports = {
   storeDID,
   getContract,
   getNetwork,
+  generateDIDDocument,
 };

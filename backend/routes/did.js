@@ -9,6 +9,7 @@ const {
   getGateway,
   storeDID,
   getContract,
+  generateDIDDocument,
 } = require("../gateway");
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
@@ -23,6 +24,7 @@ router.post("/create", async (req, res, next) => {
     }
 
     // Decode the result
+
     const resultBytes = await storeDID(getContract());
     const resultText = utf8Decoder.decode(resultBytes); // Decode the byte stream to a string
     const result = JSON.parse(JSON.parse(resultText)); // Parse the string to a JSON object
