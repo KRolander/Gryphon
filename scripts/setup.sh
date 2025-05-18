@@ -65,10 +65,13 @@ networkSetup
 #deployCC
 
 #5 - Starting the CLI and installing needed modules
-cd frontendCLI
-npm install bs58 #needed to generate the method identifier for DIDs
+cd frontendCLI || exit
+if [ ! -d "node_modules/bs58" ]; then
+ npm install bs58 #needed to generate the method identifier for DIDs
+fi
+cd ../ #to remain in root
 echo "Starting CLI..."
-node ./frontendCLI/main.mjs #!!!needs node version above 17 to work - install nvm to update
+node frontendCLI/main.mjs #!!!needs node version above 17 to work - install nvm to update
 # node then run
 # export NVM_DIR="$HOME/.nvm"
                 #[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
