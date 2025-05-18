@@ -59,7 +59,7 @@ cd "$ROOTDIR" || exit
 cd ../
 
 # 1 - Network setup
-networkSetup
+# networkSetup
 
 # 2 - Deploy chaincode
 #deployCC
