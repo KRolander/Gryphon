@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline/promises';
 import process from 'node:process';
+import * as utils from './utils.mjs'
 //import script from "path"
 
 async function initialize(){
@@ -35,8 +36,12 @@ async function principalScreen(interf,verifier){
             switch (value2){
                 case "1":
                     console.log('\n');
-                    //did issuing logic methods
-                    didScreen(interf,verifier);//add DID param here
+                    const password = await interf.question("Please provide a password for your DID " +
+                        "(remember to store it securely):"+'\n');
+                    const {publicKey, privateKey} = utils.generateKeys(password);
+                    const DID = utils.createDID();
+
+                    didScreen(interf,verifier,DID);//add DID param here
                     //console.log("This is your DID");//+did after generated above
                     break;
                 case "2":
@@ -55,11 +60,11 @@ async function principalScreen(interf,verifier){
     }
 }
 
-async function didScreen(interf,verifier){
+async function didScreen(interf,verifier, DID){
 
     try{
         while(verifier){
-            const value3 = await interf.question("This is your DID: "+'\n'+'\n'+
+            const value3 = await interf.question("This is your DID: "+DID+'\n'+'\n'+
                 "What do you want to do next?:"+'\n' +
             "1. Go back"+'\n'+
             "2. See DID document"+'\n'+

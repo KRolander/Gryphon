@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-
-source utils.sh
+#TO RUN THE FILE FROM 15b RUN: bash scripts/setup.sh - !!do not forget to open docker desktop
+source "$(dirname "$0")/utils.sh"
 
 # 1 - Network setup, shut down preexisting networks and get a new network running with a channel
 # Should be called from the root directory 15b
@@ -62,4 +62,15 @@ cd ../
 networkSetup
 
 # 2 - Deploy chaincode
-deployCC
+#deployCC
+
+#5 - Starting the CLI and installing needed modules
+cd frontendCLI
+npm install bs58 #needed to generate the method identifier for DIDs
+echo "Starting CLI..."
+node ./frontendCLI/main.mjs #!!!needs node version above 17 to work - install nvm to update
+# node then run
+# export NVM_DIR="$HOME/.nvm"
+                #[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+#and
+                #source ~/.bashrc
