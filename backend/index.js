@@ -31,3 +31,7 @@ app.use("/did", didRouter);
 app.listen(port, () => {
   console.log(`Gateway setup`);
 });
+
+//Note for myself: The gateway isn't supposed to start with the application. The gateway only starts when 
+//there is a transaction initiated by the client. In this case (if we check the did.js file), we can see that whenever 
+//the user creates a DID, the startGateway() method is invoked

@@ -42,10 +42,7 @@ let contract = null;
 //GATEWAY
 
 //Initializes the gateway that will be used for the connection
-async function  startGateway() {
-    if (gateway) {
-        return;
-    }
+async function startGateway() {
 
     const client  = await newGRPCConnection(); // Create a new gRPC connection
 
@@ -143,9 +140,16 @@ function getContract() {
   return contract;
 }
 
+function getNetwork() {
+  console.log(network);
+  console.log(gateway);
+  return network;
+}
+
 module.exports = {
   startGateway,
   getGateway,
   storeDID,
   getContract,
+  getNetwork,
 };

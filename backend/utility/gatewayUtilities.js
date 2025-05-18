@@ -13,11 +13,12 @@ function envOrDefault(key, defaultValue) {
 const cryptoPath = envOrDefault(
   "CRYPTO_PATH",
   path.resolve(
-    __dirname, // demo-hyperledger-fabric/demo-backend/src/utility
-    "..", // demo-hyperledger-fabric/demo-backend/src
-    "..", // demo-hyperledger-fabric/demo-backend
-    "..", // demo-hyperledger-fabric
-    "fabric-samples", // demo-hyperledger-fabric/faric-samples
+    __dirname, // 15b/backend/utility
+    "..", // 15b/backend
+    "..", // 15b
+    "network", // 15b/network
+    "example",
+    "fabric-samples", 
     "test-network",
     "organizations",
     "peerOrganizations",
