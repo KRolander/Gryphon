@@ -11,6 +11,9 @@ const path = require("path"); // Used to resolve the path to the organization's 
 const fs = require("fs/promises");
 const { TextDecoder } = require("util"); // Used to decode the byte arrays from the blockchain
 const { v4: uuidv4 } = require("uuid");
+const stringify = require('fast-json-stable-stringify');
+const sortKeysRecursive = require('sort-keys-recursive');
+
 
 const grpc = require("@grpc/grpc-js"); // gRPC is used to communicate between the gateway and the fabric network
 const { connect, hash, signers } = require("@hyperledger/fabric-gateway"); // SDK used to interact with the fabric network
@@ -21,10 +24,11 @@ const {
     certDirectoryPath,
     tlsCertPath
 } = require("./utility/gatewayUtilities"); 
+//const DIDDocument = require("../chaincode/types/DIDDocument.js");
 
 //CONFIG
 const channelName = envOrDefault("CHANNEL_NAME", "mychannel"); //the name of the channel from the fabric-network
-const chaincodeName = envOrDefault("CHAINCODE_NAME", "basic"); //the chaincode name used to interact with the fabric-network
+const chaincodeName = envOrDefault("CHAINCODE_NAME", "tscc"); //the chaincode name used to interact with the fabric-network
 const mspId = envOrDefault("MSP_ID", "Org1MSP");
 
 // Gateway peer endpoint
@@ -115,6 +119,7 @@ async function newGRPCConnection() {
 }
 
 async function generateDIDDocument(DID, publicKeyJwk) {
+  const { default: DIDDocument } = await import("../chaincode/types/DIDDocument.js");
   const didDoc = new DIDDocument({
     id: DID,
     // authentication: [{
@@ -128,21 +133,11 @@ async function generateDIDDocument(DID, publicKeyJwk) {
   return didDocJson;
 }
 
-async function storeDID(contract) { //make sure the contract valid
-  const DID = `did:hlf:${uuidv4()}`;
-  const DIDDocument = new DIDDocument({
-    id: DID,
-    // authentication: [{
-    //     id: "did:hlf:org1:12345#keys-1",
-    //     type: "EcdsaSecp256r1VerificationKey2019",
-    //     publicKeyPem: "<PUBLIC_KEY_PEM>"
-    // }]
-  });
-
+async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
   //const DIDDocJson = DIDDocument.toJSON();
-  const DIDDocStr = stringify(sortKeysRecursive(DIDDocument));
-
-  contract.submitTransaction('storeDID', DID, DIDDocStr);
+  const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
+ 
+  await contract.submitTransaction('storeDID', DID, DIDDocStr);
   return DIDDocStr;
 }
 

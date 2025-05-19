@@ -1,6 +1,7 @@
 import { createInterface } from 'node:readline/promises';
 import process from 'node:process';
-import * as utils from './utils.mjs'
+import * as utils from './utils.mjs';
+import fetch from 'node-fetch';
 //import script from "path"
 
 async function initialize(){
@@ -40,6 +41,27 @@ async function principalScreen(interf,verifier){
                         "(remember to store it securely):"+'\n');
                     const {publicKey, privateKey} = utils.generateKeys(password);
                     const DID = utils.createDID();
+
+                    const response = await fetch('http://localhost:3000/did/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            DID: DID,
+                            publicKey: publicKey 
+                        }),
+                    });
+
+                    if (response.ok) {
+                        const DIDDocument = await response.json(); 
+                        //console.log("DID Document received:", DIDDocument);
+                        console.log(JSON.stringify(DIDDocument, null, 2));
+                        // Example of accessing fields
+                        console.log("DID:", DIDDocument.id);
+                        console.log("Public Key:", DIDDocument.publicKey);
+                        } else {
+                        const errorText = await response.text();
+                        console.error("Error:", errorText);
+}
 
                     didScreen(interf,verifier,DID);//add DID param here
                     //console.log("This is your DID");//+did after generated above

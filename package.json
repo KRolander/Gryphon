@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "fast-json-stable-stringify": "^2.1.0",
+    "node-fetch": "^3.3.2",
+    "sort-keys-recursive": "^2.1.10"
+  }
+} 

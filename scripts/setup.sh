@@ -59,10 +59,10 @@ cd "$ROOTDIR" || exit
 cd ../
 
 # 1 - Network setup
-# networkSetup
+networkSetup
 
 # 2 - Deploy chaincode
-#deployCC
+deployCC
 
 #5 - Starting the CLI and installing needed modules
 cd frontendCLI || exit
