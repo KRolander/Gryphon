@@ -1,8 +1,9 @@
+import "reflect-metadata";
 import fabricContractApi from "fabric-contract-api";
 const { Contract, Transaction } = fabricContractApi;
 import stringify from "json-stringify-deterministic";
 import sortKeysRecursive from "sort-keys-recursive";
-import type { Context } from "fabric-contract-api";
+import { Context } from "fabric-contract-api";
 import DIDDocument from "../types/DIDDocument.js";
 
 export default class DID extends Contract {
@@ -43,7 +44,7 @@ export default class DID extends Contract {
         // TODO call to method-specific operation
 
         // Check if the DID Document is valid
-        const doc = new DIDDocument(JSON.parse(DIDDoc));
+        const doc = JSON.parse(DIDDoc);
 
         // Put the DID document on the ledger
         await ctx.stub.putState(
