@@ -12,15 +12,14 @@ export default class DID extends Contract {
     // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
-        // TODO Fix bug where DIDExists returns true when DID has not been stored
         const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the world state
         return DIDDocJSON && DIDDocJSON.length > 0;
     }
 
     @Transaction(false)
     async getDIDDoc(ctx: Context, DID: string): Promise<string>{
-        const DIDDocJSON = await  ctx.stub.getState(DID);
-        if (DIDDocJSON.length === 0){
+        const DIDDocJSON= await ctx.stub.getState(DID);
+        if (!DIDDocJSON || DIDDocJSON.length === 0){
             throw new Error(`There is no document with DID ${DID}`);
         }
         return DIDDocJSON.toString();
@@ -31,7 +30,7 @@ export default class DID extends Contract {
     public async storeDID(
         ctx: Context,
         DID: string,
-        DIDDocument: DIDDocument,
+        DIDDoc: string,
     ): Promise<void> {
         // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
@@ -43,10 +42,13 @@ export default class DID extends Contract {
 
         // TODO call to method-specific operation
 
+        // Check if the DID Document is valid
+        const doc = new DIDDocument(JSON.parse(DIDDoc));
+
         // Put the DID document on the ledger
         await ctx.stub.putState(
             DID,
-            Buffer.from(stringify(sortKeysRecursive(DIDDocument))),
+            Buffer.from(stringify(sortKeysRecursive(doc))),
         );
     }
 }

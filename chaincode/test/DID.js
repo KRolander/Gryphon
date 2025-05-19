@@ -16,6 +16,7 @@ import DIDContract from "../build/src/DID.js";
 // import DIDDocument from "../types/DIDDocument.js";
 import { beforeEach, afterEach, describe, it } from "node:test";
 import stringify from "json-stringify-deterministic";
+import sortKeysRecursive from "sort-keys-recursive";
 
 describe("test DID chaincode", () => {
 
@@ -35,11 +36,11 @@ describe("test DID chaincode", () => {
 
         // Mock the method getState, by querying the stubbed dictionary
         mockStub.getState.callsFake(async (key) => {
-            let ret;
+            let ret = {};
             if (mockStub.states) {
-                ret = mockStub.states[key];
+                ret = Buffer.from(stringify(sortKeysRecursive(mockStub.states[key])));
             }
-            return Promise.resolve(ret)
+            return Promise.resolve(ret);
         })
     });
 
@@ -62,6 +63,9 @@ describe("test DID chaincode", () => {
                 valid: true,
             };
 
+            // Turn into a stringified JSON
+            diddoc = stringify(sortKeysRecursive(diddoc));
+
             await contract.storeDID(ctx, didkey, diddoc);
             expect(mockStub.states[didkey].toString(), "getDIDDoc").to.eql(stringify(diddoc));
 
@@ -79,10 +83,13 @@ describe("test DID chaincode", () => {
                 id: didkey,
                 valid: true,
             };
+            diddoc1 = stringify(sortKeysRecursive(diddoc1));
+
             let diddoc2 = {
                 id: didkey,
                 valid: false,
             };
+            diddoc2 = stringify(sortKeysRecursive(diddoc2));
 
             await contract.storeDID(ctx, didkey, diddoc1);
             return contract.storeDID(ctx, didkey, diddoc2)
@@ -104,6 +111,7 @@ describe("test DID chaincode", () => {
                 id: didkey,
                 valid: true,
             };
+            diddoc = stringify(sortKeysRecursive(diddoc));
 
             await contract.storeDID(ctx, didkey, diddoc);
 
