@@ -137,7 +137,7 @@ async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
   //const DIDDocJson = DIDDocument.toJSON();
   const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
  
-  await contract.submitTransaction('storeDID', DID, DIDDocStr);
+  await contract.submitTransaction('storeDID', stringify(DID), DIDDocStr);
   return DIDDocStr;
 }
 
