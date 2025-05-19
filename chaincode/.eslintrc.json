@@ -1,5 +1,15 @@
 {
-    "extends": "./node_modules/gts/",
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+    },
     "rules": {
         "quotes": ["error", "double", { "avoidEscape": true }],
         "object-curly-spacing": ["error", "always"]
