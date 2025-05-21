@@ -52,4 +52,37 @@ export default class DID extends Contract {
             Buffer.from(stringify(sortKeysRecursive(doc))),
         );
     }
+
+    @Transaction()
+    public async updateDIDDoc(
+        ctx: Context,
+        DID: string,
+        DIDDoc: string,
+    ): Promise<void> {
+
+        // The DID Document can only be updated if it was already stored
+        const DIDExists = await this.DIDExists(ctx, DID);
+        if (!DIDExists) {
+            throw new Error(`Cannot update DID Document, the DID ${DID} doesn't exists`);
+        }
+
+        // Retrieve the current DID Document and update the fields
+        const oldDoc = JSON.parse(await this.getDIDDoc(ctx, DID)) as DIDDocument;
+        const changes = JSON.parse(DIDDoc) as Partial<DIDDocument>;
+        const newDoc = { ...oldDoc, ...changes } as DIDDocument;
+
+        // Ensure that the DID subject hasn't been changed
+        if (oldDoc.id !=  newDoc.id) {
+            throw new Error(`Cannot change the DID Subject of the DID ${DID}`);
+        }
+
+        // TODO: ensure that other immutable fields remained unchanged
+
+        // Put the new DID document on the ledger
+        await ctx.stub.putState(
+            DID,
+            Buffer.from(stringify(sortKeysRecursive(newDoc))),
+        );
+
+    }
 }
