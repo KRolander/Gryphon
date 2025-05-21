@@ -1,5 +1,7 @@
 "use strict";
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 import * as chai from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -38,7 +40,7 @@ describe("test DID chaincode", () => {
         mockStub.getState.callsFake(async (key) => {
             let ret = {};
             if (mockStub.states) {
-                ret = Buffer.from(stringify(sortKeysRecursive(mockStub.states[key])));
+                ret = mockStub.states[key];
             }
             return Promise.resolve(ret);
         })
@@ -67,7 +69,7 @@ describe("test DID chaincode", () => {
             diddoc = stringify(sortKeysRecursive(diddoc));
 
             await contract.storeDID(ctx, didkey, diddoc);
-            expect(mockStub.states[didkey].toString(), "getDIDDoc").to.eql(stringify(diddoc));
+            expect(stringify(sortKeysRecursive(JSON.parse(mockStub.states[didkey]))), "getDIDDoc").to.eql(diddoc);
 
         })
 
@@ -130,6 +132,61 @@ describe("test DID chaincode", () => {
 
             let ret = await contract.DIDExists(ctx, didkey);
             expect(ret).to.be.false;
+        });
+    });
+
+    describe("Update a DID Document", () => {
+        it("should update the DID Document associated with an existing DID", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "did:hlf:123";
+            let diddoc1 = {
+                id: didkey,
+                valid: true,
+            };
+            diddoc1 = stringify(sortKeysRecursive(diddoc1));
+
+            let diddoc2 = {
+                id: didkey,
+                valid: false,
+            };
+            diddoc2 = stringify(sortKeysRecursive(diddoc2));
+
+            await contract.storeDID(ctx, didkey, diddoc1);
+            await contract.updateDIDDoc(ctx, didkey, diddoc2);
+
+            expect(stringify(sortKeysRecursive(JSON.parse(mockStub.states[didkey].toString()))), "getDIDDoc").to.eql(diddoc2);
+        });
+
+        it("should throw an error when trying to update DID subject", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey1 = "did:hlf:123";
+            let diddoc1 = {
+                id: didkey1,
+                valid: true,
+            };
+            diddoc1 = stringify(sortKeysRecursive(diddoc1));
+
+            let didkey2 = "did:hlf:invalid";
+            let diddoc2 = {
+                id: didkey2,
+                valid: false,
+            };
+            diddoc2 = stringify(sortKeysRecursive(diddoc2));
+
+            await contract.storeDID(ctx, didkey1, diddoc1);
+
+            return contract.updateDIDDoc(ctx, didkey1, diddoc2)
+                .should.eventually.be.rejectedWith("Cannot change the DID Subject of the DID did:hlf:123");
         });
     });
 });
