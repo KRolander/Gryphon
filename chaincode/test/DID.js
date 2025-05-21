@@ -38,7 +38,7 @@ describe("test DID chaincode", () => {
 
         // Mock the method getState, by querying the stubbed dictionary
         mockStub.getState.callsFake(async (key) => {
-            let ret = {};
+            let ret = [];
             if (mockStub.states) {
                 ret = mockStub.states[key];
             }
@@ -229,6 +229,19 @@ describe("test DID chaincode", () => {
             const reconstructedDoc = stringify(sortKeysRecursive(JSON.parse(retrievedDoc)));
 
             expect(reconstructedDoc).to.be.eql(diddoc);
-        })
+        });
+
+        it("should throw an error when retrieving a non-existing DID", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "definitely:not:in:ledger";
+
+            return contract.getDIDDoc(ctx, didkey)
+                .should.eventually.be.rejectedWith("There is no document with DID definitely:not:in:ledger");
+        });
     });
 });
