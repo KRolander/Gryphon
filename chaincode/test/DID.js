@@ -188,5 +188,23 @@ describe("test DID chaincode", () => {
             return contract.updateDIDDoc(ctx, didkey1, diddoc2)
                 .should.eventually.be.rejectedWith("Cannot change the DID Subject of the DID did:hlf:123");
         });
+
+        it("should throw an error when updating a non-existing DID", async () => {
+            let contract = new DIDContract();
+            should.exist(contract);
+
+            let ctx = new Context();
+            ctx.stub = mockStub;
+
+            let didkey = "did:hlf:123";
+            let diddoc = {
+                id: didkey,
+                valid: true,
+            };
+            diddoc = stringify(sortKeysRecursive(diddoc));
+
+            return contract.updateDIDDoc(ctx, didkey, diddoc)
+                .should.eventually.be.rejectedWith("Cannot update DID Document, the DID did:hlf:123 doesn't exists");
+        });
     });
 });
