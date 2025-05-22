@@ -96,6 +96,20 @@ async function didScreen(interf,verifier, DID){
                     principalScreen(interf,verifier);
                     break;
                 case "2":
+                    //TODO: move this so it flows well with the logic of the CLI
+                    try {
+                        const response = await fetch(`http://localhost:3000/did/getDIDDoc/${encodeURIComponent(DID)}`);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        console.log("✅ DID Document:", data);
+                        } catch (err) {
+                        console.error("❌ Failed to fetch DID:", err.message);
+                    }
+
                     docScreen(interf,verifier);//+DID document
                     break;
                 case "3":

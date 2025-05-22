@@ -9,15 +9,20 @@ const {
   startGateway,
   getGateway,
   storeDID,
-  getContract,
-  generateDIDDocument,
+  getContract, 
+  getDIDDoc
 } = require("../gateway");
+
+const { createDIDDocument } = require("../utility/DIDUtils");
+const DIDDocument = require('../../utils/DIDDocumentBuilder.js');
+const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
+
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
 const utf8Decoder = new TextDecoder();
 
 router.post("/create", async (req, res, next) => {
-
+  //TODO: create the DID somewhere around here
   try {
     // Check if the gateway is already started
     if (getGateway() == null) {
@@ -28,12 +33,8 @@ router.post("/create", async (req, res, next) => {
     if (!DID || !publicKey) {
       return res.status(400).send("DID is required");
     }
-
-    const doc = {
-      id: DID,
-      "@context": "...", // if needed
-      valid: true        // if needed
-    };
+    const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
+    const doc = docBuilder.build();
 
     const resultBytes = await storeDID(getContract(), DID, doc);
     // const resultText = utf8Decoder.decode(resultBytes); // Decode the byte stream to a string
@@ -48,6 +49,24 @@ router.post("/create", async (req, res, next) => {
     res.status(500).send("Error storing DID on the blockchain"); // Send an error message to the client
   }
   next();
+});
+
+router.get("/getDIDDoc/:did", async (req, res) => {
+  try {
+    const DID = req.params.did;
+
+    if(!DID) return res.status(400).send("DID is required");
+
+    if(getGateway() == null) 
+      await startGateway();
+
+    const doc = await getDIDDoc(getContract(), DID);
+
+    res.status(200).json(doc);
+  } catch (error) {
+    console.error("Error retriving the document from blockchain:", error);
+    res.status(500).send("Error querying DID from blockchain");
+  }
 });
 
 module.exports = router;

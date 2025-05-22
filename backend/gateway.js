@@ -14,7 +14,6 @@ const { v4: uuidv4 } = require("uuid");
 const stringify = require('fast-json-stable-stringify');
 const sortKeysRecursive = require('sort-keys-recursive');
 
-
 const grpc = require("@grpc/grpc-js"); // gRPC is used to communicate between the gateway and the fabric network
 const { connect, hash, signers } = require("@hyperledger/fabric-gateway"); // SDK used to interact with the fabric network
 
@@ -141,8 +140,8 @@ async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
   return DIDDocStr;
 }
 
-async function getDID(contract, DID) {
-  const response = contract.evaluateTransaction('getDIDDoc', DID);
+async function getDIDDoc(contract, DID) {
+  const response = await contract.evaluateTransaction('getDIDDoc', stringify(DID));
   return parseResponse(response);
 }
 
@@ -175,4 +174,5 @@ module.exports = {
   getContract,
   getNetwork,
   generateDIDDocument,
+  getDIDDoc
 };
