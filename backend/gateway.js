@@ -141,8 +141,8 @@ async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
   return DIDDocStr;
 }
 
-async function getDID(contract, DID) {
-  const response = await contract.evaluateTransaction('getDIDDoc', DID);
+async function getDIDDoc(contract, DID) {
+  const response = await contract.evaluateTransaction('getDIDDoc', stringify(DID));
   return parseResponse(response);
 }
 
@@ -175,4 +175,5 @@ module.exports = {
   getContract,
   getNetwork,
   generateDIDDocument,
+  getDIDDoc
 };
