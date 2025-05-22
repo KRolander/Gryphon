@@ -14,6 +14,8 @@ const {
 } = require("../gateway");
 
 const { createDIDDocument } = require("../utility/DIDUtils");
+const DIDDocument = require('../../utils/DIDDocumentBuilder.js');
+const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
 
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
@@ -31,8 +33,8 @@ router.post("/create", async (req, res, next) => {
     if (!DID || !publicKey) {
       return res.status(400).send("DID is required");
     }
-
-    const doc = await createDIDDocument(DID, DID, publicKey);
+    const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
+    const doc = docBuilder.build();
 
     const resultBytes = await storeDID(getContract(), DID, doc);
     // const resultText = utf8Decoder.decode(resultBytes); // Decode the byte stream to a string

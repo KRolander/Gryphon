@@ -14,7 +14,6 @@ const { v4: uuidv4 } = require("uuid");
 const stringify = require('fast-json-stable-stringify');
 const sortKeysRecursive = require('sort-keys-recursive');
 
-
 const grpc = require("@grpc/grpc-js"); // gRPC is used to communicate between the gateway and the fabric network
 const { connect, hash, signers } = require("@hyperledger/fabric-gateway"); // SDK used to interact with the fabric network
 
