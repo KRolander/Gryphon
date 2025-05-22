@@ -142,7 +142,7 @@ async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
 }
 
 async function getDID(contract, DID) {
-  const response = contract.evaluateTransaction('getDIDDoc', DID);
+  const response = await contract.evaluateTransaction('getDIDDoc', DID);
   return parseResponse(response);
 }
 

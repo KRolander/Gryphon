@@ -10,8 +10,10 @@ const {
   getGateway,
   storeDID,
   getContract,
-  generateDIDDocument,
 } = require("../gateway");
+
+const { createDIDDocument } = require("../utility/DIDUtils");
+
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
 const utf8Decoder = new TextDecoder();
@@ -29,11 +31,7 @@ router.post("/create", async (req, res, next) => {
       return res.status(400).send("DID is required");
     }
 
-    const doc = {
-      id: DID,
-      "@context": "...", // if needed
-      valid: true        // if needed
-    };
+    const doc = await createDIDDocument(DID, DID, publicKey);
 
     const resultBytes = await storeDID(getContract(), DID, doc);
     // const resultText = utf8Decoder.decode(resultBytes); // Decode the byte stream to a string
