@@ -12,5 +12,5 @@ export default class DIDDocument {
         if (data["@context"] !== undefined) this["@context"] = data["@context"];
         if (data.valid !== undefined) this.valid = data.valid;
     }
-
+ 
 }
