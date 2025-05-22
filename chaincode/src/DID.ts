@@ -68,6 +68,10 @@ export default class DID extends Contract {
 
         // Retrieve the current DID Document and update the fields
         const oldDoc = JSON.parse(await this.getDIDDoc(ctx, DID)) as DIDDocument;
+
+        // TODO: prompt authentication to verify that the user is the DID controller
+        // TODO: throw an error if unauthorized
+
         const changes = JSON.parse(DIDDoc) as Partial<DIDDocument>;
         const newDoc = { ...oldDoc, ...changes } as DIDDocument;
 
