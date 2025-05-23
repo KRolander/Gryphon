@@ -47,7 +47,7 @@ let contract = null;
 //Initializes the gateway that will be used for the connection
 async function startGateway() {
 
-    const client  = await newGRPCConnection(); // Create a new gRPC connection
+    const client = await newGRPCConnection(); // Create a new gRPC connection
 
     gateway = connect({
         client,
@@ -117,21 +117,6 @@ async function newGRPCConnection() {
   return signers.newPrivateKeySigner(privateKey);
 }
 
-async function generateDIDDocument(DID, publicKeyJwk) {
-  const { default: DIDDocument } = await import("../chaincode/types/DIDDocument.js");
-  const didDoc = new DIDDocument({
-    id: DID,
-    // authentication: [{
-    //     id: "did:hlf:org1:12345#keys-1",
-    //     type: "EcdsaSecp256r1VerificationKey2019",
-    //     publicKeyPem: "<PUBLIC_KEY_PEM>"
-    // }]
-  });
-
-  const didDocJson = didDoc.toJSON();
-  return didDocJson;
-}
-
 async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
   //const DIDDocJson = DIDDocument.toJSON();
   const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
@@ -173,6 +158,5 @@ module.exports = {
   storeDID,
   getContract,
   getNetwork,
-  generateDIDDocument,
   getDIDDoc
 };
