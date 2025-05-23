@@ -1,0 +1,11 @@
+image: node:20
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - cd backend
+    - npm ci
+    - npm test
