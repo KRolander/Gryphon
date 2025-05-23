@@ -5,9 +5,12 @@ source "$(dirname "$0")/utils.sh"
 # 1 - Network setup, shut down preexisting networks and get a new network running with a channel
 # Should be called from the root directory 15b
 function networkSetup() {
+  cd "network/example" || exit 
+
+  ./install-fabric.sh
 
   # Access the directory that contains the network.sh script
-  cd "network/example/fabric-samples/test-network" || exit
+  cd "fabric-samples/test-network" || exit
 
   # Shut down the network - start from clean slate
   ./network.sh down
