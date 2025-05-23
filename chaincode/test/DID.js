@@ -25,8 +25,14 @@ describe("test DID chaincode", () => {
     let sandbox = sinon.createSandbox();
     let mockStub;
 
+    // Explain
+    let contract = new DIDContract();
+    let ctx = new Context();
+
     beforeEach(() => {
+        should.exist(contract);
         mockStub = sandbox.createStubInstance(ChaincodeStub);
+        ctx.stub = mockStub;
 
         // Mock the method putState, by storing the pair (key, value) on a stubbed data structure
         mockStub.putState.callsFake((key, value) => {
@@ -44,6 +50,8 @@ describe("test DID chaincode", () => {
             }
             return Promise.resolve(ret);
         })
+
+        // TODO: Mock delete
     });
 
     afterEach(() => {
@@ -51,14 +59,7 @@ describe("test DID chaincode", () => {
     });
 
     describe("Store a DID", () => {
-
         it("should register the DID and DID document to the ledger", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "did:hlf:123";
             let diddoc = {
                 id: didkey,
@@ -74,12 +75,6 @@ describe("test DID chaincode", () => {
         })
 
         it("should throw an error if the DID is already in the ledger", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "did:hlf:123";
             let diddoc1 = {
                 id: didkey,
@@ -100,13 +95,7 @@ describe("test DID chaincode", () => {
     });
 
     describe("Check if a DID exists", () => {
-
         it("should return true if the DID was stored in the ledger", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
 
             let didkey = "did:hlf:123";
             let diddoc = {
@@ -122,11 +111,6 @@ describe("test DID chaincode", () => {
         });
 
         it("should return false if the DID is not in the ledger", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
 
             let didkey = "definitely:not:in:ledger";
 
@@ -137,12 +121,6 @@ describe("test DID chaincode", () => {
 
     describe("Update a DID Document", () => {
         it("should update the DID Document associated with an existing DID", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "did:hlf:123";
             let diddoc1 = {
                 id: didkey,
@@ -163,12 +141,6 @@ describe("test DID chaincode", () => {
         });
 
         it("should throw an error when trying to update DID subject", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey1 = "did:hlf:123";
             let diddoc1 = {
                 id: didkey1,
@@ -190,12 +162,6 @@ describe("test DID chaincode", () => {
         });
 
         it("should throw an error when updating a non-existing DID", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "did:hlf:123";
             let diddoc = {
                 id: didkey,
@@ -210,12 +176,6 @@ describe("test DID chaincode", () => {
 
     describe("Retrieve a DID Document", () => {
         it("should retrieve the document correctly, after it had been stored", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "did:hlf:123";
             let diddoc = {
                 id: didkey,
@@ -232,16 +192,14 @@ describe("test DID chaincode", () => {
         });
 
         it("should throw an error when retrieving a non-existing DID", async () => {
-            let contract = new DIDContract();
-            should.exist(contract);
-
-            let ctx = new Context();
-            ctx.stub = mockStub;
-
             let didkey = "definitely:not:in:ledger";
 
             return contract.getDIDDoc(ctx, didkey)
                 .should.eventually.be.rejectedWith("There is no document with DID definitely:not:in:ledger");
         });
+    });
+
+    describe("Deleting a DID", () => {
+
     });
 });
