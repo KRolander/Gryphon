@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon ./index.js"
   },
   "author": "",
@@ -15,12 +15,13 @@
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "uuid": "^11.1.0",
     "fast-json-stable-stringify": "^2.1.0",
     "node-fetch": "^3.3.2",
-    "sort-keys-recursive": "^2.1.10"
+    "sort-keys-recursive": "^2.1.10",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.10"
   }
 }
