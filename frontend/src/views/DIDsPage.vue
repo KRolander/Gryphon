@@ -128,8 +128,9 @@ export default {
       if (this.valid) {
         //0. Create keys
         const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
+        const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
         // 1. Send to backend
-        const res = await DIDService.createDID(publicKey);
+        const res = await DIDService.createDID(publicKeyBase64);
         console.log(res.data);
 
 
