@@ -160,7 +160,6 @@ export default {
       const publicKey = await window.crypto.subtle.exportKey("spki",keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
       const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
 
-
       return {publicKey,privateKey};
     }
   },

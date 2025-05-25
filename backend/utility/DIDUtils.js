@@ -1,3 +1,5 @@
+const bs58= require('bs58');
+const crypto= require ('node:crypto');
 async function createDIDDocument(DID, controller, publicKey) {
     const doc = {
         "@context": "https://www.w3.org/ns/did/v1",
@@ -30,7 +32,7 @@ async function createDIDDocument(DID, controller, publicKey) {
 }
 
 async function createDID(){
-    const randomString = base58Generator.encode(crypto.randomBytes(16));
+    const randomString = bs58.default.encode(Buffer.from(crypto.randomBytes(16)));
     return 'did:hlf:'+randomString;
 }
 
