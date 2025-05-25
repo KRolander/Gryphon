@@ -29,6 +29,12 @@ async function createDIDDocument(DID, controller, publicKey) {
     return doc;
 }
 
+async function createDID(){
+    const randomString = base58Generator.encode(crypto.randomBytes(16));
+    return 'did:hlf:'+randomString;
+}
+
 module.exports = {
-    createDIDDocument
+    createDIDDocument,
+    createDID
 }

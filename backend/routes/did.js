@@ -13,7 +13,7 @@ const {
   getDIDDoc
 } = require("../gateway");
 
-const { createDIDDocument } = require("../utility/DIDUtils");
+const { createDID } = require("../utility/DIDUtils");
 const DIDDocument = require('../../utils/DIDDocumentBuilder.js');
 const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
 
@@ -29,10 +29,11 @@ router.post("/create", async (req, res, next) => {
       await startGateway();
     }
 
-    const { DID, publicKey } = req.body;
-    if (!DID || !publicKey) {
-      return res.status(400).send("DID is required");
+    const { publicKey } = req.body;
+    if (!publicKey) {
+      return res.status(400).send("Public key is required");
     }
+    const DID = await createDID();
     const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
     const doc = docBuilder.build();
 
@@ -43,7 +44,7 @@ router.post("/create", async (req, res, next) => {
     //const DID = `did:hlf:${result.org}_${result.methodID}`; // Create the DID from the result
 
     console.log(`DID ${DID} stored successfully!`); // Log the transaction
-    res.status(200).send(doc); // Send the DID to the client
+    res.status(200).send(DID); // Send the DID to the client
   } catch (error) {
     console.log(error);
     res.status(500).send("Error storing DID on the blockchain"); // Send an error message to the client
