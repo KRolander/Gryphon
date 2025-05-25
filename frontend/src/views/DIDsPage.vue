@@ -126,11 +126,12 @@ export default {
     // Method to handle the creation of a new DID
     async createDID() {
       if (this.valid) {
+        //0. Create keys
+        const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
         // 1. Send to backend
-        const res = await DIDService.createDID(this.newDIDname)
-        console.log(res.data)
+        const res = await DIDService.createDID(publicKey);
+        console.log(res.data);
 
-        // Check if the response has a public key
 
         // 2. Add to the list
         this.DIDs.push({ name: this.newDIDname, did: res.data});
@@ -143,6 +144,24 @@ export default {
         this.dialogOpen = false;
       }
     },
+
+    async generateKeys(){
+      const keyPair = await window.crypto.subtle.generateKey(
+          {
+            name: "ECDSA",
+            namedCurve: "P-256",
+          },
+          true, //used for being able to export the key
+          ["sign","verify"]
+
+      )
+      //both are arrayBuffers:
+      const publicKey = await window.crypto.subtle.exportKey("spki",keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
+      const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
+
+
+      return {publicKey,privateKey};
+    }
   },
   computed: {
     emptyDIDList() {
