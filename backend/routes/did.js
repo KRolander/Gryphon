@@ -9,7 +9,7 @@ const {
   startGateway,
   getGateway,
   storeDID,
-  getContract, 
+  getContract,
   getDIDDoc,
   updateDIDDoc
 } = require("../gateway");
@@ -55,14 +55,14 @@ router.get("/getDIDDoc/:did", async (req, res) => {
 
     if(!DID) return res.status(400).send("DID is required");
 
-    if(getGateway() == null) 
+    if(getGateway() == null)
       await startGateway();
 
     const doc = await getDIDDoc(getContract(), DID);
 
     res.status(200).json(doc);
   } catch (error) {
-    console.error("Error retriving the document from blockchain:", error);
+    console.error("Error retrieving the document from blockchain:", error);
     res.status(500).send("Error querying DID from blockchain");
   }
 });
@@ -73,22 +73,22 @@ router.patch("updateDIDDoc/addController/:did", async (req, res) => {
     const targetDID = req.params.did;
     const { operation, newController } = req.body;
     if(!targetDID || !operation || !newController)
-      res.status(400).send("Inalid request");
+      res.status(400).send("Invalid request");
     if(operation == "addController") {
       //retrieve the targetDID document
       let doc = await getDIDDoc(getContract(), DID);
 
       //could also check if the DID we want to add as a controller exists
 
-      doc.cotrollers.push(newController);
+      doc.controllers.push(newController);
 
       addDIDController(getContract(), targetDID, doc);
-      res.status(200).send("Controller added succesfully");
+      res.status(200).send("Controller added successfully");
     } else {
       res.status(400).send("Not yet implemented or operation not allowed");
     }
   } catch(error) {
-    console.error("Error retriving the document from blockchain:", error);
+    console.error("Error retrieving the document from blockchain:", error);
     res.status(500).send("Error querying DID from blockchain");
   }
 });
