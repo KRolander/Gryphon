@@ -17,6 +17,7 @@ export default class DID extends Contract {
         return DIDDocJSON && DIDDocJSON.length > 0;
     }
 
+    // Returns the DID Document if it exists
     @Transaction(false)
     async getDIDDoc(ctx: Context, DID: string): Promise<string>{
         const DIDDocJSON= await ctx.stub.getState(DID);
@@ -88,5 +89,19 @@ export default class DID extends Contract {
             Buffer.from(stringify(sortKeysRecursive(newDoc))),
         );
 
+    }
+
+    @Transaction()
+    public async deleteDID(ctx: Context, DID: string): Promise<void> {
+        // TODO: Add authentication to make sure that the user is the controller of the DID
+        // Check if the DID Document exists
+        const DIDExists = await this.DIDExists(ctx, DID);
+        if (!DIDExists) {
+            throw new Error(`Cannot delete the DID ${DID}, it doesn't exist`);
+        }
+
+        await ctx.stub.deleteState(
+            DID
+        );
     }
 }
