@@ -6,6 +6,6 @@ async function createDID(){
     return 'did:hlf:'+randomString;
 }
 
-module.exports = {
+module.exports = { 
     createDID
 }
