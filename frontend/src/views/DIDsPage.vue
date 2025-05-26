@@ -91,7 +91,7 @@
                   <span v-else>Show DID document</span>
                 </v-btn>
               </v-card-actions>
-              <v-card class="mb-4 mt-4">
+              <v-card class="mb-4 mt-4" color="grey-lighten-1">
                 <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
                      style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
                   {{ JSON.stringify(didDoc[DID.did], null, 2) }}
