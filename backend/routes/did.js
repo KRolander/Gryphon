@@ -10,7 +10,8 @@ const {
   getGateway,
   storeDID,
   getContract, 
-  getDIDDoc
+  getDIDDoc,
+  updateDIDDoc
 } = require("../gateway");
 
 const { createDID } = require("../utility/DIDUtils");
@@ -38,10 +39,6 @@ router.post("/create", async (req, res, next) => {
     const doc = docBuilder.build();
 
     const resultBytes = await storeDID(getContract(), DID, doc);
-    // const resultText = utf8Decoder.decode(resultBytes); // Decode the byte stream to a string
-    // const result = JSON.parse(JSON.parse(resultText)); // Parse the string to a JSON object
-
-    //const DID = `did:hlf:${result.org}_${result.methodID}`; // Create the DID from the result
 
     console.log(`DID ${DID} stored successfully!`); // Log the transaction
     res.status(200).send(DID); // Send the DID to the client
@@ -65,6 +62,32 @@ router.get("/getDIDDoc/:did", async (req, res) => {
 
     res.status(200).json(doc);
   } catch (error) {
+    console.error("Error retriving the document from blockchain:", error);
+    res.status(500).send("Error querying DID from blockchain");
+  }
+});
+
+router.patch("updateDIDDoc/addController/:did", async (req, res) => {
+
+  try {
+    const targetDID = req.params.did;
+    const { operation, newController } = req.body;
+    if(!targetDID || !operation || !newController)
+      res.status(400).send("Inalid request");
+    if(operation == "addController") {
+      //retrieve the targetDID document
+      let doc = await getDIDDoc(getContract(), DID);
+
+      //could also check if the DID we want to add as a controller exists
+
+      doc.cotrollers.push(newController);
+
+      addDIDController(getContract(), targetDID, doc);
+      res.status(200).send("Controller added succesfully");
+    } else {
+      res.status(400).send("Not yet implemented or operation not allowed");
+    }
+  } catch(error) {
     console.error("Error retriving the document from blockchain:", error);
     res.status(500).send("Error querying DID from blockchain");
   }

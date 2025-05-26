@@ -1,7 +1,7 @@
 interface VerificationMethod {
     id: string;
     type: string;
-    controller: string;
+    controllers: string;
     publicKeyBase58: string;
 }
 
@@ -14,7 +14,7 @@ interface Service {
 interface DIDDocument {
     "@context": string;
     id: string;
-    controller: string;
+    controllers: string[] | string;
     verificationMethod: VerificationMethod[];
     authentication: string[];
     assertionMethod: string[];
@@ -23,12 +23,12 @@ interface DIDDocument {
 
 export default class DIDDocumentBuilder {
     private DID: string;
-    private controller: string;
+    private controllers: string[];
     private publicKey: string;
 
-    constructor(DID: string, controller: string, publicKey: string) {
+    constructor(DID: string, controllers: string[] | string, publicKey: string) {
         this.DID = DID;
-        this.controller = controller;
+         this.controllers = Array.isArray(controllers) ? controllers : [controllers];
         this.publicKey = publicKey;
     }
 
@@ -38,12 +38,12 @@ export default class DIDDocumentBuilder {
         return {
             "@context": "https://www.w3.org/ns/did/v1",
             id: this.DID,
-            controller: this.controller,
+            controllers: this.controllers.length === 1 ? this.controllers[0] : this.controllers,
             verificationMethod: [
                 {
                     id: keyId,
                     type: "to be", 
-                    controller: this.controller,
+                    controllers: this.controllers[0],
                     publicKeyBase58: this.publicKey
                 }
             ],
