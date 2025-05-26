@@ -85,6 +85,18 @@
               <v-card-subtitle class="text-body-1 font-weight-light mb-4">
                 {{ DID.did }}
               </v-card-subtitle>
+              <v-card-actions>
+                <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)" >
+                  <span v-if="showHideToggle[DID.did]">Hide document</span>
+                  <span v-else>Show DID document</span>
+                </v-btn>
+              </v-card-actions>
+              <v-card class="mb-4 mt-4" color="grey-lighten-1">
+                <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
+                     style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
+                  {{ JSON.stringify(didDoc[DID.did], null, 2) }}
+                </pre>
+              </v-card>
             </v-card>
           </v-card-text>
         </v-card>
@@ -108,6 +120,8 @@ export default {
       dialogOpen: false,
       valid: false,
       newDIDname: "",
+      showHideToggle: {},
+      didDoc: {},
       DIDNameRules: [
         value => {
           if (value) return true
@@ -161,7 +175,21 @@ export default {
       const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
 
       return {publicKey,privateKey};
-    }
+    },
+
+    async getDIDDocument(DID){
+        if (this.showHideToggle[DID]){
+          this.showHideToggle[DID]=false;
+          this.didDoc[DID]=null;
+          return;
+        }
+        // 1. Send to backend
+        const res = await DIDService.getDIDDoc(DID);
+        this.showHideToggle[DID]=true;
+        this.didDoc[DID]=res.data;
+        console.log(res.data);
+      },
+
   },
   computed: {
     emptyDIDList() {

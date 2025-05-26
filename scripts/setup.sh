@@ -5,9 +5,9 @@ source "$(dirname "$0")/utils.sh"
 # 1 - Network setup, shut down preexisting networks and get a new network running with a channel
 # Should be called from the root directory 15b
 function networkSetup() {
-  cd "network/example" || exit 
+  cd "network/example" || exit
 
-  ./install-fabric.sh
+  ./install-fabric.sh --fabric-version 2.5.13 docker binary
 
   # Access the directory that contains the network.sh script
   cd "fabric-samples/test-network" || exit
