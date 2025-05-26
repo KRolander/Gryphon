@@ -135,6 +135,10 @@ async function addDIDController(contract, DID, DIDDoc) {
   return parseResponse(response);
 }
 
+async function deleteDID(contract, DID) {
+  await contract.submitTransaction('deleteDID', DID);
+}
+
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
 async function parseResponse(response) {
     const responseJson = utf8Decoder.decode(response);
@@ -163,5 +167,6 @@ module.exports = {
   getContract,
   getNetwork,
   getDIDDoc, 
-  addDIDController
+  addDIDController, 
+  deleteDID
 };
