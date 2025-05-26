@@ -16,7 +16,7 @@ import { Context } from "fabric-contract-api";
 import { ChaincodeStub  } from "fabric-shim";
 import DIDContract from "../build/src/DID.js";
 // import DIDDocument from "../types/DIDDocument.js";
-import { beforeEach, afterEach, describe, it, mock } from "node:test";
+import { beforeEach, afterEach, describe, it } from "node:test";
 import stringify from "json-stringify-deterministic";
 import sortKeysRecursive from "sort-keys-recursive";
 
