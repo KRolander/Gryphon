@@ -16,16 +16,17 @@ import { Context } from "fabric-contract-api";
 import { ChaincodeStub  } from "fabric-shim";
 import DIDContract from "../build/src/DID.js";
 // import DIDDocument from "../types/DIDDocument.js";
-import { beforeEach, afterEach, describe, it } from "node:test";
+import { beforeEach, afterEach, describe, it, mock } from "node:test";
 import stringify from "json-stringify-deterministic";
 import sortKeysRecursive from "sort-keys-recursive";
 
 describe("test DID chaincode", () => {
 
+    // Initiate our sandbox for mocking
     let sandbox = sinon.createSandbox();
     let mockStub;
 
-    // Explain
+    // Instantiate a Fabric Contract and Context
     let contract = new DIDContract();
     let ctx = new Context();
 
@@ -49,9 +50,14 @@ describe("test DID chaincode", () => {
                 ret = mockStub.states[key];
             }
             return Promise.resolve(ret);
-        })
+        });
 
-        // TODO: Mock delete
+        // Mock the method deleteState, by removing the entry from the stubbed dictionary
+        mockStub.deleteState.callsFake(async (key) => {
+            if (mockStub.states) {
+                delete mockStub.states[key];
+            }
+        });
     });
 
     afterEach(() => {
@@ -199,7 +205,29 @@ describe("test DID chaincode", () => {
         });
     });
 
-    describe("Deleting a DID", () => {
+    describe("Delete a DID - DID Document pair", () => {
+        it("should delete the document correctly", async () => {
+            let didKey = "did:hlf:toBeRemoved";
+            let didDoc = {
+                id: didKey,
+                valid: true
+            }
+            
+            didDoc = stringify(sortKeysRecursive(didDoc));
 
+            await contract.storeDID(ctx, didKey, didDoc);
+
+            await contract.deleteDID(ctx, didKey);
+            
+            const exists = await contract.DIDExists(ctx, didKey);
+
+            expect(exists).to.be.false;
+        });
+
+        it("should throw an error when deleting a non existent document", async () => {
+            let didKey = "did:hlf:doesNotExist";
+
+            return contract.deleteDID(ctx, didKey).should.eventually.be.rejectedWith("Cannot delete the DID did:hlf:doesNotExist, it doesn't exist");
+        });
     });
 });

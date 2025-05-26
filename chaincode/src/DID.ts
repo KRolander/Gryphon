@@ -14,7 +14,10 @@ export default class DID extends Contract {
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
         const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the world state
-        return DIDDocJSON && DIDDocJSON.length > 0;
+        if (DIDDocJSON && DIDDocJSON.length > 0) {
+            return true;
+        }
+        return false;
     }
 
     // Returns the DID Document if it exists
