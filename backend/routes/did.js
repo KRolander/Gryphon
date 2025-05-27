@@ -59,11 +59,14 @@ router.get("/getDIDDoc/:did", async (req, res) => {
     if(getGateway() == null)
       await startGateway();
 
+    console.log("Retrieving DID document...");
+
     const doc = await getDIDDoc(getContract(), DID);
 
+    console.log(`✅ DID document for ${DID} retrieved succesfully!`);
     res.status(200).json(doc);
   } catch (error) {
-    console.error("Error retrieving the document from blockchain:", error);
+    console.error("❌ Error retrieving the document from blockchain:", error);
     res.status(500).send("Error querying DID from blockchain");
   }
 });
