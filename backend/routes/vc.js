@@ -1,7 +1,6 @@
 /*----------IMOPRTS----------*/
 const { createVerify } = require('crypto');
 const canonicalize = require('canonicalize');
-
 /**
  * This function is only meant to verify the signature
  * of to make sure that it is valid. Later, the issuer will 
@@ -10,7 +9,7 @@ const canonicalize = require('canonicalize');
  * @param {string} public 
  * @returns {boolean} True if the VC is valid, false otherwise
  */
-async function verifyVCValidity(vc, publicKey) {
+async function validateVC(vc, publicKey) {
     const { proof, ...rest } = vc;
     if(!proof || !proof.signatureValue) {
         throw new Error('Missing or invalid proof');

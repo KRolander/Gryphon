@@ -2,7 +2,7 @@ interface VerificationMethod {
     id: string;
     type: string;
     controller: string;
-    publicKeyBase58: string;
+    publicKeyPem: string;
 }
 
 interface Service {
@@ -24,12 +24,12 @@ interface DIDDocument {
 export default class DIDDocumentBuilder {
     private DID: string;
     private controller: string;
-    private publicKey: string;
+    private publicKeyPem: string;
 
     constructor(DID: string, controller: string, publicKey: string) {
         this.DID = DID;
         this.controller = controller;
-        this.publicKey = publicKey;
+        this.publicKeyPem = publicKey;
     }
 
     build(): DIDDocument {
@@ -41,10 +41,10 @@ export default class DIDDocumentBuilder {
             controller: this.controller,
             verificationMethod: [
                 {
-                    id: keyId,
-                    type: "ECDSA", 
-                    controller: this.controller,
-                    publicKeyBase58: this.publicKey
+                    id: `${this.controller}#keys-1`,         
+                    type: "EcdsaSecp256r1VerificationKey2019", 
+                    controller: this.controller,             
+                    publicKeyPem: this.publicKeyPem  
                 }
             ],
             authentication: [keyId],

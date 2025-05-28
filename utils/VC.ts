@@ -1,5 +1,3 @@
-import { JWTPayload } from 'did-jwt';
-
 interface CredentialSubject {
   id: string // the DID of the holder
   [claim: string]: unknown;
@@ -13,16 +11,23 @@ interface Proof {
   signatureValue: string; // the actual signature
 }
 
-// Check https://www.w3.org/TR/vc-data-model/#jwt-encoding 
-// for explanation related to the fields 
+/**
+ * The signed VC
+ */
 interface VerifiableCredential<T extends CredentialSubject = CredentialSubject> {
+  unsignedVC: UnsignedVC;
+  proof: Proof;
+}
+
+/**
+ * Unsigned version of the VC
+ */
+interface UnsignedVC<T extends CredentialSubject = CredentialSubject> {
   "@context": "https://www.w3.org/2018/credentials/v1";
   type: string | string[]; // must include VerifiableCredential
   issuer: string;  // the DID of the issuer
   issuanceDate: string; // ISO 8601 format
-  // expirationDate?: string; 
   credentialSubject: T;
-  proof: Proof;
 }
 
 interface VerifiablePresentation {
@@ -33,28 +38,42 @@ interface VerifiablePresentation {
   proof: Proof;
 }
 
-export class VCBuilder<T extends CredentialSubject> {
+export class UnsignedVCBuilder<T extends CredentialSubject> {
   private issuer: string;
   private vcType: string | string[];
   private issuanceDate: string;
   private credentialSubject: T;
-  private proof: Proof;
 
-  constructor(vcType: string | string[], issuanceDate: string, issuer: string, subject: T, proof: Proof) {
+  constructor(vcType: string | string[], issuanceDate: string, issuer: string, subject: T) {
     this.vcType = vcType;
     this.issuer = issuer;
     this.credentialSubject = subject;
     this.issuanceDate = issuanceDate;
-    this.proof = proof;
   }
 
-  build(): VerifiableCredential<T> {
+  build(): UnsignedVC<T> {
     return {
       "@context": "https://www.w3.org/2018/credentials/v1",
       type: this.vcType,
       issuer: this.issuer,
       issuanceDate: this.issuanceDate,
       credentialSubject: this.credentialSubject,
+    }
+  }
+}
+
+export class VCBuilder {
+  private unsignedVC;
+  private proof: Proof;
+
+  constructor(unsignedVC: UnsignedVC, proof: Proof) {
+    this.unsignedVC = unsignedVC;
+    this.proof = proof;
+  }
+
+  build(): VerifiableCredential {
+    return {
+      unsignedVC: this.unsignedVC,
       proof: this.proof
     }
   }
@@ -81,17 +100,4 @@ export class VPBuilder {
   }
 }
 
-function vcToJWTPayload<T extends CredentialSubject>(
-  vc: VerifiableCredential<T>): JWTPayload {
-    return {
-      iss: vc.issuer,
-      sub: vc.credentialSubject.id,
-      nbf: Math.floor(new Date(vc.issuanceDate).getTime() / 1000),
-      vc: {
-        '@context': [vc['@context']],
-        type: Array.isArray(vc.type) ? vc.type : [vc.type],
-        credentialSubject: vc.credentialSubject
-      }
-    }
-}
 

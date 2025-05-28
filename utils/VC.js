@@ -1,21 +1,33 @@
 "use strict";
 exports.__esModule = true;
-exports.VPBuilder = exports.VCBuilder = void 0;
-var VCBuilder = /** @class */ (function () {
-    function VCBuilder(vcType, issuanceDate, issuer, subject, proof) {
+exports.VPBuilder = exports.VCBuilder = exports.UnsignedVCBuilder = void 0;
+var UnsignedVCBuilder = /** @class */ (function () {
+    function UnsignedVCBuilder(vcType, issuanceDate, issuer, subject) {
         this.vcType = vcType;
         this.issuer = issuer;
         this.credentialSubject = subject;
         this.issuanceDate = issuanceDate;
-        this.proof = proof;
     }
-    VCBuilder.prototype.build = function () {
+    UnsignedVCBuilder.prototype.build = function () {
         return {
             "@context": "https://www.w3.org/2018/credentials/v1",
             type: this.vcType,
             issuer: this.issuer,
             issuanceDate: this.issuanceDate,
-            credentialSubject: this.credentialSubject,
+            credentialSubject: this.credentialSubject
+        };
+    };
+    return UnsignedVCBuilder;
+}());
+exports.UnsignedVCBuilder = UnsignedVCBuilder;
+var VCBuilder = /** @class */ (function () {
+    function VCBuilder(unsignedVC, proof) {
+        this.unsignedVC = unsignedVC;
+        this.proof = proof;
+    }
+    VCBuilder.prototype.build = function () {
+        return {
+            unsignedVC: this.unsignedVC,
             proof: this.proof
         };
     };

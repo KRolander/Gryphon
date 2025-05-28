@@ -4,7 +4,7 @@ var DIDDocumentBuilder = /** @class */ (function () {
     function DIDDocumentBuilder(DID, controller, publicKey) {
         this.DID = DID;
         this.controller = controller;
-        this.publicKey = publicKey;
+        this.publicKeyPem = publicKey;
     }
     DIDDocumentBuilder.prototype.build = function () {
         var keyId = "".concat(this.DID, "#keys-1");
@@ -14,10 +14,10 @@ var DIDDocumentBuilder = /** @class */ (function () {
             controller: this.controller,
             verificationMethod: [
                 {
-                    id: keyId,
-                    type: "to be",
+                    id: "".concat(this.controller, "#keys-1"),
+                    type: "EcdsaSecp256r1VerificationKey2019",
                     controller: this.controller,
-                    publicKeyBase58: this.publicKey
+                    publicKeyPem: this.publicKeyPem
                 }
             ],
             authentication: [keyId],
