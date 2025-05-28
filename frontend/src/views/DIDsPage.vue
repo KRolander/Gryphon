@@ -257,6 +257,7 @@ export default {
     // Computed properties can be added here if needed
   },
   async mounted() {
+    // Instantiate the wallet
     this.wallet = useWalletStore();
 
     // TODO: use the keycloak sub as userId instead of the hardcoded one
@@ -273,6 +274,7 @@ export default {
     try {
       await this.wallet.loadWallet(userId, passphrase)
 
+      // Fill the page with the DIDs loaded from the wallet
       this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
         did,
         name: data.metadata?.name || 'Unnamed DID'

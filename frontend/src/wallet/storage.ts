@@ -12,6 +12,7 @@ export const useWalletStore = defineStore('wallet', {
       metadata: { name:string, createdAt: string, tags?: string[] },
       credentials: any[]
     }>,
+    // activeDid can be used as the DID for issuing/presenting credentials
     activeDid: null as string | null
   }),
 
