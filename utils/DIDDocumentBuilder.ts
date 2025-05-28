@@ -42,7 +42,7 @@ export default class DIDDocumentBuilder {
             verificationMethod: [
                 {
                     id: keyId,
-                    type: "to be", 
+                    type: "ECDSA", 
                     controller: this.controller,
                     publicKeyBase58: this.publicKey
                 }

@@ -1,3 +1,5 @@
+import { JWTPayload } from 'did-jwt';
+
 interface CredentialSubject {
   id: string // the DID of the holder
   [claim: string]: unknown;
@@ -8,7 +10,7 @@ interface Proof {
   created: string; //the creation date of this proof
   proofPurpose: string; // what is the purpose eg.: assertionMethod
   verificationMethod: string; // DID URL to public key
-  jws: string; // detached signature
+  signatureValue: string; // the actual signature
 }
 
 // Check https://www.w3.org/TR/vc-data-model/#jwt-encoding 
@@ -78,3 +80,18 @@ export class VPBuilder {
     }
   }
 }
+
+function vcToJWTPayload<T extends CredentialSubject>(
+  vc: VerifiableCredential<T>): JWTPayload {
+    return {
+      iss: vc.issuer,
+      sub: vc.credentialSubject.id,
+      nbf: Math.floor(new Date(vc.issuanceDate).getTime() / 1000),
+      vc: {
+        '@context': [vc['@context']],
+        type: Array.isArray(vc.type) ? vc.type : [vc.type],
+        credentialSubject: vc.credentialSubject
+      }
+    }
+}
+
