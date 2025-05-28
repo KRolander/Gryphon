@@ -46,7 +46,6 @@ export async function encrypt(payload: any, passphrase: string): Promise<string>
   return btoa(String.fromCharCode(...encryptedBytes))
 }
 
-// Returns an encrypted Base64 string
 export async function decrypt(encrypted: string, passphrase: string): Promise<any> {
   const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
   const salt = encryptedBytes.slice(0, SALT_LENGTH)
