@@ -9,7 +9,7 @@ export const useWalletStore = defineStore('wallet', {
   state: () => ({
     dids: {} as Record<string, {
       keyPair: { publicKey: string, privateKey: string },
-      metadata: { createdAt: string, tags?: string[] },
+      metadata: { name:string, createdAt: string, tags?: string[] },
       credentials: any[]
     }>,
     activeDid: null as string | null

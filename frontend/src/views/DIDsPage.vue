@@ -92,9 +92,9 @@
                   <!-- Activator button -->
                   <template v-slot:activator="{ props: deleteButton }">
                     <v-btn
-                        v-bind="deleteButton"
-                        variant="outlined"
-                        @click="deleteDIDDialog = true"
+                      v-bind="deleteButton"
+                      variant="outlined"
+                      @click="deleteDIDDialog = true"
                     >
                       Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
                     ></v-btn>
@@ -105,10 +105,10 @@
                     <v-card title="Are you sure you want to delete this DID?">
                       <v-card-actions>
                         <v-btn
-                            text="No"
-                            class="ma-2s"
-                            variant="outlined"
-                            @click="isActive.value = false"
+                          text="No"
+                          class="ma-2s"
+                          variant="outlined"
+                          @click="isActive.value = false"
                         >
                           No
                           <v-icon icon="mdi-cancel" end></v-icon>
@@ -149,6 +149,7 @@
 <script lang="js">
 /* ----------------------- IMPORTS ----------------------- */
 import DIDService from '@/services/DIDService';
+import { useWalletStore } from '@/wallet/storage';
 
 /* ----------------------- CONFIG ----------------------- */
 export default {
@@ -156,6 +157,7 @@ export default {
   data() {
     return {
       DIDs: [],
+      wallet: null,
 
       // Dialog state
       dialogOpen: false,
@@ -173,7 +175,7 @@ export default {
         value => {
           if (value?.length <= 20) return true
 
-          return 'Name must be less than 10 characters.'
+          return 'Name must be less than 20 characters.'
         },
       ],
     }
@@ -182,34 +184,49 @@ export default {
     // Method to handle the creation of a new DID
     async createDID() {
       if (this.valid) {
-        //0. Create keys
+        // 0. Create keys
         const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
         const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
+        const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
+
         // 1. Send to backend
         const res = await DIDService.createDID(publicKeyBase64);
         console.log(res.data);
 
+        // 2. Store in the wallet
+        this.wallet.addDid(res.data, {
+          publicKeyBase64,
+          privateKeyBase64
+        });
+        this.wallet.dids[res.data].metadata.name = this.newDIDname;
 
-        // 2. Add to the list
+        // 3. Persist the wallet
+        // TODO: use the keycloak sub as userId instead of the hardcoded one
+        const userId = "keycloakId"
+        // TODO: ask the user to input the password securely
+        const passphrase = "verySecurePassword"
+        await this.wallet.saveWallet(userId, passphrase);
+
+        // 4. Add to the list
         this.DIDs.push({ name: this.newDIDname, did: res.data});
 
-        // 3. Reset the form
+        // 5. Reset the form
         this.newDIDname = "";
         this.valid = false;
 
-        // 4. Close the dialog
+        // 6. Close the dialog
         this.dialogOpen = false;
       }
     },
 
     async generateKeys(){
       const keyPair = await window.crypto.subtle.generateKey(
-          {
-            name: "ECDSA",
-            namedCurve: "P-256",
-          },
-          true, //used for being able to export the key
-          ["sign","verify"]
+        {
+          name: "ECDSA",
+          namedCurve: "P-256",
+        },
+        true, //used for being able to export the key
+        ["sign","verify"]
 
       )
       //both are arrayBuffers:
@@ -220,17 +237,17 @@ export default {
     },
 
     async getDIDDocument(DID){
-        if (this.showHideToggle[DID]){
-          this.showHideToggle[DID]=false;
-          this.didDoc[DID]=null;
-          return;
-        }
-        // 1. Send to backend
-        const res = await DIDService.getDIDDoc(DID);
-        this.showHideToggle[DID]=true;
-        this.didDoc[DID]=res.data;
-        console.log(res.data);
-      },
+      if (this.showHideToggle[DID]){
+        this.showHideToggle[DID]=false;
+        this.didDoc[DID]=null;
+        return;
+      }
+      // 1. Send to backend
+      const res = await DIDService.getDIDDoc(DID);
+      this.showHideToggle[DID]=true;
+      this.didDoc[DID]=res.data;
+      console.log(res.data);
+    },
 
   },
   computed: {
@@ -239,10 +256,32 @@ export default {
     },
     // Computed properties can be added here if needed
   },
-  mounted() {
+  async mounted() {
+    this.wallet = useWalletStore();
+
+    // TODO: use the keycloak sub as userId instead of the hardcoded one
+    const userId = "keycloakId"
+
+    // TODO: ask the user to input the password securely
+    const passphrase = "verySecurePassword"
+
+    if (!userId || !passphrase) {
+      console.warn('User ID or wallet passphrase missing')
+      return
+    }
+
+    try {
+      await this.wallet.loadWallet(userId, passphrase)
+
+      this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
+        did,
+        name: data.metadata?.name || 'Unnamed DID'
+      }))
+    } catch (err) {
+      console.error('Failed to load wallet:', err)
+    }
+
     console.log("DIDsPage mounted");
-    // Fetch the DIDs from the backend when the component is mounted
-    // to be added very soon hopefully
   },
 };
 </script>
