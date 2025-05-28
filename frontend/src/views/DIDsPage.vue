@@ -78,13 +78,54 @@
               above
             </div>
             <v-card v-else v-for="DID in DIDs" :key="DID.did" class="mb-4 mt-4">
-              <v-card-title class="text-h5 font-weight-bold">{{
-                DID.name
-              }}</v-card-title>
+              <template v-slot:title>
+                <span class="font-weight-black">{{DID.name}}</span>
+              </template>
 
               <v-card-subtitle class="text-body-1 font-weight-light mb-4">
                 {{ DID.did }}
               </v-card-subtitle>
+
+              <!-- Delete DID -->
+              <template v-slot:append>
+                <v-dialog v-model="deleteDIDDialog" max-width="500">
+                  <!-- Activator button -->
+                  <template v-slot:activator="{ props: deleteButton }">
+                    <v-btn
+                        v-bind="deleteButton"
+                        variant="outlined"
+                        @click="deleteDIDDialog = true"
+                    >
+                      Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
+                    ></v-btn>
+                  </template>
+
+                  <!-- Dialog -->
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Are you sure you want to delete this DID?">
+                      <v-card-actions>
+                        <v-btn
+                            text="No"
+                            class="ma-2s"
+                            variant="outlined"
+                            @click="isActive.value = false"
+                        >
+                          No
+                          <v-icon icon="mdi-cancel" end></v-icon>
+                        </v-btn>
+
+                        <v-spacer></v-spacer>
+
+                        <v-btn class="ma-2" variant="outlined" @click="deleteDID()"> <!-- TODO -->
+                          Yes
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
+              </template>
+
               <v-card-actions>
                 <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)" >
                   <span v-if="showHideToggle[DID.did]">Hide document</span>
@@ -118,6 +159,7 @@ export default {
 
       // Dialog state
       dialogOpen: false,
+      deleteDIDDialog: false,
       valid: false,
       newDIDname: "",
       showHideToggle: {},
