@@ -159,6 +159,12 @@ export default {
       DIDs: [],
       wallet: null,
 
+      // Session info
+      // TODO: use the keycloak sub as userId instead of the hardcoded one
+      userId: "keycloakId",
+      // TODO: ask the user to input the password securely
+      passphrase: "verySecurePassword",
+
       // Dialog state
       dialogOpen: false,
       deleteDIDDialog: false,
@@ -201,11 +207,7 @@ export default {
         this.wallet.dids[res.data].metadata.name = this.newDIDname;
 
         // 3. Persist the wallet
-        // TODO: use the keycloak sub as userId instead of the hardcoded one
-        const userId = "keycloakId"
-        // TODO: ask the user to input the password securely
-        const passphrase = "verySecurePassword"
-        await this.wallet.saveWallet(userId, passphrase);
+        await this.wallet.saveWallet(this.userId, this.passphrase);
 
         // 4. Add to the list
         this.DIDs.push({ name: this.newDIDname, did: res.data});
@@ -260,19 +262,13 @@ export default {
     // Instantiate the wallet
     this.wallet = useWalletStore();
 
-    // TODO: use the keycloak sub as userId instead of the hardcoded one
-    const userId = "keycloakId"
-
-    // TODO: ask the user to input the password securely
-    const passphrase = "verySecurePassword"
-
-    if (!userId || !passphrase) {
+    if (!this.userId || !this.passphrase) {
       console.warn('User ID or wallet passphrase missing')
       return
     }
 
     try {
-      await this.wallet.loadWallet(userId, passphrase)
+      await this.wallet.loadWallet(this.userId, this.passphrase)
 
       // Fill the page with the DIDs loaded from the wallet
       this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
