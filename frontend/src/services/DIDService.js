@@ -7,5 +7,10 @@ export default {
 
   getDIDDoc(DID){
     return Api().get(`did/getDIDDoc/${DID}`);
+  },
+
+  deleteDID(DID){
+    return Api().delete(`did/deleteDID/${DID}`);
+
   }
 };

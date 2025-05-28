@@ -27,7 +27,7 @@
               <template v-slot:activator="{ props: activatorProps }">
                 <v-btn
                   v-bind="activatorProps"
-                  variant="flat"
+                  variant="outlined"
                   @click="dialogOpen = true"
                 >
                   Add <v-icon icon="mdi-plus-circle" end></v-icon
@@ -51,10 +51,13 @@
 
                   <v-card-actions>
                     <v-btn
-                      text="Close"
+                      variant="outlined"
                       class="ma-2s"
                       @click="isActive.value = false"
-                    ></v-btn>
+                    >
+                      Cancel
+                      <v-icon icon="mdi-cancel" end></v-icon>
+                    </v-btn>
 
                     <v-spacer></v-spacer>
 
@@ -77,68 +80,68 @@
               There are no DIDs yet. You can create one by click the button
               above
             </div>
-            <v-card v-else v-for="DID in DIDs" :key="DID.did" class="mb-4 mt-4">
-              <template v-slot:title>
-                <span class="font-weight-black">{{DID.name}}</span>
-              </template>
 
-              <v-card-subtitle class="text-body-1 font-weight-light mb-4">
-                {{ DID.did }}
-              </v-card-subtitle>
+              <v-card v-else v-for="DID in DIDs" :key="DID.did" class="mb-4 mt-4">
+                <template v-slot:title>
+                  <span class="font-weight-black">{{DID.name}}</span>
+                </template>
 
-              <!-- Delete DID -->
-              <template v-slot:append>
-                <v-dialog v-model="deleteDIDDialog" max-width="500">
-                  <!-- Activator button -->
-                  <template v-slot:activator="{ props: deleteButton }">
-                    <v-btn
-                        v-bind="deleteButton"
-                        variant="outlined"
-                        @click="deleteDIDDialog = true"
-                    >
-                      Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
-                    ></v-btn>
-                  </template>
+                <v-card-subtitle class="text-body-1 font-weight-light mb-4">
+                  {{ DID.did }}
+                </v-card-subtitle>
 
-                  <!-- Dialog -->
-                  <template v-slot:default="{ isActive }">
-                    <v-card title="Are you sure you want to delete this DID?">
-                      <v-card-actions>
-                        <v-btn
-                            text="No"
-                            class="ma-2s"
-                            variant="outlined"
-                            @click="isActive.value = false"
-                        >
-                          No
-                          <v-icon icon="mdi-cancel" end></v-icon>
-                        </v-btn>
+                <!-- Delete DID -->
+                <template v-slot:append>
+                  <v-dialog v-model="deleteDIDDialog" max-width="500">
+                    <!-- Activator button -->
+                    <template v-slot:activator="{ props: deleteButton }">
+                      <v-btn
+                          v-bind="deleteButton"
+                          variant="outlined"
+                          @click="deleteDIDDialog = true"
+                      >
+                        Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
+                      ></v-btn>
+                    </template>
 
-                        <v-spacer></v-spacer>
+                    <!-- Dialog -->
+                    <template v-slot:default="{ isActive }">
+                      <v-card title="Are you sure you want to delete this DID?">
+                        <v-card-actions>
+                          <v-btn
+                              class="ma-2s"
+                              variant="outlined"
+                              @click="isActive.value = false"
+                          >
+                            No
+                            <v-icon icon="mdi-cancel" end></v-icon>
+                          </v-btn>
 
-                        <v-btn class="ma-2" variant="outlined" @click="deleteDID()"> <!-- TODO -->
-                          Yes
-                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </template>
-                </v-dialog>
-              </template>
+                          <v-spacer></v-spacer>
 
-              <v-card-actions>
-                <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)" >
-                  <span v-if="showHideToggle[DID.did]">Hide document</span>
-                  <span v-else>Show DID document</span>
-                </v-btn>
-              </v-card-actions>
-              <v-card class="mb-4 mt-4" color="grey-lighten-1">
-                <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
-                     style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
-                  {{ JSON.stringify(didDoc[DID.did], null, 2) }}
-                </pre>
+                          <v-btn class="ma-2" variant="outlined" @click="deleteDID(DID.did)">
+                            Yes
+                            <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </template>
+                  </v-dialog>
+                </template>
+
+                <v-card-actions>
+                  <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)" >
+                    <span v-if="showHideToggle[DID.did]">Hide document</span>
+                    <span v-else>Show DID document</span>
+                  </v-btn>
+                </v-card-actions>
+                <v-card class="mb-4 mt-4" color="grey-lighten-1">
+                  <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
+                       style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
+                    {{ JSON.stringify(didDoc[DID.did], null, 2) }}
+                  </pre>
+                </v-card>
               </v-card>
-            </v-card>
           </v-card-text>
         </v-card>
       </v-col>
@@ -164,6 +167,7 @@ export default {
       newDIDname: "",
       showHideToggle: {},
       didDoc: {},
+      didList:true ,
       DIDNameRules: [
         value => {
           if (value) return true
@@ -184,9 +188,11 @@ export default {
       if (this.valid) {
         //0. Create keys
         const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
-        const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
+
         // 1. Send to backend
-        const res = await DIDService.createDID(publicKeyBase64);
+
+        const PEMPublicKey = await this.formatPEM(publicKey);
+        const res = await DIDService.createDID(PEMPublicKey);
         console.log(res.data);
 
 
@@ -216,7 +222,14 @@ export default {
       const publicKey = await window.crypto.subtle.exportKey("spki",keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
       const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
 
+
       return {publicKey,privateKey};
+    },
+
+    async formatPEM(key){
+      const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(key)));
+      return `-----BEGIN PUBLIC KEY-----\n${publicKeyBase64}\n-----END PUBLIC KEY-----`;
+
     },
 
     async getDIDDocument(DID){
@@ -231,6 +244,13 @@ export default {
         this.didDoc[DID]=res.data;
         console.log(res.data);
       },
+
+    async deleteDID(DID){
+
+      await DIDService.deleteDID(DID);
+      this.DIDs = this.DIDs.filter(x=>x.did!==DID);
+      this.deleteDIDDialog = false;
+    },
 
   },
   computed: {

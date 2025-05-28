@@ -97,9 +97,11 @@ router.patch("updateDIDDoc/addController/:did", async (req, res) => {
   }
 });
 
-router.delete("deleteDID/:DID", async(req, res) =>{
+router.delete("/deleteDID/:did", async(req, res) =>{
+
   try {
-    const DID = req._construct.params.did;
+    const DID = req.params.did;
+
     if(!DID)
       return res.status(400).send("DID required");
 
@@ -111,7 +113,7 @@ router.delete("deleteDID/:DID", async(req, res) =>{
     res.status(200).send("DID deleted successfully");
   } catch(error) {
     console.error("Error while trying to delete the DID:", error);
-    res.status(500).send("Faild to delete DID");
+    res.status(500).send("Failed to delete DID");
   }
 });
 
