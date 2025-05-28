@@ -11,7 +11,7 @@ const {
   storeDID,
   getContract,
   getDIDDoc,
-  updateDIDDoc,
+  addDIDController,
   deleteDID
 } = require("../gateway");
 
@@ -71,22 +71,21 @@ router.get("/getDIDDoc/:did", async (req, res) => {
   }
 });
 
-router.patch("updateDIDDoc/addController/:did", async (req, res) => {
-
+router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
+  console.log("patch before");
   try {
     const targetDID = req.params.did;
     const { operation, newController } = req.body;
     if(!targetDID || !operation || !newController)
       res.status(400).send("Invalid request");
-    if(operation == "addController") {
+    if(operation === "addController") {
       //retrieve the targetDID document
-      let doc = await getDIDDoc(getContract(), DID);
+      let doc = await getDIDDoc(getContract(), targetDID);
 
       //could also check if the DID we want to add as a controller exists
-
       doc.controllers.push(newController);
 
-      addDIDController(getContract(), targetDID, doc);
+      await addDIDController(getContract(), targetDID, doc);
       res.status(200).send("Controller added successfully");
     } else {
       res.status(400).send("Not yet implemented or operation not allowed");

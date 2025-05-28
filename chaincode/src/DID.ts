@@ -66,7 +66,7 @@ export default class DID extends Contract {
         ctx: Context,
         DID: string,
         DIDDoc: string,
-    ): Promise<void> {
+    ): Promise<Buffer> {
 
         // The DID Document can only be updated if it was already stored
 
@@ -97,7 +97,7 @@ export default class DID extends Contract {
             cleanDID,
             Buffer.from(stringify(sortKeysRecursive(newDoc))),
         );
-
+        return Buffer.from(JSON.stringify({ success: true }));
     }
 
     @Transaction()

@@ -139,6 +139,63 @@
                   <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
                        style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
                     {{ JSON.stringify(didDoc[DID.did], null, 2) }}
+                    <!-- Edit DID -->
+                    <v-dialog v-model="editDIDDocDialog" max-width="500">
+                      <template v-slot:activator="{ props: editButton }">
+                        <v-btn
+                            v-bind="editButton"
+                            class="position-absolute bottom-0 right-0 ma-2"
+                            variant="outlined"
+                            @click="editDIDDocDialog = true"
+                        >
+                        Edit document
+                          <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
+                        </v-btn>
+                      </template>
+                        <template v-slot:default="{ isActive }">
+                          <v-card title="Document edit">
+                              <v-card-text >
+                                Edit controller
+                                <v-form v-model="valid">
+                                  <v-text-field
+                                      v-model="newControllerName"
+                                      label="Controller DID"
+                                      required
+                                  ></v-text-field>
+                                  <div class="d-flex justify-end">
+                                    <v-btn
+                                        class="ma-2 mt-n4"
+                                        variant="outlined"
+                                        @click="modifyController(DID.did,'addController')">
+                                      Add
+                                      <v-icon icon="mdi-plus-circle" end></v-icon>
+                                    </v-btn>
+                                  </div>
+                                </v-form>
+
+                              </v-card-text>
+
+
+                          <v-card-actions>
+                            <v-btn
+                                class="ma-2s"
+                                variant="outlined"
+                                @click="isActive.value = false"
+                            >
+                              Cancel
+                              <v-icon icon="mdi-cancel" end></v-icon>
+                            </v-btn>
+
+                            <v-spacer></v-spacer>
+
+                            <v-btn class="ma-2" variant="outlined" @click="isActive.value = false">
+                              Done
+                              <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </template>
+                    </v-dialog>
                   </pre>
                 </v-card>
               </v-card>
@@ -163,8 +220,10 @@ export default {
       // Dialog state
       dialogOpen: false,
       deleteDIDDialog: false,
+      editDIDDocDialog: false,
       valid: false,
       newDIDname: "",
+      newControllerName:"",
       showHideToggle: {},
       didDoc: {},
       didList:true ,
@@ -251,6 +310,11 @@ export default {
       this.DIDs = this.DIDs.filter(x=>x.did!==DID);
       this.deleteDIDDialog = false;
     },
+
+    async modifyController(DID,operation){
+      DIDService.modifyController(DID,operation,this.newControllerName);
+      this.newControllerName="";
+    }
 
   },
   computed: {
