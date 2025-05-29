@@ -11,7 +11,7 @@ var DIDDocumentBuilder = /** @class */ (function () {
         return {
             "@context": "https://www.w3.org/ns/did/v1",
             id: this.DID,
-            controllers: this.controllers,
+            controllers: this.controllers.length === 1 ? this.controllers[0] : this.controllers,
             verificationMethod: [
                 {
                     id: keyId,

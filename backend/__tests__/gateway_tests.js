@@ -7,7 +7,7 @@ jest.mock("fs/promises");
 jest.mock("@grpc/grpc-js");
 jest.mock("@hyperledger/fabric-gateway");
 
-const gatewayModule = require("../gateway"); // Adjust path if needed
+const gatewayModule = require("../gateway"); 
 
 describe("startGateway", () => {
   beforeEach(() => {
