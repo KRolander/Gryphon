@@ -1,5 +1,5 @@
-// const vcValidationModule = require("../routes/vc");
+const vcValidationModule = require("../routes/vc");
 
-// describe("validateVC", () => {
-
-// });
+describe("validateVC", () => {
+    
+});
