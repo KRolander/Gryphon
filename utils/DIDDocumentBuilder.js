@@ -1,9 +1,9 @@
 "use strict";
 exports.__esModule = true;
 var DIDDocumentBuilder = /** @class */ (function () {
-    function DIDDocumentBuilder(DID, controller, publicKey) {
+    function DIDDocumentBuilder(DID, controllers, publicKey) {
         this.DID = DID;
-        this.controller = controller;
+        this.controllers = Array.isArray(controllers) ? controllers : [controllers];
         this.publicKey = publicKey;
     }
     DIDDocumentBuilder.prototype.build = function () {
@@ -11,12 +11,12 @@ var DIDDocumentBuilder = /** @class */ (function () {
         return {
             "@context": "https://www.w3.org/ns/did/v1",
             id: this.DID,
-            controller: this.controller,
+            controllers: this.controllers,
             verificationMethod: [
                 {
                     id: keyId,
                     type: "to be",
-                    controller: this.controller,
+                    controllers: this.controllers[0],
                     publicKeyBase58: this.publicKey
                 }
             ],
