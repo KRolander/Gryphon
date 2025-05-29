@@ -353,6 +353,12 @@ export default {
     async deleteDID(DID){
 
       await DIDService.deleteDID(DID);
+
+      // Delete from the wallet
+      this.wallet.removeDid(DID);
+
+      // Persist the wallet
+      await this.wallet.saveWallet(this.userId, this.passphrase);
       this.DIDs = this.DIDs.filter(x=>x.did!==DID);
       this.deleteDIDDialog = false;
     },
