@@ -50,6 +50,26 @@ export const useWalletStore = defineStore('wallet', {
       const decrypted = await decrypt(encrypted, passphrase)
       this.dids = decrypted.dids
       this.activeDid = Object.keys(this.dids)[0] || null
+    },
+
+    // Exports the encrypted wallet for multi-device porting
+    async exportWallet(userId: string) {
+      // Check if the wallet exists
+      const encrypted = await get(`wallet-${userId}`)
+      if (!encrypted) throw new Error("No wallet found for export")
+
+      // Turn the wallet into a JSON Binary Large Object (BLOB)
+      const blob: Blob = new Blob([encrypted], { type: 'application/json' })
+      const url: string = URL.createObjectURL(blob)
+
+      // Make a downloadable link and download it on the user PC
+      const downloadLink = document.createElement('a')
+      downloadLink.href = url
+      downloadLink.download = 'wallet.json'
+      downloadLink.click()
+
+      // Cleanup BLOB from browser memory (to prevent memory leak)
+      URL.revokeObjectURL(url)
     }
   }
 })
