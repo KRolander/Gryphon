@@ -11,6 +11,11 @@
       </div>
     </div>
 
+    <!-- Import/Export wallet -->
+    <v-btn class="ma-2" @click="exportWallet">
+      Download Wallet <v-icon icon="mdi mdi-download" end></v-icon
+    ></v-btn>
+
     <!-- Card containing DIDs -->
     <v-row class="w-100">
       <v-col cols="12">
@@ -251,6 +256,9 @@ export default {
       console.log(res.data);
     },
 
+    async exportWallet() {
+      await this.wallet.exportWallet(this.userId)
+    }
   },
   computed: {
     emptyDIDList() {
