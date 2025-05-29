@@ -70,6 +70,24 @@ export const useWalletStore = defineStore('wallet', {
 
       // Cleanup BLOB from browser memory (to prevent memory leak)
       URL.revokeObjectURL(url)
+    },
+
+    async importWallet(encryptedFile: File, userId: string, passphrase: string) {
+      const encrypted = await encryptedFile.text()
+
+      // Try to decrypt, to ensure the passphrase correctly decrypts the encrypted file
+      try {
+        const decrypted = await decrypt(encrypted, passphrase)
+
+        // If valid, replace local wallet values with the imported ones
+        this.dids = decrypted.dids
+        this.activeDid = Object.keys(this.dids)[0] || null
+
+        // Save the wallet in the IndexedDB in local memory
+        await set(`wallet-${userId}`, encrypted)
+      } catch (err) {
+        throw new Error("Failed to import wallet. Check your passphrase or file.")
+      }
     }
   }
 })
