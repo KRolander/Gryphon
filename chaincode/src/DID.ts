@@ -13,7 +13,8 @@ export default class DID extends Contract {
     // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
-        const DIDDocJSON = await ctx.stub.getState(DID); // get the DID document from the world state
+        const cleanDID = DID.replace(/^"|"$/g, '');
+        const DIDDocJSON = await ctx.stub.getState(cleanDID); // get the DID document from the world state
         if (DIDDocJSON && DIDDocJSON.length > 0) {
             return true;
         }
@@ -23,7 +24,8 @@ export default class DID extends Contract {
     // Returns the DID Document if it exists
     @Transaction(false)
     async getDIDDoc(ctx: Context, DID: string): Promise<string>{
-        const DIDDocJSON= await ctx.stub.getState(DID);
+        const cleanDID = DID.replace(/^"|"$/g, '');
+        const DIDDocJSON= await ctx.stub.getState(cleanDID);
         if (!DIDDocJSON || DIDDocJSON.length === 0){
             throw new Error(`There is no document with DID ${DID}`);
         }
@@ -37,8 +39,10 @@ export default class DID extends Contract {
         DID: string,
         DIDDoc: string,
     ): Promise<void> {
+
         // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
+        const cleanDID = DID.replace(/^"|"$/g, '');
 
         if (DIDExists) {
             // TODO Make custom error types to use instead of the generic one
@@ -52,7 +56,7 @@ export default class DID extends Contract {
 
         // Put the DID document on the ledger
         await ctx.stub.putState(
-            DID,
+            cleanDID,
             Buffer.from(stringify(sortKeysRecursive(doc))),
         );
     }
@@ -62,16 +66,18 @@ export default class DID extends Contract {
         ctx: Context,
         DID: string,
         DIDDoc: string,
-    ): Promise<void> {
+    ): Promise<Buffer> {
 
         // The DID Document can only be updated if it was already stored
+
         const DIDExists = await this.DIDExists(ctx, DID);
+        const cleanDID = DID.replace(/^"|"$/g, '');
         if (!DIDExists) {
             throw new Error(`Cannot update DID Document, the DID ${DID} doesn't exists`);
         }
 
         // Retrieve the current DID Document and update the fields
-        const oldDoc = JSON.parse(await this.getDIDDoc(ctx, DID)) as DIDDocument;
+        const oldDoc = JSON.parse(await this.getDIDDoc(ctx, cleanDID)) as DIDDocument;
 
         // TODO: prompt authentication to verify that the user is the DID controller
         // TODO: throw an error if unauthorized
@@ -81,30 +87,32 @@ export default class DID extends Contract {
 
         // Ensure that the DID subject hasn't been changed
         if (oldDoc.id !=  newDoc.id) {
-            throw new Error(`Cannot change the DID Subject of the DID ${DID}`);
+            throw new Error(`Cannot change the DID Subject of the DID ${cleanDID}`);
         }
 
         // TODO: ensure that other immutable fields remained unchanged
 
         // Put the new DID document on the ledger
         await ctx.stub.putState(
-            DID,
+            cleanDID,
             Buffer.from(stringify(sortKeysRecursive(newDoc))),
         );
-
+        return Buffer.from(JSON.stringify({ success: true }));
     }
 
     @Transaction()
     public async deleteDID(ctx: Context, DID: string): Promise<void> {
         // TODO: Add authentication to make sure that the user is the controller of the DID
         // Check if the DID Document exists
+
         const DIDExists = await this.DIDExists(ctx, DID);
+        const cleanDID = DID.replace(/^"|"$/g, '');
         if (!DIDExists) {
-            throw new Error(`Cannot delete the DID ${DID}, it doesn't exist`);
+            throw new Error(`Cannot delete the DID ${cleanDID}, it doesn't exist`);
         }
 
         await ctx.stub.deleteState(
-            DID
+            cleanDID
         );
     }
 }

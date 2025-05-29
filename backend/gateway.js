@@ -136,6 +136,7 @@ async function addDIDController(contract, DID, DIDDoc) {
 }
 
 async function deleteDID(contract, DID) {
+
   await contract.submitTransaction('deleteDID', DID);
 }
 

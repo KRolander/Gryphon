@@ -11,7 +11,7 @@ const {
   storeDID,
   getContract,
   getDIDDoc,
-  updateDIDDoc,
+  addDIDController,
   deleteDID
 } = require("../gateway");
 
@@ -71,22 +71,21 @@ router.get("/getDIDDoc/:did", async (req, res) => {
   }
 });
 
-router.patch("updateDIDDoc/addController/:did", async (req, res) => {
-
+router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
   try {
     const targetDID = req.params.did;
     const { operation, newController } = req.body;
     if(!targetDID || !operation || !newController)
       res.status(400).send("Invalid request");
-    if(operation == "addController") {
+    if(operation === "addController") {
       //retrieve the targetDID document
-      let doc = await getDIDDoc(getContract(), DID);
+      let doc = await getDIDDoc(getContract(), targetDID);
 
       //could also check if the DID we want to add as a controller exists
-
       doc.controllers.push(newController);
 
-      addDIDController(getContract(), targetDID, doc);
+      await addDIDController(getContract(), targetDID, doc);
+      console.log(`Controller ${newController} added successfully for DID ${targetDID}`);
       res.status(200).send("Controller added successfully");
     } else {
       res.status(400).send("Not yet implemented or operation not allowed");
@@ -97,9 +96,11 @@ router.patch("updateDIDDoc/addController/:did", async (req, res) => {
   }
 });
 
-router.delete("deleteDID/:DID", async(req, res) =>{
+router.delete("/deleteDID/:did", async(req, res) =>{
+
   try {
-    const DID = req._construct.params.did;
+    const DID = req.params.did;
+
     if(!DID)
       return res.status(400).send("DID required");
 
@@ -107,11 +108,11 @@ router.delete("deleteDID/:DID", async(req, res) =>{
       await startGateway();
 
     await deleteDID(getContract(), DID);
-
+    console.log(`DID ${DID} deleted successfully`);
     res.status(200).send("DID deleted successfully");
   } catch(error) {
     console.error("Error while trying to delete the DID:", error);
-    res.status(500).send("Faild to delete DID");
+    res.status(500).send("Failed to delete DID");
   }
 });
 
