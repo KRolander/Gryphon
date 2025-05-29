@@ -171,6 +171,12 @@
                                       <v-icon icon="mdi-plus-circle" end></v-icon>
                                     </v-btn>
                                   </div>
+                                    <v-alert
+                                        v-if="editControllerAlert"
+                                        :color = "alertColor"
+                                    >
+                                        {{editControllerMessage}}
+                                    </v-alert>
                                 </v-form>
 
                               </v-card-text>
@@ -221,6 +227,9 @@ export default {
       dialogOpen: false,
       deleteDIDDialog: false,
       editDIDDocDialog: false,
+      editControllerAlert: false,
+      editControllerMessage:"",
+      alertColor:"info",
       valid: false,
       newDIDname: "",
       newControllerName:"",
@@ -236,7 +245,7 @@ export default {
         value => {
           if (value?.length <= 20) return true
 
-          return 'Name must be less than 10 characters.'
+          return 'Name must be less than 20 characters.'
         },
       ],
     }
@@ -312,8 +321,32 @@ export default {
     },
 
     async modifyController(DID,operation){
-      DIDService.modifyController(DID,operation,this.newControllerName);
-      this.newControllerName="";
+      try {
+        await DIDService.modifyController(DID,operation,this.newControllerName);
+        this.editControllerMessage = `Successfully added controller: ${ this.newControllerName}`;
+        this.newControllerName="";
+        const res = await DIDService.getDIDDoc(DID);
+        this.didDoc[DID] = res.data;
+        this.editControllerAlert = true;
+        this.alertColor="success";
+        setTimeout(() => {
+          this.resetAlerts()
+        }, 3000);
+      } catch (err) {
+        this.editControllerAlert = true;
+        this.editControllerMessage = "There was a problem when adding the controller. Try again."
+        this.alertColor="error";
+        setTimeout(() => {
+          this.resetAlerts()
+        }, 3000);
+      }
+
+    },
+
+    resetAlerts(){
+      this.editControllerAlert = false;
+      this.editControllerMessage = "";
+      this.alertColor="info";
     }
 
   },
