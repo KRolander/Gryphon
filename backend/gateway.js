@@ -118,9 +118,7 @@ async function newGRPCConnection() {
 }
 
 async function storeDID(contract, DID, DIDDoc) { //make sure the contract valid
-  //const DIDDocJson = DIDDocument.toJSON();
   const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
- 
   await contract.submitTransaction('storeDID', stringify(DID), DIDDocStr);
   return DIDDocStr;
 }
@@ -130,6 +128,17 @@ async function getDIDDoc(contract, DID) {
   return parseResponse(response);
 }
 
+//for the update operation
+async function addDIDController(contract, DID, DIDDoc) {
+  const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
+  const response = await contract.submitTransaction('updateDIDDoc', stringify(DID), DIDDocStr);
+  return parseResponse(response);
+}
+
+async function deleteDID(contract, DID) {
+
+  await contract.submitTransaction('deleteDID', DID);
+}
 
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
 async function parseResponse(response) {
@@ -158,5 +167,7 @@ module.exports = {
   storeDID,
   getContract,
   getNetwork,
-  getDIDDoc
+  getDIDDoc, 
+  addDIDController, 
+  deleteDID
 };

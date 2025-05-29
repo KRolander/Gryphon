@@ -1,8 +1,8 @@
 interface VerificationMethod {
     id: string;
     type: string;
-    controller: string;
-    publicKeyPem: string;
+    controllers: string;
+    publicKeyBase58: string;
 }
 
 interface Service {
@@ -14,7 +14,7 @@ interface Service {
 interface DIDDocument {
     "@context": string;
     id: string;
-    controller: string;
+    controllers: string[] | string;
     verificationMethod: VerificationMethod[];
     authentication: string[];
     assertionMethod: string[];
@@ -23,13 +23,13 @@ interface DIDDocument {
 
 export default class DIDDocumentBuilder {
     private DID: string;
-    private controller: string;
-    private publicKeyPem: string;
+    private controllers: string[];
+    private publicKey: string;
 
-    constructor(DID: string, controller: string, publicKey: string) {
+    constructor(DID: string, controllers: string[] | string, publicKey: string) {
         this.DID = DID;
-        this.controller = controller;
-        this.publicKeyPem = publicKey;
+         this.controllers = Array.isArray(controllers) ? controllers : [controllers];
+        this.publicKey = publicKey;
     }
 
     build(): DIDDocument {
@@ -38,13 +38,13 @@ export default class DIDDocumentBuilder {
         return {
             "@context": "https://www.w3.org/ns/did/v1",
             id: this.DID,
-            controller: this.controller,
+            controllers: this.controllers.length === 1 ? this.controllers[0] : this.controllers,
             verificationMethod: [
                 {
-                    id: `${this.controller}#keys-1`,         
-                    type: "EcdsaSecp256r1VerificationKey2019", 
-                    controller: this.controller,             
-                    publicKeyPem: this.publicKeyPem  
+                    id: keyId,
+                    type: "to be", 
+                    controllers: this.controllers[0],
+                    publicKeyBase58: this.publicKey
                 }
             ],
             authentication: [keyId],
