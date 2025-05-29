@@ -384,7 +384,7 @@ export default {
       this.editControllerAlert = false;
       this.editControllerMessage = "";
       this.alertColor="info";
-    }
+    },
 
     async exportWallet() {
       await this.wallet.exportWallet(this.userId)
