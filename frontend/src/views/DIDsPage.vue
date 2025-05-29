@@ -351,8 +351,23 @@ export default {
     },
 
     async deleteDID(DID){
+      try {
+        await DIDService.deleteDID(DID);
+      } catch (error) {
 
-      await DIDService.deleteDID(DID);
+        // Check if the error is given by DID missing in the blockchain
+        const reason = error?.response?.data?.reason || "";
+
+        // If it is, simply proceed
+        if (reason === "DID_NOT_FOUND") {
+          console.warn("DID already deleted. Proceeding to remove locally.");
+        } else {
+          // Otherwise throw a generic error
+          console.error("Unexpected error deleting DID:", error);
+          return;
+        }
+
+      }
 
       // Delete from the wallet
       this.wallet.removeDid(DID);
