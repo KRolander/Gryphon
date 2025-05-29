@@ -35,7 +35,9 @@ const { startGateway, getContract, getNetwork } = require("./gateway");
     const network = await getNetwork();
 
     if (!network) {
-      throw new Error("Fabric network not started. Make sure the network is up.");
+      throw new Error(
+        "Fabric network not started. Make sure the network is up."
+      );
     }
 
     console.log("✅ Connected to Fabric network.");
