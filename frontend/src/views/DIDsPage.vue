@@ -7,14 +7,27 @@
     <div>
       <div class="mb-8 text-center">
         <div class="text-body-1 font-weight-light mb-n1">Welcome to</div>
-        <h1 class="text-h2 font-weight-bold">Your DIDs</h1>
+        <h1 class="text-h2 font-weight-bold">Your DID Wallet</h1>
       </div>
     </div>
 
     <!-- Import/Export wallet -->
-    <v-btn class="ma-2" @click="exportWallet">
-      Download Wallet <v-icon icon="mdi mdi-download" end></v-icon
-    ></v-btn>
+    <v-row class="w-100">
+      <v-col cols="4">
+        <v-btn class="ma-2" @click="exportWallet">
+          Download Wallet <v-icon icon="mdi-download" end></v-icon
+        ></v-btn>
+      </v-col>
+      <v-col cols="8">
+        <v-file-input
+          label="Import Wallet"
+          prepend-icon="mdi-wallet"
+          accept=".json"
+          v-model="walletFile"
+          @change="importWallet"
+        />
+      </v-col>
+    </v-row>
 
     <!-- Card containing DIDs -->
     <v-row class="w-100">
@@ -163,6 +176,7 @@ export default {
     return {
       DIDs: [],
       wallet: null,
+      walletFile: null,
 
       // Session info
       // TODO: use the keycloak sub as userId instead of the hardcoded one
@@ -258,6 +272,33 @@ export default {
 
     async exportWallet() {
       await this.wallet.exportWallet(this.userId)
+    },
+
+    async importWallet() {
+      // Check that there is a file and a passphrase
+      // TODO: Prompt the user for the passphrase instead of using the local one
+      if (!this.walletFile || !this.passphrase) {
+        alert("Please select a file and enter a passphrase")
+        return
+      }
+
+      try {
+        await this.wallet.importWallet(this.walletFile, this.userId, this.passphrase)
+
+        // Update DIDs in UI
+        this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
+          did,
+          name: data.metadata?.name || 'Unnamed DID'
+        }))
+        alert("Wallet imported successfully!")
+
+        // Cleanup variables
+        this.walletFile = null
+        // this.passphrase = ''
+
+      } catch (err) {
+        alert(err.message)
+      }
     }
   },
   computed: {
