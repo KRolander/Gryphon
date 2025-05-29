@@ -10,17 +10,21 @@ const canonicalize = require('canonicalize');
  * @returns {boolean} True if the VC is valid, false otherwise
  */
 async function validateVC(vc, publicKey) {
-    const { proof, ...rest } = vc;
+    const { proof, ...rest } = vc;  // separate the VC into the unsigned vc (rest) and the proof
     if(!proof || !proof.signatureValue) {
         throw new Error('Missing or invalid proof');
     }
 
-    const canon = canonicalize(rest); //serialize the VC (without the proof field)
+    const canon = canonicalize(rest.unsignedVC); //serialize the VC (without the proof field)
     if(!canon)
         throw new Error('Faild to canonicalize VC');
-    const verifier = createVerify('SHA256');
+    const verifier = createVerify('SHA256'); // hash the string representing the unsigned VC
     verifier.update(canon);
     verifier.end();
 
-    return verifier.verify(publicKey, proof.signatureValue, 'base64');
+    return verifier.verify(publicKey, proof.signatureValue, 'base64'); // verify that the signature is correct
+}
+
+module.exports = {
+    validateVC
 }
