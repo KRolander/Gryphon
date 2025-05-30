@@ -47,9 +47,13 @@ export const useWalletStore = defineStore('wallet', {
     async loadWallet(userId: string, passphrase: string) {
       const encrypted = await get(`wallet-${userId}`)
       if (!encrypted) return
-      const decrypted = await decrypt(encrypted, passphrase)
-      this.dids = decrypted.dids
-      this.activeDid = Object.keys(this.dids)[0] || null
+      try {
+        const decrypted = await decrypt(encrypted, passphrase)
+        this.dids = decrypted.dids
+        this.activeDid = Object.keys(this.dids)[0] || null
+      } catch(error) {
+        throw new Error("Failed to decrypt wallet. Check your passphrase.")
+      }
     },
 
     // Exports the encrypted wallet for multi-device porting

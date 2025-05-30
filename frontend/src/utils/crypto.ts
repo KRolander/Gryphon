@@ -53,11 +53,15 @@ export async function decrypt(encrypted: string, passphrase: string): Promise<an
   const ciphertext = encryptedBytes.slice(SALT_LENGTH + IV_LENGTH)
 
   const key = await deriveKey(passphrase, salt)
-  const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    ciphertext
-  )
 
-  return JSON.parse(decoder.decode(decrypted))
+  try {
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      ciphertext
+    )
+    return JSON.parse(decoder.decode(decrypted))
+  } catch(error) {
+    throw new Error('Decryption failed. Check your passphrase')
+  }
 }
