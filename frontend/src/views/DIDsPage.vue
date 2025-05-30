@@ -29,6 +29,31 @@
       </v-col>
     </v-row>
 
+    <!-- Dialog to prompt wallet passphrase -->
+    <template>
+      <v-dialog v-model="walletPwDialog" persistent max-width="400">
+        <v-card>
+          <v-card-title class="text-center">Unlock Your Wallet <v-icon icon="mdi-lock-open" end></v-icon></v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model="passphrase"
+              type="password"
+              label="Wallet Passphrase"
+              :rules="[v => !!v || 'Passphrase required']"
+              autocomplete="off"
+              @paste.prevent
+              @copy.prevent
+              @cut.prevent
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer/>
+            <v-btn color="primary" @click="unlock">Unlock</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </template>
+
     <!-- Card containing DIDs -->
     <v-row class="w-100">
       <v-col cols="12">
@@ -251,6 +276,7 @@ export default {
       passphrase: "verySecurePassword",
 
       // Dialog state
+      walletPwDialog:false,
       dialogOpen: false,
       deleteDIDDialog: false,
       editDIDDocDialog: false,
