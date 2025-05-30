@@ -19,6 +19,7 @@ const routes = [
   { name: "DIDs", path: "/dids", component: DIDsPage },
   { name: "VCs", path: "/vcs", component: VCsPage },
   {
+    name: "auth",
     path: "/auth",
     component: AuthPage,
     children: [
