@@ -78,10 +78,25 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
     if(!targetDID || !operation || !newController)
       res.status(400).send("Invalid request");
     if(operation === "addController") {
+
+      try {
+        await getDIDDoc(getContract(),newController);
+      } catch (err) {
+        console.error(`There is no controller with DID ${newController}`);
+        return res.status(400).send("No controller");
+      }
+
       //retrieve the targetDID document
       let doc = await getDIDDoc(getContract(), targetDID);
-
+      if (typeof doc.controllers === "string"){
+        doc.controllers=[doc.controllers];
+      }
       //could also check if the DID we want to add as a controller exists
+      if (doc.controllers.includes(newController)){
+        console.error("Duplicate controller");
+       return res.status(400).send(`DID ${targetDID} already has controller ${newController}`)
+      }
+      else
       doc.controllers.push(newController);
 
       await addDIDController(getContract(), targetDID, doc);
