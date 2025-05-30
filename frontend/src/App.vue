@@ -10,7 +10,6 @@ export default {
   computed: {
     showNavBar() {
       // Show NavBar only if the current route is not 'auth'
-      console.log("Current route path:", this.$route.path);
       return !this.$route.path.startsWith("/auth");
     },
   },

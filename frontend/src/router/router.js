@@ -1,4 +1,4 @@
-/* ----------------------- IMPORTS ----------------------- */
+/* ========================= IMPORTS ========================= */
 // Core
 import { createWebHistory, createRouter } from "vue-router";
 
@@ -13,15 +13,39 @@ import SignupPage from "../components/auth/SignupForm.vue";
 import LoginPage from "../components/auth/LoginForm.vue";
 import RecoverPasswordPage from "../components/auth/ForgotPasswordForm.vue";
 
-/* ----------------------- CONFIG ----------------------- */
+/* ========================= CONFIG ========================= */
+/* ---------------------- ROUTER ---------------------- */
 const routes = [
-  { name: "home", path: "/", component: HomePage },
-  { name: "DIDs", path: "/dids", component: DIDsPage },
-  { name: "VCs", path: "/vcs", component: VCsPage },
+  {
+    name: "home",
+    path: "/",
+    component: HomePage,
+    meta: { requiresAuth: true },
+  },
+  {
+    name: "DIDs",
+    path: "/dids",
+    component: DIDsPage,
+    meta: { requiresAuth: true },
+  },
+  {
+    name: "VCs",
+    path: "/vcs",
+    component: VCsPage,
+    meta: { requiresAuth: true },
+  },
+
+  //! Every child of the auth route will:
+  //! - be protected by the auth guard
+  // //TODO: implement auth guard
+
+  //! - will not show the nav bar
+
   {
     name: "auth",
     path: "/auth",
     component: AuthPage,
+    meta: { onlyWhenLoggedOut: true }, // Accessible only when logged out
     children: [
       { name: "signup", path: "signup", component: SignupPage },
       { name: "login", path: "login", component: LoginPage },
@@ -30,10 +54,39 @@ const routes = [
         path: "recover-password",
         component: RecoverPasswordPage,
       },
-      { name: "catch-all", path: "/:pathMatch(.*)*", redirect: "/auth/login" }, // Redirect to login if no match
+      {
+        name: "catch-all",
+        path: "/:pathMatch(.*)*",
+        redirect: { name: "signup" },
+      }, // Redirect to login if no match
     ],
+    redirect: { name: "signup" }, // Redirect to signup if no child route is matched
   },
 ];
 const history = createWebHistory();
+const router = createRouter({ history, routes });
 
-export default createRouter({ history, routes });
+/* ---------------------- GUARDS ---------------------- */
+router.beforeEach((to, from, next) => {
+  console.log(to);
+  const isAuthenticated = false; // Replace with actual authentication check
+
+  // Get token from localStorage and check it's validity
+  const token = localStorage.getItem("token");
+  if (token) {
+    // Here you would typically verify the token's validity
+    // For example, check if it's expired or valid
+    // isAuthenticated = verifyToken(token);
+    isAuthenticated = true; // Simulating an authenticated state for this example
+  }
+
+  //? Branch logic: Going to a route that requires authentication
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: "auth" }); // Redirect to auth page if not authenticated
+  } else if (to.meta.onlyWhenLoggedOut && isAuthenticated) {
+    next({ name: "home" }); // Redirect to home if already authenticated
+  } else {
+    next(); // Proceed to the route
+  }
+});
+export default router;
