@@ -1,6 +1,56 @@
 /*----------IMOPRTS----------*/
 const { createVerify } = require('crypto');
 const canonicalize = require('canonicalize');
+const express = require("express");
+const {
+  startGateway,
+  getGateway,
+  getContract,
+  getDIDDoc,
+} = require("../gateway");
+
+router = express.Router();
+
+// this shoud recieve a JSON    
+router.post("/validate", async (req, res) => {
+    try {
+        if (getGateway() == null) {
+            await startGateway();
+        }
+
+        const VC = req.body;
+
+        if(!VC)
+            return res.status(400).send("VC required");
+
+        const issuerDID = VC.unsignedVC.issuer;
+        if(!issuerDID)
+            return res.status(400).send("All VCs require an issuer field");
+
+        // get issuer DID Document
+        const issuerDoc = getDIDDoc(getContract(), issuerDID);
+        if(!issuerDoc)
+            return res.status(500).send("The DID does not exist");
+    
+        //get its public key
+        const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+        if(!publicKey)
+            return res.status(400).send("This DID does not have a public key"); 
+
+        // run the validate method
+        const validity = validateVC(VC, publicKey);
+        if(validity)
+            res.status(200).send("The VC is valid (it was issued by the issuer)");
+        else 
+            res.status(200).send("The Vc is not valid (it was not issued by the issuer)");
+
+        
+    } catch (error) {
+        console.error("Error validating the VC");
+        res.status(500).send("Error validating the VC");
+    }
+});
+
 /**
  * This function is only meant to verify the signature
  * of to make sure that it is valid. Later, the issuer will 
