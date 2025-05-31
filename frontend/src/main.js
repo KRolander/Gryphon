@@ -1,6 +1,7 @@
 /* ----------------------- IMPORTS ----------------------- */
 // Core
 import { createApp } from "vue";
+import { createPinia } from "pinia";
 import vuetify from "./plugins/vuetify";
 import router from "./router/router";
 
@@ -10,6 +11,9 @@ import App from "./App.vue";
 /* ----------------------- CONFIG ----------------------- */
 // Create app
 const app = createApp(App);
+
+// Register Pinia store
+app.use(createPinia());
 
 // Vuetify
 app.use(vuetify);
