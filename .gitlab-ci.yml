@@ -9,3 +9,7 @@ test:
     - cd backend
     - npm ci
     - npm test
+    - cd ../chaincode
+    - npm ci
+    - npm run build
+    - npm run test
