@@ -20,24 +20,48 @@
 
           <!-- ==================== FIELDS ==================== -->
           <v-card-text>
-            <v-form>
+            <v-form v-model="valid" @submit.prevent="signup">
               <!-- USERNAME FIELD -->
-              <v-text-field label="Username" required></v-text-field>
+              <v-text-field
+                class="mb-4 mt-4"
+                label="Username"
+                v-model="username"
+                :rules="usernameRules"
+                :counter="20"
+                required
+              ></v-text-field>
 
               <!-- EMAIL FIELD -->
-              <v-text-field label="E-mail" type="email" required></v-text-field>
+              <v-text-field
+                class="mb-4 mt-4"
+                label="E-mail"
+                type="email"
+                v-model="email"
+                :rules="emailRules"
+                :error="emailHasCustomError"
+                :error-messages="
+                  emailHasCustomError ? emailCustomErrorMessage : ''
+                "
+                required
+              ></v-text-field>
 
               <!-- PASSWORD FIELD -->
               <v-text-field
+                class="mb-4 mt-4"
                 label="Password"
                 type="password"
+                v-model="password"
+                :rules="passwordRules"
                 required
               ></v-text-field>
 
               <!-- CONFIRM PASSWORD FIELD -->
               <v-text-field
+                class="mb-4 mt-4"
                 label="Confirm Password"
                 type="password"
+                v-model="confirmPassword"
+                :rules="confirmPasswordRules"
                 required
               ></v-text-field>
             </v-form>
@@ -46,7 +70,12 @@
           <!-- ==================== ACTIONS ==================== -->
           <v-card-actions class="d-flex flex-column justify-center">
             <!-- <v-spacer></v-spacer> -->
-            <v-btn color="primary" variant="outlined" class="font-weight-bold">
+            <v-btn
+              color="primary"
+              variant="outlined"
+              class="font-weight-bold"
+              @click="signup"
+            >
               Sign Up
             </v-btn>
 
@@ -66,6 +95,66 @@
   </v-container>
 </template>
 
-<script></script>
+<script>
+export default {
+  name: "SignupForm",
+  data() {
+    return {
+      valid: false,
+      /* --------------------- FIELD VALUES --------------------- */
+      username: "",
+
+      email: "",
+      emailHasCustomError: false,
+      emailCustomErrorMessage: "",
+
+      password: "",
+      confirmPassword: "",
+
+      /* --------------------- RULES --------------------- */
+
+      usernameRules: [
+        (v) => !!v || "Username is required",
+        (v) => (v && v.length >= 3) || "Username must be at least 3 characters",
+        (v) =>
+          (v && v.length <= 20) || "Username must be at most 20 characters",
+      ],
+
+      emailRules: [
+        (v) => !!v || "E-mail is required",
+        (v) =>
+          /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(
+            v
+          ) || "E-mail must be valid",
+      ],
+
+      passwordRules: [
+        (v) => !!v || "Password is required",
+        (v) => (v && v.length >= 6) || "Password must be at least 6 characters",
+        (v) =>
+          (v && v.length <= 20) || "Password must be at most 20 characters",
+      ],
+
+      confirmPasswordRules: [
+        (v) => !!v || "Confirm Password is required",
+        (v) => v === this.password || "Passwords do not match",
+      ],
+    };
+  },
+  methods: {
+    signup() {
+      if (this.valid) {
+        // Handle signup logic here
+        console.log("Signup form submitted");
+
+        // this.emailHasCustomError = true;
+        // this.emailCustomErrorMessage = "This email is already registered.";
+      } else {
+        console.log("Form is invalid");
+      }
+    },
+  },
+};
+</script>
 
 <style lang="css" scoped></style>
