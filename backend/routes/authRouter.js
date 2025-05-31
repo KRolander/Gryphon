@@ -12,8 +12,6 @@ const authRouter = express.Router();
 /* -------------- SIGNUP -------------- */
 authRouter.post('/signup', async (req, res) => {
   try {
-    console.log(req.body);
-
     const access_token = await adminService.getAdminToken();
 
     res.status(200).send({ access_token });
