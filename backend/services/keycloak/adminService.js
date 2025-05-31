@@ -1,9 +1,13 @@
 /* ======================= IMPORTS ======================= */
-const apiClient = require('../apiClient.js');
+const keycloakApiClient = require('../keycloakApiClient.js');
 
 /* ======================= CONFIG ======================= */
 let adminToken = null;
 
+/**
+ * Retrueves the admin token necessary to perform administrative actions in Keycloak.
+ * @returns {string} The admin token
+ */
 async function getAdminToken() {
   // If the admin token is already set, return it
   if (adminToken) {
@@ -22,10 +26,20 @@ async function getAdminToken() {
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
-  const res = await apiClient.post(endpoint, body, { headers });
+  const res = await keycloakApiClient.post(endpoint, body, { headers });
   adminToken = res.data.access_token;
   return adminToken;
 }
+
+/**
+ * Creates a new realm in Keycloak using the provided realm name.
+ * @param {string} realmName - The name of the new realm
+ */
+async function createRealm(realmName) {
+  // TODO: implement the logic to create a new realm in Keycloak
+}
+
 module.exports = {
   getAdminToken,
+  createRealm,
 };

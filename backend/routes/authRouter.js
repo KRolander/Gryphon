@@ -5,19 +5,54 @@ const bodyParser = require('body-parser');
 
 // API
 const adminService = require('../services/keycloak/adminService.js');
+const usersService = require('../services/keycloak/usersService.js');
+const { credentials } = require('@grpc/grpc-js');
 
 // ======================= CONFIG ======================= */
 const authRouter = express.Router();
 
-/* -------------- SIGNUP -------------- */
+/**
+ * Handles the signup request
+ * @route POST /auth/signup
+ * @returns {object} An object containing the access tokend
+ * @returns {Error} 500 - Internal server error if signup fails for any reason
+ */
 authRouter.post('/signup', async (req, res) => {
   try {
-    const access_token = await adminService.getAdminToken();
+    // Retrieve the access token
+    const adminAccessToken = await adminService.getAdminToken();
 
-    res.status(200).send({ access_token });
+    // Create a new user
+    //TODO: Implement a user data model - useful for validation
+    const userData = {
+      username: req.body.username,
+      email: req.body.email,
+      credentials: [
+        {
+          type: 'password',
+          value: req.body.password,
+          temporary: false, // Set to false to avoid requiring password change on first login
+        },
+      ],
+      emailVerified: true,
+      enabled: true,
+      requiredActions: [],
+      groups: [],
+      firstName: req.body.firstName || '', // optional
+      lastName: req.body.lastName || '', // optional
+    };
+    const realmName = 'users';
+
+    await usersService.createUser(userData, realmName, adminAccessToken);
+
+    const userToken = await usersService.loginUser(userData, realmName);
+
+    console.log('User Token:', userToken);
+
+    res.status(200).send({ access_token: userToken });
   } catch (error) {
     console.log(error);
-    res.status(501).send('Signup failed');
+    res.status(500).send('Signup failed');
   }
 });
 
