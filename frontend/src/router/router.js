@@ -69,7 +69,7 @@ const router = createRouter({ history, routes });
 /* ---------------------- GUARDS ---------------------- */
 router.beforeEach((to, from, next) => {
   console.log(to);
-  const isAuthenticated = false; // Replace with actual authentication check
+  let isAuthenticated = false; // Replace with actual authentication check
 
   // Get token from localStorage and check it's validity
   const token = localStorage.getItem("token");

@@ -72,11 +72,18 @@
             <!-- <v-spacer></v-spacer> -->
             <v-btn
               color="primary"
+              size="large"
               variant="outlined"
               class="font-weight-bold"
               @click="signup"
+              :disabled="loading"
             >
-              Sign Up
+              <span v-if="!loading">Sign Up</span>
+              <v-progress-circular
+                v-else
+                color="primary"
+                indeterminate
+              ></v-progress-circular>
             </v-btn>
 
             <span class="font-weight-light"
@@ -101,6 +108,7 @@ export default {
   data() {
     return {
       valid: false,
+      loading: false,
       /* --------------------- FIELD VALUES --------------------- */
       username: "",
 
@@ -144,11 +152,13 @@ export default {
   methods: {
     signup() {
       if (this.valid) {
-        // Handle signup logic here
+        // Log successful message
         console.log("Signup form submitted");
 
-        // this.emailHasCustomError = true;
-        // this.emailCustomErrorMessage = "This email is already registered.";
+        // Send request to the backend
+        this.loading = true;
+
+        // Magic will happen here, e.g., API call
       } else {
         console.log("Form is invalid");
       }
