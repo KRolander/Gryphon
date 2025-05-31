@@ -1,20 +1,28 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+/* ======================== IMPORTS ======================== */
+// core
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const dotenv = require('dotenv');
 
-const didRouter = require("./routes/did");
+// routers
+const authRouter = require('./routes/authRouter.js');
+const didRouter = require('./routes/did');
 // const vcRouter = require("./routes/vc"); to be uncommented after adding a router for VCs
-const app = express();
 
+/* ======================== CONFIG ======================== */
+// Create the Express app
+const app = express();
+dotenv.config();
+
+// Register core middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.send("O zi buna!");
-});
-
-app.use("/did", didRouter);
+// Register routers
+app.use('/did', didRouter);
+app.use('/auth', authRouter);
 // app.use("/vc", vcRouter); t be uncommented after adding a rounter for VCs
 
 module.exports = app;

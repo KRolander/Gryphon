@@ -12,6 +12,7 @@ builders/
 
 #node-modules
 backend/node_modules
+backend/.env
 
 #CLI node-modules
 frontendCLI/node_modules

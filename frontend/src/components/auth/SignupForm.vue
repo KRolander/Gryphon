@@ -103,6 +103,11 @@
 </template>
 
 <script>
+/* ======================= IMPORTS ======================= */
+// Auth
+import AuthService from "@/services/AuthService";
+
+/* ======================= CONFIG ======================= */
 export default {
   name: "SignupForm",
   data() {
@@ -150,7 +155,7 @@ export default {
     };
   },
   methods: {
-    signup() {
+    async signup() {
       if (this.valid) {
         // Log successful message
         console.log("Signup form submitted");
@@ -159,6 +164,15 @@ export default {
         this.loading = true;
 
         // Magic will happen here, e.g., API call
+        const res = await AuthService.signup({
+          username: this.username,
+          email: this.email,
+          password: this.password,
+        });
+
+        console.log("Response from signup:", res);
+
+        this.loading = false;
       } else {
         console.log("Form is invalid");
       }
