@@ -1,6 +1,8 @@
 <template>
   <v-app-bar>
-    <v-app-bar-title class="text-h4 font-weight-bold cursor-pointer"
+    <v-app-bar-title
+      class="text-h4 font-weight-bold cursor-pointer"
+      @click="navigateTo({ path: '/' })"
       >Gryphon</v-app-bar-title
     >
 
