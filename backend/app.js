@@ -8,7 +8,7 @@ const dotenv = require('dotenv');
 // routers
 const authRouter = require('./routes/authRouter.js');
 const didRouter = require('./routes/did');
-// const vcRouter = require("./routes/vc"); to be uncommented after adding a router for VCs
+const { router: vcRouter } = require('./routes/vc');
 
 /* ======================== CONFIG ======================== */
 // Create the Express app
@@ -23,6 +23,6 @@ app.use(cors());
 // Register routers
 app.use('/did', didRouter);
 app.use('/auth', authRouter);
-// app.use("/vc", vcRouter); t be uncommented after adding a rounter for VCs
+app.use('/vc', vcRouter);
 
 module.exports = app;
