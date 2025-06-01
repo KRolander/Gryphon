@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/roboto": "^5.2.5",
+    "@josempgon/vue-keycloak": "^2.3.0",
     "axios": "^1.9.0",
     "bs58": "^6.0.0",
     "idb-keyval": "^6.2.2",
@@ -24,5 +25,8 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "vite": "^6.2.4",
     "vite-plugin-vue-devtools": "^7.7.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.41.1"
   }
 }

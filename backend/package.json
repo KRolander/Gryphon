@@ -12,11 +12,13 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.13.3",
     "@hyperledger/fabric-gateway": "^1.7.1",
+    "axios": "^1.9.0",
     "body-parser": "^2.2.0",
     "bs58": "^6.0.0",
     "canonicalize": "^2.1.0",
     "cors": "^2.8.5",
     "did-jwt-vc": "^4.0.13",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "fast-json-stable-stringify": "^2.1.0",
     "node-fetch": "^3.3.2",
