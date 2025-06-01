@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const didRouter = require("./routes/did");
-// const vcRouter = require("./routes/vc"); to be uncommented after adding a router for VCs
+const { router: vcRouter } = require("./routes/vc"); 
 const app = express();
 
 app.use(bodyParser.json());
@@ -15,6 +15,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/did", didRouter);
-// app.use("/vc", vcRouter); t be uncommented after adding a rounter for VCs
+app.use("/vc", vcRouter); 
 
 module.exports = app;

@@ -46,6 +46,7 @@ router.post("/validate", async (req, res) => {
 
         
     } catch (error) {
+        console.log(error);
         console.error("Error validating the VC");
         res.status(500).send("Error validating the VC");
     }
@@ -76,5 +77,6 @@ async function validateVC(vc, publicKey) {
 }
 
 module.exports = {
-    validateVC
+    validateVC,
+    router
 }

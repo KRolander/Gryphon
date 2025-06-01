@@ -21,11 +21,11 @@
     "fast-json-stable-stringify": "^2.1.0",
     "node-fetch": "^3.3.2",
     "sort-keys-recursive": "^2.1.10",
-    "supertest": "^7.1.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.1"
   }
 }
