@@ -22,6 +22,8 @@ authRouter.post('/signup', async (req, res) => {
     // Retrieve the access token
     const adminAccessToken = await adminService.getAdminToken();
 
+    console.log(req.body);
+
     // Create a new user
     //TODO: Implement a user data model - useful for validation
     const userData = {
@@ -38,21 +40,22 @@ authRouter.post('/signup', async (req, res) => {
       enabled: true,
       requiredActions: [],
       groups: [],
-      firstName: req.body.firstName || '', // optional
-      lastName: req.body.lastName || '', // optional
+      // firstName: req.body.firstName || '', // optional
+      // lastName: req.body.lastName || '', // optional
     };
+
+    //! REAL NAME IS HARDCODED FOR NOW. BEFORE DOING ANYTHING, YOU MUST MANUALLY CREATE
+    //! THIS REALM IN KEYCLOAK
     const realmName = 'users';
 
     await usersService.createUser(userData, realmName, adminAccessToken);
 
     const userToken = await usersService.loginUser(userData, realmName);
-
     console.log('User Token:', userToken);
 
     res.status(200).send({ access_token: userToken });
   } catch (error) {
-    console.log(error);
-    res.status(500).send('Signup failed');
+    res.status(500).send('Signup failed. Please try again later.');
   }
 });
 

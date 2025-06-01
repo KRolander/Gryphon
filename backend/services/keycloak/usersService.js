@@ -20,8 +20,8 @@ async function createUser(userData, realmName, adminAccessToken) {
     enabled: userData.enabled || true,
     requiredActions: userData.requiredActions || [],
     groups: userData.groups || [],
-    firstName: userData.firstName || '', // optional
-    lastName: userData.lastName || '', // optional
+    // firstName: userData.firstName || '', // optional
+    // lastName: userData.lastName || '', // optional
   };
   const headers = {
     'Content-Type': 'application/json',
@@ -44,7 +44,9 @@ async function createUser(userData, realmName, adminAccessToken) {
       `User creation failed with status code: ${userCreationResponse.status}`
     );
   } catch (error) {
-    console.log(error);
+    throw new Error(
+      `User Creation failed with the following error: ${error.message}`
+    );
   }
 }
 
@@ -73,11 +75,16 @@ async function loginUser(userData, realmName) {
       headers,
     });
 
+    // Check that the response status is 200 - OK
+    if (loginResponse.status !== 200) {
+      throw new Error(`Login failed with status code: ${loginResponse.status}`);
+    }
+
     const token = loginResponse.data.access_token;
 
     return token;
   } catch (error) {
-    console.log(error);
+    throw new Error(`Login failed with the following error: ${error.message}`);
   }
 }
 

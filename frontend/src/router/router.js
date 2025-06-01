@@ -1,36 +1,36 @@
 /* ========================= IMPORTS ========================= */
 // Core
-import { createWebHistory, createRouter } from "vue-router";
+import { createWebHistory, createRouter } from 'vue-router';
 
 // Views
-import HomePage from "../views/HomePage.vue";
-import DIDsPage from "../views/DIDsPage.vue";
-import VCsPage from "../views/VCsPage.vue";
+import HomePage from '../views/HomePage.vue';
+import DIDsPage from '../views/DIDsPage.vue';
+import VCsPage from '../views/VCsPage.vue';
 
 // Auth
-import AuthPage from "../views/AuthPage.vue";
-import SignupPage from "../components/auth/SignupForm.vue";
-import LoginPage from "../components/auth/LoginForm.vue";
-import RecoverPasswordPage from "../components/auth/ForgotPasswordForm.vue";
+import AuthPage from '../views/AuthPage.vue';
+import SignupPage from '../components/auth/SignupForm.vue';
+import LoginPage from '../components/auth/LoginForm.vue';
+import RecoverPasswordPage from '../components/auth/ForgotPasswordForm.vue';
 
 /* ========================= CONFIG ========================= */
 /* ---------------------- ROUTER ---------------------- */
 const routes = [
   {
-    name: "home",
-    path: "/",
+    name: 'home',
+    path: '/',
     component: HomePage,
     meta: { requiresAuth: true },
   },
   {
-    name: "DIDs",
-    path: "/dids",
+    name: 'DIDs',
+    path: '/dids',
     component: DIDsPage,
     meta: { requiresAuth: true },
   },
   {
-    name: "VCs",
-    path: "/vcs",
+    name: 'VCs',
+    path: '/vcs',
     component: VCsPage,
     meta: { requiresAuth: true },
   },
@@ -42,25 +42,25 @@ const routes = [
   //! - will not show the nav bar
 
   {
-    name: "auth",
-    path: "/auth",
+    name: 'auth',
+    path: '/auth',
     component: AuthPage,
     meta: { onlyWhenLoggedOut: true }, // Accessible only when logged out
     children: [
-      { name: "signup", path: "signup", component: SignupPage },
-      { name: "login", path: "login", component: LoginPage },
+      { name: 'signup', path: 'signup', component: SignupPage },
+      { name: 'login', path: 'login', component: LoginPage },
       {
-        name: "recover-password",
-        path: "recover-password",
+        name: 'recover-password',
+        path: 'recover-password',
         component: RecoverPasswordPage,
       },
       {
-        name: "catch-all",
-        path: "/:pathMatch(.*)*",
-        redirect: { name: "signup" },
+        name: 'catch-all',
+        path: '/:pathMatch(.*)*',
+        redirect: { name: 'signup' },
       }, // Redirect to login if no match
     ],
-    redirect: { name: "signup" }, // Redirect to signup if no child route is matched
+    redirect: { name: 'signup' }, // Redirect to signup if no child route is matched
   },
 ];
 const history = createWebHistory();
@@ -72,7 +72,7 @@ router.beforeEach((to, from, next) => {
   let isAuthenticated = false; // Replace with actual authentication check
 
   // Get token from localStorage and check it's validity
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('access_token');
   if (token) {
     // Here you would typically verify the token's validity
     // For example, check if it's expired or valid
@@ -82,9 +82,9 @@ router.beforeEach((to, from, next) => {
 
   //? Branch logic: Going to a route that requires authentication
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: "auth" }); // Redirect to auth page if not authenticated
+    next({ name: 'auth' }); // Redirect to auth page if not authenticated
   } else if (to.meta.onlyWhenLoggedOut && isAuthenticated) {
-    next({ name: "home" }); // Redirect to home if already authenticated
+    next({ name: 'home' }); // Redirect to home if already authenticated
   } else {
     next(); // Proceed to the route
   }

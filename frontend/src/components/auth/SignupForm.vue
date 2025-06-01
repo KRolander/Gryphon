@@ -105,76 +105,85 @@
 <script>
 /* ======================= IMPORTS ======================= */
 // Auth
-import AuthService from "@/services/AuthService";
+import AuthService from '@/services/AuthService';
 
 /* ======================= CONFIG ======================= */
 export default {
-  name: "SignupForm",
+  name: 'SignupForm',
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      username: "",
+      username: '',
 
-      email: "",
+      email: '',
       emailHasCustomError: false,
-      emailCustomErrorMessage: "",
+      emailCustomErrorMessage: '',
 
-      password: "",
-      confirmPassword: "",
+      password: '',
+      confirmPassword: '',
 
       /* --------------------- RULES --------------------- */
 
       usernameRules: [
-        (v) => !!v || "Username is required",
-        (v) => (v && v.length >= 3) || "Username must be at least 3 characters",
+        (v) => !!v || 'Username is required',
+        (v) => (v && v.length >= 3) || 'Username must be at least 3 characters',
         (v) =>
-          (v && v.length <= 20) || "Username must be at most 20 characters",
+          (v && v.length <= 20) || 'Username must be at most 20 characters',
       ],
 
       emailRules: [
-        (v) => !!v || "E-mail is required",
+        (v) => !!v || 'E-mail is required',
         (v) =>
           /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(
             v
-          ) || "E-mail must be valid",
+          ) || 'E-mail must be valid',
       ],
 
       passwordRules: [
-        (v) => !!v || "Password is required",
-        (v) => (v && v.length >= 6) || "Password must be at least 6 characters",
+        (v) => !!v || 'Password is required',
+        (v) => (v && v.length >= 6) || 'Password must be at least 6 characters',
         (v) =>
-          (v && v.length <= 20) || "Password must be at most 20 characters",
+          (v && v.length <= 20) || 'Password must be at most 20 characters',
       ],
 
       confirmPasswordRules: [
-        (v) => !!v || "Confirm Password is required",
-        (v) => v === this.password || "Passwords do not match",
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.password || 'Passwords do not match',
       ],
     };
   },
   methods: {
     async signup() {
+      // Ensire that the form is valid upoon submission
       if (this.valid) {
-        // Log successful message
-        console.log("Signup form submitted");
-
-        // Send request to the backend
+        // Disable the signup button
         this.loading = true;
 
-        // Magic will happen here, e.g., API call
+        // Send signup request to be backend service
         const res = await AuthService.signup({
           username: this.username,
           email: this.email,
           password: this.password,
         });
 
-        console.log("Response from signup:", res);
-
+        // Finish
         this.loading = false;
+
+        // Check if the response contains an access token
+        if (!res.data || !res.data.access_token) {
+          // TODO: Add more meaningful error handling
+          return;
+        }
+
+        // Store the token inside the local storage
+        localStorage.setItem('access_token', res.data.access_token);
+
+        // Redirect to the home page
+        this.$router.push({ name: 'home' });
       } else {
-        console.log("Form is invalid");
+        console.log('Form is invalid');
       }
     },
   },
