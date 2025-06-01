@@ -92,6 +92,8 @@ Finally, click the blue button that says `Create realm`
 
 When the dialogue pops up, all you need to do is enter the `realm name` which is `users`, and click on `Create`.
 
+Now, go to Realm Settings, then User profile and delete the `firstname` and `lastname` attributes.
+
 After doing this, the authentication system should run flawlessly.
 
 PS: Don't close the terminal where you started the Keycloak server because...it will stop the Keycloak server.
