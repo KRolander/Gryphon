@@ -11,6 +11,24 @@
       </div>
     </div>
 
+    <!-- Import/Export wallet -->
+    <v-row class="w-100">
+      <v-col cols="4">
+        <v-btn class="ma-2" @click="exportWallet">
+          Download Wallet <v-icon icon="mdi-download" end></v-icon
+        ></v-btn>
+      </v-col>
+      <v-col cols="8">
+        <v-file-input
+          label="Import Wallet"
+          prepend-icon="mdi-wallet"
+          accept=".json"
+          v-model="walletFile"
+          @change="importWallet"
+        />
+      </v-col>
+    </v-row>
+
     <!-- Card containing DIDs -->
     <v-row class="w-100">
       <v-col cols="12">
@@ -219,6 +237,7 @@
 <script lang="js">
 /* ----------------------- IMPORTS ----------------------- */
 import DIDService from '@/services/DIDService';
+import { useWalletStore } from '@/wallet/storage';
 
 /* ----------------------- CONFIG ----------------------- */
 export default {
@@ -226,6 +245,14 @@ export default {
   data() {
     return {
       DIDs: [],
+      wallet: null,
+      walletFile: null,
+
+      // Session info
+      // TODO: use the keycloak sub as userId instead of the hardcoded one
+      userId: "keycloakId",
+      // TODO: ask the user to input the password securely
+      passphrase: "verySecurePassword",
 
       // Dialog state
       dialogOpen: false,
@@ -276,8 +303,10 @@ export default {
     // Method to handle the creation of a new DID
     async createDID() {
       if (this.valid) {
-        //0. Create keys
+        // 0. Create keys
         const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
+        const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
+        const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
         // 1. Send to backend
 
@@ -285,33 +314,41 @@ export default {
         const res = await DIDService.createDID(PEMPublicKey);
         console.log(res.data);
 
+        // 2. Store in the wallet
+        this.wallet.addDid(res.data, {
+          publicKeyBase64,
+          privateKeyBase64
+        });
+        this.wallet.dids[res.data].metadata.name = this.newDIDname;
 
-        // 2. Add to the list
+        // 3. Persist the wallet
+        await this.wallet.saveWallet(this.userId, this.passphrase);
+
+        // 4. Add to the list
         this.DIDs.push({ name: this.newDIDname, did: res.data});
 
-        // 3. Reset the form
+        // 5. Reset the form
         this.newDIDname = "";
         this.valid = false;
 
-        // 4. Close the dialog
+        // 6. Close the dialog
         this.dialogOpen = false;
       }
     },
 
     async generateKeys(){
       const keyPair = await window.crypto.subtle.generateKey(
-          {
-            name: "ECDSA",
-            namedCurve: "P-256",
-          },
-          true, //used for being able to export the key
-          ["sign","verify"]
+        {
+          name: "ECDSA",
+          namedCurve: "P-256",
+        },
+        true, //used for being able to export the key
+        ["sign","verify"]
 
       )
       //both are arrayBuffers:
       const publicKey = await window.crypto.subtle.exportKey("spki",keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
       const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
-
 
       return {publicKey,privateKey};
     },
@@ -323,21 +360,42 @@ export default {
     },
 
     async getDIDDocument(DID){
-        if (this.showHideToggle[DID]){
-          this.showHideToggle[DID]=false;
-          this.didDoc[DID]=null;
-          return;
-        }
-        // 1. Send to backend
-        const res = await DIDService.getDIDDoc(DID);
-        this.showHideToggle[DID]=true;
-        this.didDoc[DID]=res.data;
-        console.log(res.data);
-      },
+      if (this.showHideToggle[DID]){
+        this.showHideToggle[DID]=false;
+        this.didDoc[DID]=null;
+        return;
+      }
+      // 1. Send to backend
+      const res = await DIDService.getDIDDoc(DID);
+      this.showHideToggle[DID]=true;
+      this.didDoc[DID]=res.data;
+      console.log(res.data);
+    },
 
     async deleteDID(DID){
+      try {
+        await DIDService.deleteDID(DID);
+      } catch (error) {
 
-      await DIDService.deleteDID(DID);
+        // Check if the error is given by DID missing in the blockchain
+        const reason = error?.response?.data?.reason || "";
+
+        // If it is, simply proceed
+        if (reason === "DID_NOT_FOUND") {
+          console.warn("DID already deleted. Proceeding to remove locally.");
+        } else {
+          // Otherwise throw a generic error
+          console.error("Unexpected error deleting DID:", error);
+          return;
+        }
+
+      }
+
+      // Delete from the wallet
+      this.wallet.removeDid(DID);
+
+      // Persist the wallet
+      await this.wallet.saveWallet(this.userId, this.passphrase);
       this.DIDs = this.DIDs.filter(x=>x.did!==DID);
       this.deleteDIDDialog = false;
       this.DIDToDelete = null;
@@ -370,8 +428,38 @@ export default {
       this.editControllerAlert = false;
       this.editControllerMessage = "";
       this.alertColor="info";
-    }
+    },
 
+    async exportWallet() {
+      await this.wallet.exportWallet(this.userId)
+    },
+
+    async importWallet() {
+      // Check that there is a file and a passphrase
+      // TODO: Prompt the user for the passphrase instead of using the local one
+      if (!this.walletFile || !this.passphrase) {
+        alert("Please select a file and enter a passphrase")
+        return
+      }
+
+      try {
+        await this.wallet.importWallet(this.walletFile, this.userId, this.passphrase)
+
+        // Update DIDs in UI
+        this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
+          did,
+          name: data.metadata?.name || 'Unnamed DID'
+        }))
+        alert("Wallet imported successfully!")
+
+        // Cleanup variables
+        this.walletFile = null
+        // this.passphrase = ''
+
+      } catch (err) {
+        alert(err.message)
+      }
+    }
   },
   computed: {
     emptyDIDList() {
@@ -379,10 +467,28 @@ export default {
     },
     // Computed properties can be added here if needed
   },
-  mounted() {
+  async mounted() {
+    // Instantiate the wallet
+    this.wallet = useWalletStore();
+
+    if (!this.userId || !this.passphrase) {
+      console.warn('User ID or wallet passphrase missing')
+      return
+    }
+
+    try {
+      await this.wallet.loadWallet(this.userId, this.passphrase)
+
+      // Fill the page with the DIDs loaded from the wallet
+      this.DIDs = Object.entries(this.wallet.dids).map(([did, data]) => ({
+        did,
+        name: data.metadata?.name || 'Unnamed DID'
+      }))
+    } catch (err) {
+      console.error('Failed to load wallet:', err)
+    }
+
     console.log("DIDsPage mounted");
-    // Fetch the DIDs from the backend when the component is mounted
-    // to be added very soon hopefully
   },
 };
 </script>

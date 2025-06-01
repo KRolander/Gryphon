@@ -127,7 +127,21 @@ router.delete("/deleteDID/:did", async(req, res) =>{
     res.status(200).send("DID deleted successfully");
   } catch(error) {
     console.error("Error while trying to delete the DID:", error);
-    res.status(500).send("Failed to delete DID");
+
+    const errorMessage = error?.details?.[0]?.message || "";
+
+    // If the DID is not found on chain, let frontend handle it
+    if (errorMessage.includes("it doesn't exist")) {
+      return res.status(404).json({
+        reason: "DID_NOT_FOUND",
+        message: `DID ${req.params.did} does not exist on-chain`
+      });
+    }
+    // Otherwise return a generic error
+    return res.status(500).json({
+      reason: "UNKNOWN_ERROR",
+      message: "Failed to delete DID"
+    });
   }
 });
 
