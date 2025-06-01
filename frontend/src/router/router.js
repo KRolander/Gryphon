@@ -60,7 +60,7 @@ const routes = [
         redirect: { name: 'signup' },
       }, // Redirect to login if no match
     ],
-    redirect: { name: 'signup' }, // Redirect to signup if no child route is matched
+    redirect: { name: 'login' }, // Redirect to signup if no child route is matched
   },
 ];
 const history = createWebHistory();

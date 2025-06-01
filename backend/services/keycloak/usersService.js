@@ -16,7 +16,13 @@ async function createUser(userData, realmName, adminAccessToken) {
     username: userData.username,
     email: userData.email,
     emailVerified: userData.emailVerified || false,
-    credentials: userData.credentials || [],
+    credentials: [
+      {
+        type: 'password',
+        value: userData.password,
+        temporary: false, // Set to false to avoid requiring password change on first login
+      },
+    ],
     enabled: userData.enabled || true,
     requiredActions: userData.requiredActions || [],
     groups: userData.groups || [],
@@ -62,7 +68,7 @@ async function loginUser(userData, realmName) {
   const body = {
     client_id: 'admin-cli',
     username: userData.username,
-    password: userData.credentials[0].value,
+    password: userData.password,
     grant_type: 'password',
   };
   const headers = {

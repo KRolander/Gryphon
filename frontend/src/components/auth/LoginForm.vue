@@ -21,17 +21,12 @@
           <!-- ==================== FIELDS ==================== -->
           <v-card-text>
             <v-form v-model="valid" @submit.prevent="login">
-              <!-- EMAIL FIELD -->
+              <!-- USERNAME FIELD -->
               <v-text-field
                 class="mb-4 mt-4"
-                label="E-mail"
-                type="email"
-                v-model="email"
-                :rules="emailRules"
-                :error="emailHasCustomError"
-                :error-messages="
-                  emailHasCustomError ? emailCustomErrorMessage : ''
-                "
+                label="Username"
+                v-model="username"
+                :rules="usernameRules"
                 required
               ></v-text-field>
 
@@ -83,43 +78,59 @@
 </template>
 
 <script>
+/* ======================= IMPORTS ======================= */
+// Auth
+import AuthService from '@/services/AuthService';
+
+/* ======================= CONFIG ======================= */
 export default {
-  name: "LoginForm",
+  name: 'LoginForm',
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      email: "",
+      email: '',
       emailHasCustomError: false,
-      emailCustomErrorMessage: "",
+      emailCustomErrorMessage: '',
 
-      password: "",
+      password: '',
 
       /* --------------------- RULES --------------------- */
-      emailRules: [
-        (v) => !!v || "E-mail is required",
-        (v) =>
-          /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(
-            v
-          ) || "E-mail must be valid",
-      ],
+      username: '',
+      usernameRules: [(v) => !!v || 'Username is required'],
 
-      passwordRules: [(v) => !!v || "Password is required"],
+      passwordRules: [(v) => !!v || 'Password is required'],
     };
   },
   methods: {
-    login() {
+    async login() {
       if (this.valid) {
-        // Log successful message
-        console.log("Login form submitted");
-
         // Send request to the backend
         this.loading = true;
 
-        // Magic will happen here, e.g., API call
+        // Send signup request to be backend service
+        const res = await AuthService.login({
+          username: this.username,
+          password: this.password,
+        });
+
+        // Finish
+        this.loading = false;
+
+        // Check if the response contains an access token
+        if (!res.data || !res.data.access_token) {
+          // TODO: Add more meaningful error handling
+          return;
+        }
+
+        // Store the token inside the local storage
+        localStorage.setItem('access_token', res.data.access_token);
+
+        // Redirect to the home page
+        this.$router.push({ name: 'home' });
       } else {
-        console.log("Form is invalid");
+        console.log('Form is invalid');
       }
     },
   },

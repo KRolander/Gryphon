@@ -29,13 +29,7 @@ authRouter.post('/signup', async (req, res) => {
     const userData = {
       username: req.body.username,
       email: req.body.email,
-      credentials: [
-        {
-          type: 'password',
-          value: req.body.password,
-          temporary: false, // Set to false to avoid requiring password change on first login
-        },
-      ],
+      password: req.body.password,
       emailVerified: true,
       enabled: true,
       requiredActions: [],
@@ -50,10 +44,34 @@ authRouter.post('/signup', async (req, res) => {
 
     await usersService.createUser(userData, realmName, adminAccessToken);
 
-    const userToken = await usersService.loginUser(userData, realmName);
-    console.log('User Token:', userToken);
+    const userAccessToken = await usersService.loginUser(userData, realmName);
+    console.log('User Token:', userAccessToken);
 
-    res.status(200).send({ access_token: userToken });
+    res.status(200).send({ access_token: userAccessToken });
+  } catch (error) {
+    res.status(500).send('Signup failed. Please try again later.');
+  }
+});
+
+/**
+ * Handles the login request
+ * @route POST /auth/login
+ * @returns {object} An object containing the access tokend
+ * @returns {Error} 500 - Internal server error if login fails for any reason
+ */
+authRouter.post('/login', async (req, res) => {
+  try {
+    // Setup
+    const userData = {
+      username: req.body.username,
+      password: req.body.password,
+    };
+    const realmName = 'users';
+
+    console.log('User Data:', userData);
+
+    const userAccessToken = await usersService.loginUser(userData, realmName);
+    res.status(200).send({ access_token: userAccessToken });
   } catch (error) {
     res.status(500).send('Signup failed. Please try again later.');
   }
