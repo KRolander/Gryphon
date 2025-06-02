@@ -69,11 +69,11 @@ export default class DID extends Contract {
     ): Promise<Buffer> {
 
         // The DID Document can only be updated if it was already stored
-
-        const DIDExists = await this.DIDExists(ctx, DID);
         const cleanDID = DID.replace(/^"|"$/g, '');
+        const DIDExists = await this.DIDExists(ctx, cleanDID);
+
         if (!DIDExists) {
-            throw new Error(`Cannot update DID Document, the DID ${DID} doesn't exists`);
+            throw new Error(`Cannot update DID Document, the DID ${cleanDID} doesn't exists`);
         }
 
         // Retrieve the current DID Document and update the fields

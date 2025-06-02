@@ -1,10 +1,24 @@
-<script setup>
+<script>
+/* ======================= IMPORTS ======================= */
 import NavBar from "./components/NavBar.vue";
+
+/* ======================= CONFIG ======================= */
+export default {
+  components: {
+    NavBar,
+  },
+  computed: {
+    showNavBar() {
+      // Show NavBar only if the current route is not 'auth'
+      return !this.$route.path.startsWith("/auth");
+    },
+  },
+};
 </script>
 
 <template>
   <v-app>
-    <NavBar />
+    <NavBar v-if="showNavBar" />
 
     <v-main>
       <RouterView />
