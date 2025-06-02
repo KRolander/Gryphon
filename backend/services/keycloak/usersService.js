@@ -61,6 +61,7 @@ async function createUser(userData, realmName, adminAccessToken) {
  *
  * @param {object} userData - The data of the user to be logged in
  * @returns {string} The access token of the logged-in user
+ * @throws {Error} If the login fails or the user is not found
  */
 async function loginUser(userData, realmName) {
   // Create the parameters for the axios request
@@ -70,6 +71,7 @@ async function loginUser(userData, realmName) {
     username: userData.username,
     password: userData.password,
     grant_type: 'password',
+    scope: 'openid',
   };
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -94,7 +96,46 @@ async function loginUser(userData, realmName) {
   }
 }
 
+/**
+ * Get a user's data from Keycloak using their access token.
+ *
+ * @param {string} userAccessToken - The access token of the user
+ * @param {string} realmName - The name of the realm in which the user exists
+ * @returns {object} The user's data
+ * @throws {Error} If the request fails or the user is not found
+ */
+async function getUserData(userAccessToken, realmName) {
+  const endpoint = `/realms/${realmName}/protocol/openid-connect/userinfo`;
+  const headers = {
+    Authorization: `Bearer ${userAccessToken}`,
+  };
+
+  console.log(userAccessToken);
+
+  try {
+    const getUserDataResponse = await keycloakApiClient.get(endpoint, {
+      headers,
+    });
+
+    // Check that the response status is 200 - OK
+    if (getUserDataResponse.status !== 200) {
+      throw new Error(
+        `User data fetch failed with status code: ${loginResponse.status}`
+      );
+    }
+
+    // console.log('User Data:', getUserDataResponse.data);
+
+    return getUserDataResponse.data;
+  } catch (error) {
+    throw new Error(
+      `Fetching user data failed with the following error: ${error.message}`
+    );
+  }
+}
+
 module.exports = {
   createUser,
   loginUser,
+  getUserData,
 };
