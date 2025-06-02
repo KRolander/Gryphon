@@ -83,7 +83,7 @@ authRouter.post('/login', async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send('Login failed. Please try again later.' + error.message);
+      .send('Login failed. Please try again later.\n' + error.message);
   }
 });
 

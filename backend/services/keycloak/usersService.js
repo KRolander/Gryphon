@@ -129,7 +129,7 @@ async function getUserData(userAccessToken, realmName) {
     return getUserDataResponse.data;
   } catch (error) {
     throw new Error(
-      `Fetching user data failed with the following error: ${error.message}`
+      `Fetching user data failed with the following error:\n ${error.message}`
     );
   }
 }
