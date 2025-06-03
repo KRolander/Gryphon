@@ -17,10 +17,10 @@ export const useWalletStore = defineStore('wallet', {
   }),
 
   actions: {
-    addDid(did: string, keyPair: { publicKey: string, privateKey: string }) {
+    addDid(did: string, keyPair: { publicKey: string, privateKey: string }, name: string) {
       this.dids[did] = {
         keyPair,
-        metadata: { createdAt: new Date().toISOString() },
+        metadata: { createdAt: new Date().toISOString(), name: name },
         credentials: []
       }
       this.activeDid = did
@@ -55,8 +55,16 @@ export const useWalletStore = defineStore('wallet', {
     },
 
     async saveWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
+      const salt = await this.getSalt(userId)
       const encrypted = await encryptWithSessionKey({ dids: this.dids, activeDid: this.activeDid }, sessionKey)
-      await set(`wallet-${userId}`, encrypted)
+
+      const encryptedBytes = Uint8Array.from([
+        ...salt,
+        ...Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
+      ])
+      const saltedEncrypted = btoa(String.fromCharCode(...encryptedBytes))
+
+      await set(`wallet-${userId}`, saltedEncrypted)
     },
 
 
