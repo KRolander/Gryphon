@@ -116,7 +116,7 @@
                       <v-btn
                           v-bind="deleteButton"
                           variant="outlined"
-                          @click="deleteDIDDialog = true"
+                          @click="() => {deleteDIDDialog = true, DIDToDelete=DID.did}"
                       >
                         Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
                       ></v-btn>
@@ -137,7 +137,9 @@
 
                           <v-spacer></v-spacer>
 
-                          <v-btn class="ma-2" variant="outlined" @click="deleteDID(DID.did)">
+                          <v-btn class="ma-2"
+                                 variant="outlined"
+                                 @click="deleteDID(DIDToDelete)">
                             Yes
                             <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
                           </v-btn>
@@ -179,11 +181,13 @@
                                       v-model="newControllerName"
                                       label="Controller DID"
                                       required
+                                      :rules="didStructureRules"
                                   ></v-text-field>
                                   <div class="d-flex justify-end">
                                     <v-btn
                                         class="ma-2 mt-n4"
                                         variant="outlined"
+                                        :disabled="!valid"
                                         @click="modifyController(DID.did,'addController')">
                                       Add
                                       <v-icon icon="mdi-plus-circle" end></v-icon>
@@ -204,7 +208,7 @@
                             <v-btn
                                 class="ma-2s"
                                 variant="outlined"
-                                @click="isActive.value = false"
+                                @click="() => {isActive.value = false; newControllerName=''}"
                             >
                               Cancel
                               <v-icon icon="mdi-cancel" end></v-icon>
@@ -253,6 +257,7 @@ export default {
       // Dialog state
       dialogOpen: false,
       deleteDIDDialog: false,
+      DIDToDelete: null,
       editDIDDocDialog: false,
       editControllerAlert: false,
       editControllerMessage:"",
@@ -263,6 +268,23 @@ export default {
       showHideToggle: {},
       didDoc: {},
       didList:true ,
+      didStructureRules: [
+          value => {
+            if (value && value.startsWith("did:hlf:")){
+              return true;
+            }
+            return "A DID should start with did:hlf:"
+          },
+          value => {
+            if (value.length<30){
+              return "DID too short, check again"
+            }
+            else if (value.length>31){
+              return "DID too long, check again"
+            }
+            return true;
+          }
+      ],
       DIDNameRules: [
         value => {
           if (value) return true
@@ -376,6 +398,7 @@ export default {
       await this.wallet.saveWallet(this.userId, this.passphrase);
       this.DIDs = this.DIDs.filter(x=>x.did!==DID);
       this.deleteDIDDialog = false;
+      this.DIDToDelete = null;
     },
 
     async modifyController(DID,operation){
