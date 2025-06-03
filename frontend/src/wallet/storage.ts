@@ -39,6 +39,16 @@ export const useWalletStore = defineStore('wallet', {
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null
     },
 
+    async walletExists(userId: string): Promise<boolean> {
+      const exists = await get(`wallet-${userId}`)
+      return !!exists
+    },
+
+    async initEmptyWallet(userId: string, passphrase: string) {
+      const encrypted = await encrypt({ dids: {}, activeDid: null }, passphrase)
+      await set(`wallet-${userId}`, encrypted)
+    },
+
     async saveWallet(userId: string, passphrase: string) {
       const encrypted = await encrypt({ dids: this.dids }, passphrase)
       await set(`wallet-${userId}`, encrypted)
