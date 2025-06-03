@@ -38,11 +38,11 @@ router.post("/validate", async (req, res) => {
             return res.status(400).send("This DID does not have a public key"); 
 
         // run the validate method
-        const validity = validateVC(VC, publicKey);
-        if(validity)
+        const validity = await validateVC(VC, publicKey);
+        if(validity == true)
             res.status(200).send("The VC is valid (it was issued by the issuer)");
         else 
-            res.status(200).send("The Vc is not valid (it was not issued by the issuer)");
+            res.status(200).send("The VC is not valid (it was not issued by the issuer)");
 
         
     } catch (error) {
