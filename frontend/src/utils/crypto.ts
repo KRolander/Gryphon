@@ -66,7 +66,7 @@ export async function encrypt(payload: any, passphrase: string): Promise<string>
   const key = await deriveKey(passphrase, salt)
 
   const encrypted = await encryptWithSessionKey(payload, key)
-  const encryptedBytes = new Uint8Array([...salt, ...Uint8Array.from(atob(encrypted))])
+  const encryptedBytes = new Uint8Array([...salt, ...Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))])
   return btoa(String.fromCharCode(...encryptedBytes))
 }
 

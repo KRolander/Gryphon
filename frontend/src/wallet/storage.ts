@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { get, set } from 'idb-keyval'
-import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey } from '@/utils/crypto'
-import { SALT_LENGTH } from "../utils/crypto";
+import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey, extractSalt, SALT_LENGTH } from '@/utils/crypto'
 
 // The wallet is persisted in IndexedDB (idb) as a key-value pair
 // Where the key corresponds to the Keycloak's subject claim (sub)
@@ -124,6 +123,14 @@ export const useWalletStore = defineStore('wallet', {
       } catch (err) {
         throw new Error("Failed to import wallet. Check your passphrase or file.")
       }
+    },
+
+    async getSalt(userId: string) {
+      const encrypted = await get(`wallet-${userId}`)
+      if (!encrypted) {
+        throw new Error("No wallet found for this user")
+      }
+      return extractSalt(encrypted)
     }
   }
 })
