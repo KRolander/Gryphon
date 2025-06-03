@@ -1,3 +1,5 @@
+import { get, set, del } from 'idb-keyval'
+
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
@@ -5,6 +7,21 @@ export const SALT_LENGTH = 16
 const IV_LENGTH = 12
 const ITERATIONS = 100_000
 const KEY_LENGTH = 256
+
+const SESSION_KEY_PREFIX = 'session-key'
+
+export async function storeSessionKey(userId: string, key: CryptoKey): Promise<void> {
+  await set(`${SESSION_KEY_PREFIX}-${userId}`, key)
+}
+
+export async function loadSessionKey(userId: string): Promise<CryptoKey | null> {
+  const key = await get(`${SESSION_KEY_PREFIX}-${userId}`)
+  return key ?? null
+}
+
+export async function deleteSessionKey(userId: string): Promise<void> {
+  await del(`${SESSION_KEY_PREFIX}-${userId}`)
+}
 
 export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
