@@ -11,8 +11,12 @@ const {
 
 router = express.Router();
 
-// this shoud recieve a JSON    
-router.post("/validate", async (req, res) => {
+/**
+ * This function recieves a JSON of a 
+ * VC and it checks if the signature
+ * is correct or not
+ */  
+router.post("/verify", async (req, res) => {
     try {
         if (getGateway() == null) {
             await startGateway();

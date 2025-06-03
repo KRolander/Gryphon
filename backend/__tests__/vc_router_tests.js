@@ -35,7 +35,7 @@ const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null);
 const doc = docBuilder.build();
 const keylessDoc = noKeyBuilder.build();
 
-describe("POST /vc/validate", () => {
+describe("POST /vc/verify", () => {
     it("should return 200 and a valid message", async () => {
         getDIDDoc.mockReturnValue(doc);
         /**---------Create the unsigne VC--------- */
@@ -63,7 +63,7 @@ describe("POST /vc/validate", () => {
         //console.log(result);
 
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(sVC)
             .expect(200);
 
@@ -96,7 +96,7 @@ describe("POST /vc/validate", () => {
         const result = vcValidationModule.validateVC(sVC, pk);
 
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(sVC)
             .expect(400);
 
@@ -106,7 +106,7 @@ describe("POST /vc/validate", () => {
     it("should return 400 because there is no VC", async () => {
 
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(null)
             .expect(400);
 
@@ -133,7 +133,7 @@ describe("POST /vc/validate", () => {
         const sVC = sVCBuilder.build();
 
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(sVC)
             .expect(500);
 
@@ -160,7 +160,7 @@ describe("POST /vc/validate", () => {
         const sVC = sVCBuilder.build();
 
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(sVC)
             .expect(400);
 
@@ -185,7 +185,7 @@ describe("POST /vc/validate", () => {
         const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
         const method = doc.verificationMethod.find(vm => vm.id === keyId); // find that method in the list of verification methods
         const response = await request(app)
-            .post("/vc/validate")
+            .post("/vc/verify")
             .send(sVC)
             .expect(200);
 
