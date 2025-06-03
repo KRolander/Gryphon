@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { get, set } from 'idb-keyval'
-import { encrypt, decrypt } from '@/utils/crypto'
+import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey } from '@/utils/crypto'
+import { SALT_LENGTH } from "../utils/crypto";
 
 // The wallet is persisted in IndexedDB (idb) as a key-value pair
 // Where the key corresponds to the Keycloak's subject claim (sub)
@@ -50,9 +51,15 @@ export const useWalletStore = defineStore('wallet', {
     },
 
     async saveWallet(userId: string, passphrase: string) {
-      const encrypted = await encrypt({ dids: this.dids }, passphrase)
+      const encrypted = await encrypt({ dids: this.dids, activeDid: this.activeDid }, passphrase)
       await set(`wallet-${userId}`, encrypted)
     },
+
+    async saveWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
+      const encrypted = await encryptWithSessionKey({ dids: this.dids, activeDid: this.activeDid }, sessionKey)
+      await set(`wallet-${userId}`, encrypted)
+    },
+
 
     async loadWallet(userId: string, passphrase: string) {
       const encrypted = await get(`wallet-${userId}`)
@@ -60,7 +67,22 @@ export const useWalletStore = defineStore('wallet', {
       try {
         const decrypted = await decrypt(encrypted, passphrase)
         this.dids = decrypted.dids
-        this.activeDid = Object.keys(this.dids)[0] || null
+        this.activeDid = decrypted.activeDid
+      } catch(error) {
+        throw new Error("Failed to decrypt wallet. Check your passphrase.")
+      }
+    },
+
+    async loadWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
+      const encrypted = await get(`wallet-${userId}`)
+      if (!encrypted) return
+      try {
+        const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
+        const saltlessBytes = encryptedBytes.slice(SALT_LENGTH)
+        const decrypted = await decryptWithSessionKey(btoa(String.fromCharCode(...saltlessBytes)), sessionKey)
+
+        this.dids = decrypted.dids
+        this.activeDid = decrypted.activeDid
       } catch(error) {
         throw new Error("Failed to decrypt wallet. Check your passphrase.")
       }

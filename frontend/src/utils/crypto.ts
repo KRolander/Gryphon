@@ -1,7 +1,7 @@
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-const SALT_LENGTH = 16
+export const SALT_LENGTH = 16
 const IV_LENGTH = 12
 const ITERATIONS = 100_000
 const KEY_LENGTH = 256
@@ -29,7 +29,7 @@ export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<C
   )
 }
 
-export async function encryptWithSessionKey(payload: string, sessionKey: CryptoKey): Promise<string> {
+export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
   const plaintext = encoder.encode(JSON.stringify(payload))
 
@@ -77,4 +77,9 @@ export async function decrypt(encrypted: string, passphrase: string): Promise<an
 
   const key = await deriveKey(passphrase, salt)
   return await decryptWithSessionKey(btoa(String.fromCharCode(...rest)), key)
+}
+
+export function extractSalt(encrypted: string): Uint8Array {
+  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
+  return encryptedBytes.slice(0, SALT_LENGTH)
 }
