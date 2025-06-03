@@ -83,7 +83,7 @@
 import AuthService from '@/services/AuthService';
 
 // Store
-import { usUserStore } from '@/store/userStore';
+import { useUserStore } from '@/store/userStore';
 import { mapStores } from 'pinia';
 
 /* ======================= CONFIG ======================= */
@@ -108,7 +108,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(usUserStore),
+    ...mapStores(useUserStore),
   },
   methods: {
     async login() {
