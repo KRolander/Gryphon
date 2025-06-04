@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { useWalletStore } from '@/wallet/storage'
+import { useWalletStore } from '@/store/WalletStore.ts'
 import { mapStores } from "pinia";
 import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto.js";
 
