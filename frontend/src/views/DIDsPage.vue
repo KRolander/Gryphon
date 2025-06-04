@@ -1,22 +1,22 @@
 <template>
-  <WalletManager v-slot="{ wallet, ready }">
-    <template v-if="ready">
-
-      <div style="display: none">
-        {{ refreshDIDs(wallet) }}
-      </div>
-
-    <v-container
+  <v-container
       class="fill-height d-flex flex-column align-center justify-center"
       max-width="800"
     >
-      <!-- Welcome message -->
-      <div>
-        <div class="mb-8 text-center">
-          <div class="text-body-1 font-weight-light mb-n1">Welcome to</div>
-          <h1 class="text-h2 font-weight-bold">Your DIDs</h1>
-        </div>
+    <!-- Welcome message -->
+    <div>
+      <div class="mb-8 text-center">
+        <div class="text-body-1 font-weight-light mb-n1">Welcome to</div>
+        <h1 class="text-h2 font-weight-bold">Your DIDs</h1>
       </div>
+    </div>
+
+    <WalletManager v-slot="{ wallet, ready }">
+      <template v-if="ready">
+
+        <div style="display: none">
+          {{ refreshDIDs(wallet) }}
+        </div>
 
       <!-- Card containing DIDs -->
       <v-row class="w-100">
@@ -220,9 +220,9 @@
           </v-card>
         </v-col>
       </v-row>
-    </v-container>
     </template>
-  </WalletManager>
+    </WalletManager>
+  </v-container>
 </template>
 
 <script lang="js">

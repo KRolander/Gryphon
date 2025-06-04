@@ -1,4 +1,26 @@
 <template>
+
+  <!-- Import/Export wallet -->
+  <v-container class="pt-4 pb-2" fluid>
+    <v-row>
+      <v-col cols="12" sm="6">
+        <v-file-input
+          label="Import Wallet"
+          hide-details
+          prepend-icon="mdi-upload"
+          accept=".json"
+          v-model="walletFile"
+          @change="importWallet"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-btn class="ma-2" @click="exportWallet">
+          Download Wallet <v-icon icon="mdi-download" end></v-icon
+        ></v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
+
   <slot :wallet="{
   ...walletStore,
   save: this.save
@@ -33,24 +55,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-  <!-- Import/Export wallet -->
-  <v-row class="w-100">
-    <v-col cols="4">
-      <v-btn class="ma-2" @click="exportWallet">
-        Download Wallet <v-icon icon="mdi-download" end></v-icon
-      ></v-btn>
-    </v-col>
-    <v-col cols="8">
-      <v-file-input
-        label="Import Wallet"
-        prepend-icon="mdi-wallet"
-        accept=".json"
-        v-model="walletFile"
-        @change="importWallet"
-      />
-    </v-col>
-  </v-row>
 </template>
 
 <script>
