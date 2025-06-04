@@ -57,6 +57,8 @@
 import { useWalletStore } from '@/store/WalletStore.ts'
 import { mapStores } from "pinia";
 import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto.js";
+import { useUserStore } from "@/store/userStore.js";
+import { watch } from "vue";
 
 export default {
   name: "WalletManager",
@@ -66,9 +68,10 @@ export default {
       isReady: false,
 
       // Session info
-      userId: "keycloak",
+      userId: null,
       passphrase: "",
       sessionKey: null,
+      initialized: false,
 
       // Dialog state
       walletPwDialog: false
@@ -76,7 +79,7 @@ export default {
   },
 
   computed: {
-    ...mapStores(useWalletStore),
+    ...mapStores(useWalletStore, useUserStore),
   },
 
   methods: {
@@ -176,10 +179,30 @@ export default {
   },
 
   async mounted() {
-    this.sessionKey = await loadSessionKey(this.userId)
-    await this.ensureWallet()
-    await this.unlockWallet()
-    this.isReady = true
+    await this.userStore.loadUser()
+    // Wait for keycloak to finish storing the user
+    watch(
+      () => this.userStore.getUser,
+      async (newUser) => {
+        if (newUser && !this.initialized) {
+          // Set initialized flag false, to avoid reacting to every user change
+          this.initialized = true
+          this.userId = newUser.id
+
+          if (!this.userId) {
+            console.error(`No user id found`)
+            return
+          }
+          console.log(`Mounting wallet with user id: ${this.userId}`)
+          this.sessionKey = await loadSessionKey(this.userId)
+          await this.ensureWallet()
+          await this.unlockWallet()
+          console.log(`Wallet mounted`)
+          this.isReady = true
+        }
+      },
+      { immediate: true }
+    )
   }
 }
 </script>
