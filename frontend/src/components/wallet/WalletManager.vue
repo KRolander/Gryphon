@@ -106,6 +106,7 @@ export default {
         await this.walletStore.initEmptyWallet(this.userId, this.passphrase)
         const salt = await this.walletStore.getSalt(this.userId)
         this.sessionKey = await deriveKey(this.passphrase, salt)
+        this.passphrase = ""
         await storeSessionKey(this.userId, this.sessionKey)
       }
     },
@@ -120,7 +121,6 @@ export default {
         try {
           const salt = await this.walletStore.getSalt(this.userId)
           this.sessionKey = await deriveKey(this.passphrase, salt)
-          await storeSessionKey(this.userId, this.sessionKey)
         } catch(error) {
           console.error("Failed to get salt or derive key:", error)
           this.walletPwDialog = true
@@ -134,6 +134,7 @@ export default {
       // Try to unlock the wallet with the sessionKey
       try {
         await this.walletStore.loadWalletWithSessionKey(this.userId, this.sessionKey)
+        await storeSessionKey(this.userId, this.sessionKey)
       } catch(error) {
         console.error("Failed to load wallet with session key:", error)
 
@@ -155,7 +156,7 @@ export default {
     },
 
     async exportWallet() {
-      await this.wallet.exportWallet(this.userId)
+      await this.walletStore.exportWallet(this.userId)
     },
 
     async importWallet() {
@@ -164,10 +165,13 @@ export default {
         return
       }
 
+      this.walletPwDialog = true
+      await this.waitForPassphrase()
+
       try {
+        this.sessionKey = null
         await this.walletStore.importWallet(this.walletFile, this.userId, this.passphrase)
 
-        this.sessionKey = null
         await this.unlockWallet()
 
         this.walletFile = null
