@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { get, set } from 'idb-keyval'
-import { encrypt, decrypt } from '@/utils/crypto'
+import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey, extractSalt, SALT_LENGTH } from '@/utils/crypto'
 
 // The wallet is persisted in IndexedDB (idb) as a key-value pair
 // Where the key corresponds to the Keycloak's subject claim (sub)
@@ -17,10 +17,10 @@ export const useWalletStore = defineStore('wallet', {
   }),
 
   actions: {
-    addDid(did: string, keyPair: { publicKey: string, privateKey: string }) {
+    addDid(did: string, keyPair: { publicKey: string, privateKey: string }, name: string) {
       this.dids[did] = {
         keyPair,
-        metadata: { createdAt: new Date().toISOString() },
+        metadata: { createdAt: new Date().toISOString(), name: name },
         credentials: []
       }
       this.activeDid = did
@@ -39,10 +39,34 @@ export const useWalletStore = defineStore('wallet', {
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null
     },
 
-    async saveWallet(userId: string, passphrase: string) {
-      const encrypted = await encrypt({ dids: this.dids }, passphrase)
+    async walletExists(userId: string): Promise<boolean> {
+      const exists = await get(`wallet-${userId}`)
+      return !!exists
+    },
+
+    async initEmptyWallet(userId: string, passphrase: string) {
+      const encrypted = await encrypt({ dids: {}, activeDid: null }, passphrase)
       await set(`wallet-${userId}`, encrypted)
     },
+
+    async saveWallet(userId: string, passphrase: string) {
+      const encrypted = await encrypt({ dids: this.dids, activeDid: this.activeDid }, passphrase)
+      await set(`wallet-${userId}`, encrypted)
+    },
+
+    async saveWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
+      const salt = await this.getSalt(userId)
+      const encrypted = await encryptWithSessionKey({ dids: this.dids, activeDid: this.activeDid }, sessionKey)
+
+      const encryptedBytes = Uint8Array.from([
+        ...salt,
+        ...Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
+      ])
+      const saltedEncrypted = btoa(String.fromCharCode(...encryptedBytes))
+
+      await set(`wallet-${userId}`, saltedEncrypted)
+    },
+
 
     async loadWallet(userId: string, passphrase: string) {
       const encrypted = await get(`wallet-${userId}`)
@@ -50,7 +74,22 @@ export const useWalletStore = defineStore('wallet', {
       try {
         const decrypted = await decrypt(encrypted, passphrase)
         this.dids = decrypted.dids
-        this.activeDid = Object.keys(this.dids)[0] || null
+        this.activeDid = decrypted.activeDid
+      } catch(error) {
+        throw new Error("Failed to decrypt wallet. Check your passphrase.")
+      }
+    },
+
+    async loadWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
+      const encrypted = await get(`wallet-${userId}`)
+      if (!encrypted) return
+      try {
+        const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
+        const saltlessBytes = encryptedBytes.slice(SALT_LENGTH)
+        const decrypted = await decryptWithSessionKey(btoa(String.fromCharCode(...saltlessBytes)), sessionKey)
+
+        this.dids = decrypted.dids
+        this.activeDid = decrypted.activeDid
       } catch(error) {
         throw new Error("Failed to decrypt wallet. Check your passphrase.")
       }
@@ -92,6 +131,14 @@ export const useWalletStore = defineStore('wallet', {
       } catch (err) {
         throw new Error("Failed to import wallet. Check your passphrase or file.")
       }
+    },
+
+    async getSalt(userId: string) {
+      const encrypted = await get(`wallet-${userId}`)
+      if (!encrypted) {
+        throw new Error("No wallet found for this user")
+      }
+      return extractSalt(encrypted)
     }
   }
 })

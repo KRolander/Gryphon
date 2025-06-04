@@ -5,14 +5,15 @@ const keycloakApiClient = require('../keycloakApiClient.js');
 let adminToken = null;
 
 /**
- * Retrueves the admin token necessary to perform administrative actions in Keycloak.
+ * Retrieves the admin token necessary to perform administrative actions in Keycloak.
  * @returns {string} The admin token
  */
 async function getAdminToken() {
   // If the admin token is already set, return it
-  if (adminToken) {
-    return adminToken;
-  }
+  // TODO: look into related issue #45
+  // if (adminToken) {
+  //   return adminToken;
+  // }
 
   // Else, fetch a new admin token from Keycloak
   const endpoint = '/realms/master/protocol/openid-connect/token';

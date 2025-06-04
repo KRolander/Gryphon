@@ -135,7 +135,7 @@ export default {
         localStorage.setItem('access_token', res.data.access_token);
 
         // Store the user data in the Pinia store
-        this.userStore.setUser({
+        await this.userStore.setUser({
           id: res.data.user.sub,
           username: res.data.user.preferred_username,
           email: res.data.user.email,
