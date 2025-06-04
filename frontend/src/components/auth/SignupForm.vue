@@ -106,6 +106,8 @@
 /* ======================= IMPORTS ======================= */
 // Auth
 import AuthService from '@/services/AuthService';
+import { mapStores } from "pinia";
+import { useUserStore } from "@/store/userStore.js";
 
 /* ======================= CONFIG ======================= */
 export default {
@@ -154,6 +156,9 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useUserStore),
+  },
   methods: {
     async signup() {
       // Ensire that the form is valid upoon submission
@@ -179,6 +184,13 @@ export default {
 
         // Store the token inside the local storage
         localStorage.setItem('access_token', res.data.access_token);
+
+        // Store the user data in the Pinia store
+        await this.userStore.setUser({
+          id: res.data.user.sub,
+          username: res.data.user.preferred_username,
+          email: res.data.user.email,
+        });
 
         // Redirect to the home page
         this.$router.push({ name: 'home' });
