@@ -3,6 +3,7 @@ const vcValidationModule = require("../routes/vc");
 const { createSign } = require("crypto");
 const crypto = require("crypto");
 const canonicalize = require("canonicalize");
+const {saveRegistryFromMap, loadRegistryAsMap, addVC} = require("../../utils/publicRegistry");
 
 describe("validateVC", () => {
     /**---------Create the key pair for the test--------- */
@@ -21,8 +22,12 @@ describe("validateVC", () => {
     /**---------Create the unsigned VC--------- */
     const issuerDID = "did:hlf:issuer";
     const subDID = "did:hlf:subject";
-    const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
-    const baduVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", "did:hlf:somedid", subDID, "claim");
+    const claims = {
+        degree: "Bachelor of Science",
+        graduationYear: 2024
+    };
+    const uVCBuilder = new UnsignedVCBuilder(["VerifiableCredential", "BachelorDegree"], "date", issuerDID, subDID, claims);
+    const baduVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", "did:hlf:somedid", subDID, claims);
     const uVC = uVCBuilder.build();
     const baduVC = baduVCBuilder.build();
 
@@ -38,6 +43,11 @@ describe("validateVC", () => {
     const badVCBuilder = new VCBuilder(baduVC, "date1", "someURL", signature);
     const sVC = sVCBuilder.build();
     const badVC = badVCBuilder.build();
+
+    // this part was only added here in order to check if it is possible to populate the repository of the university
+    // let reg = loadRegistryAsMap('../registries/university.json');
+    // addVC(reg, sVC);
+    // saveRegistryFromMap(reg, "../registries/university.json");
 
     /**---------Check the result--------- */
     it("should return true for a valid VC", async () => {

@@ -38,9 +38,9 @@ router.post('/create', async (req, res, next) => {
       return res.status(400).send('Public key is required');
     }
     const DID = await createDID();
-    const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
+    const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey, null);
     const doc = docBuilder.build();
-
+ 
     const resultBytes = await storeDID(getContract(), DID, doc);
 
     console.log(`DID ${DID} stored successfully!`); // Log the transaction
