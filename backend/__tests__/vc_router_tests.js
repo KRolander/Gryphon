@@ -37,7 +37,7 @@ const doc = docBuilder.build();
 getDIDDoc.mockReturnValue(doc);
 
 describe("POST /vc/validate", () => {
-    it("should return 200 and a valid mesage", async () => {
+    it("should return 200 and a valid message", async () => {
 
         /**---------Create the unsigne VC--------- */
         const subDID = "did:hlf:subject";
