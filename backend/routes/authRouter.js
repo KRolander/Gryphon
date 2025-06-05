@@ -22,11 +22,11 @@ authRouter.post('/signup', async (req, res) => {
     // Retrieve the access token
     const adminAccessToken = await adminService.getAdminToken();
 
-    console.log(req.body);
+    console.log('Admin Access Token:', adminAccessToken);
 
     // Create a new user
     //TODO: Implement a user data model - useful for validation
-    const userData = {
+    const userCredentials = {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
@@ -42,14 +42,21 @@ authRouter.post('/signup', async (req, res) => {
     //! THIS REALM IN KEYCLOAK
     const realmName = 'users';
 
-    await usersService.createUser(userData, realmName, adminAccessToken);
+    await usersService.createUser(userCredentials, realmName, adminAccessToken);
 
-    const userAccessToken = await usersService.loginUser(userData, realmName);
+    const userAccessToken = await usersService.loginUser(
+      userCredentials,
+      realmName
+    );
     console.log('User Token:', userAccessToken);
 
-    res.status(200).send({ access_token: userAccessToken });
+    const userData = await usersService.getUserData(userAccessToken, realmName);
+
+    res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
-    res.status(500).send('Signup failed. Please try again later.');
+    res
+      .status(500)
+      .send('Signup failed. Please try again later.' + error.message);
   }
 });
 
@@ -62,18 +69,23 @@ authRouter.post('/signup', async (req, res) => {
 authRouter.post('/login', async (req, res) => {
   try {
     // Setup
-    const userData = {
+    const userCredentials = {
       username: req.body.username,
       password: req.body.password,
     };
     const realmName = 'users';
 
-    console.log('User Data:', userData);
+    const userAccessToken = await usersService.loginUser(
+      userCredentials,
+      realmName
+    );
 
-    const userAccessToken = await usersService.loginUser(userData, realmName);
-    res.status(200).send({ access_token: userAccessToken });
+    const userData = await usersService.getUserData(userAccessToken, realmName);
+    res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
-    res.status(500).send('Signup failed. Please try again later.');
+    res
+      .status(500)
+      .send('Login failed. Please try again later.\n' + error.message);
   }
 });
 

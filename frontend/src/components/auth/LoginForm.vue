@@ -82,6 +82,10 @@
 // Auth
 import AuthService from '@/services/AuthService';
 
+// Store
+import { useUserStore } from '@/store/userStore';
+import { mapStores } from 'pinia';
+
 /* ======================= CONFIG ======================= */
 export default {
   name: 'LoginForm',
@@ -102,6 +106,9 @@ export default {
 
       passwordRules: [(v) => !!v || 'Password is required'],
     };
+  },
+  computed: {
+    ...mapStores(useUserStore),
   },
   methods: {
     async login() {
@@ -126,6 +133,15 @@ export default {
 
         // Store the token inside the local storage
         localStorage.setItem('access_token', res.data.access_token);
+
+        // Store the user data in the Pinia store
+        await this.userStore.setUser({
+          id: res.data.user.sub,
+          username: res.data.user.preferred_username,
+          email: res.data.user.email,
+        });
+
+        console.log(this.userStore.getUser);
 
         // Redirect to the home page
         this.$router.push({ name: 'home' });

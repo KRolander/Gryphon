@@ -1,19 +1,25 @@
 /* ----------------------- IMPORTS ----------------------- */
 // Core
-import { createApp } from "vue";
-import { createPinia } from "pinia";
-import vuetify from "./plugins/vuetify";
-import router from "./router/router";
+import { createApp } from 'vue';
+import { markRaw } from 'vue';
+import { createPinia } from 'pinia';
+import vuetify from './plugins/vuetify';
+import router from './router/router';
 
 // Components
-import App from "./App.vue";
+import App from './App.vue';
 
 /* ----------------------- CONFIG ----------------------- */
 // Create app
 const app = createApp(App);
 
 // Register Pinia store
-app.use(createPinia());
+const pinia = createPinia();
+pinia.use(({ store }) => {
+  store.$router = markRaw(router);
+});
+
+app.use(pinia);
 
 // Vuetify
 app.use(vuetify);
@@ -22,4 +28,4 @@ app.use(vuetify);
 app.use(router);
 
 // Mount app
-app.mount("#app");
+app.mount('#app');
