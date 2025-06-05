@@ -35,6 +35,9 @@ import { useUserStore } from '@/store/userStore';
 export default {
   computed: {
     ...mapStores(useUserStore)
+  },
+  async mounted() {
+    await this.userStore.loadUser();
   }
 }
 </script>

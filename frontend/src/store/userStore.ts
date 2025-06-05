@@ -35,6 +35,7 @@ export const useUserStore = defineStore('user', {
      * Loads the user from the Index DB
      */
     async loadUser() {
+      if (this.user != null) return;
       const savedUser = await get<User>('user');
       if (savedUser) {
         this.user = savedUser;
