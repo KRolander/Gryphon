@@ -1,7 +1,7 @@
 /* ======================= IMPORTS ======================= */
 // store core
 import { defineStore } from 'pinia';
-import { get, set } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 
 // types
 import type { User } from '../types/User';
@@ -18,6 +18,8 @@ export const useUserStore = defineStore('user', {
   },
   getters: {
     getUser: (state): User => state.user,
+    getUsername: (state): string => state.user.username,
+    getEmail: (state): string => state.user.email,
   },
   actions: {
     /**
@@ -41,9 +43,14 @@ export const useUserStore = defineStore('user', {
 
     /**
      * Resets the value of the user variable to null
+     * ! ONLY TO BE USED BY LOGOUT !
      */
-    clearUser() {
+    async clearUser() {
+      // Reset the local user
       this.user = null;
+
+      // Delete the session
+      await del('user');
     },
 
     /**
@@ -60,6 +67,11 @@ export const useUserStore = defineStore('user', {
 
       // II. Delete the session key from IndexDB
       await deleteSessionKey(this.user.id);
+
+      await this.clearUser();
+
+      // Send the user back to the login page
+      this.$router.push({ name: 'auth' });
     },
   },
 });
