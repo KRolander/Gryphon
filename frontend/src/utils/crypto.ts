@@ -10,15 +10,29 @@ const KEY_LENGTH = 256
 
 const SESSION_KEY_PREFIX = 'session-key'
 
+/**
+ * Stores the Session key of the user in the IndexedDB, indexed with the userId.
+ * @param {string} userId - The ID of the user, in hexadecimal format
+ * @param {CryptoKey} key - The Session key to store
+ */
 export async function storeSessionKey(userId: string, key: CryptoKey): Promise<void> {
   await set(`${SESSION_KEY_PREFIX}-${userId}`, key)
 }
 
+/**
+ * Retrieves the Session key of the user from the IndexedDB, indexed with the userId.
+ * @param {string} userId - The ID of the user, in hexadecimal format
+ * @returns {CryptoKey|null} - The Session key that was stored last under this userId, or null if no key could be retrieved
+ */
 export async function loadSessionKey(userId: string): Promise<CryptoKey | null> {
   const key = await get(`${SESSION_KEY_PREFIX}-${userId}`)
   return key ?? null
 }
 
+/**
+ * Deletes the Session key of the user saved in the IndexedDB, indexed with the userId.
+ * @param {string} userId - The ID of the user, in hexadecimal format
+ */
 export async function deleteSessionKey(userId: string): Promise<void> {
   await del(`${SESSION_KEY_PREFIX}-${userId}`)
 }
