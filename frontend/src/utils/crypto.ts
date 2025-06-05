@@ -93,8 +93,8 @@ export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey)
 
 /**
  * Decrypts the given encrypted payload with the given Crypto key.
- * The payload should
- * @param {string} encrypted - The encrypted payload to decrypt, a Base64-encoded ASCII string
+ * @param {string} encrypted - The encrypted payload to decrypt, a Base64-encoded ASCII string.
+ * It should follow the format [IV - payload]
  * @param {CryptoKey} sessionKey - The Crypto key used for decryption, must be the save used for encryption
  * @return {Promise<string>} The decrypted payload, a Stringified JSON representing the wallet
  * @throws {Error} If the sessionKey is incorrect or invalid
