@@ -74,8 +74,8 @@ export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<C
  * The randomly generated IV is then prepended to the encrypted payload, for decryption
  * @param {any} payload - The payload to encrypt, the user wallet
  * @param {CryptoKey} sessionKey - The Crypto key used for encryption
- * @return {Promise<string>} The random IV followed by the encrypted payload
- * as a Base64-encoded ASCII string
+ * @return {Promise<string>} The encrypted payload, as a Base64-encoded ASCII string,
+ * following the format [IV - payload]
  */
 export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
@@ -116,7 +116,16 @@ export async function decryptWithSessionKey(encrypted: string, sessionKey: Crypt
   }
 }
 
-// Returns an encrypted Base64 string that can be stored
+/**
+ * Encrypts the given payload with the given passphrase.
+ * A random salt is generated and used for hashing the passphrase and generate a Crypto key.
+ * The payload is then encrypted with the Crypto key, by calling {@link encryptWithSessionKey}
+ * The randomly generated salt is then prepended to the encrypted payload
+ * @param {any} payload - The payload to encrypt, the user wallet
+ * @param {string} passphrase - The raw passphrase used to derive a Crypto key
+ * @return {Promise<string>} The encrypted payload, as a Base64-encoded ASCII string,
+ * following the format [salt - IV - payload]
+ */
 export async function encrypt(payload: any, passphrase: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
   const key = await deriveKey(passphrase, salt)
@@ -126,6 +135,18 @@ export async function encrypt(payload: any, passphrase: string): Promise<string>
   return btoa(String.fromCharCode(...encryptedBytes))
 }
 
+/**
+ * Decrypts the given encrypted payload with the given passphrase.
+ * The salt is extracted from the encrypted payload and used to derive a Crypto key.
+ * The payload is then decrypted by calling {@link decryptWithSessionKey}
+ * @param {string} encrypted - The encrypted payload to decrypt, a Base64-encoded ASCII string.
+ * It should follow the format [salt - IV - payload]
+ * @param {string} passphrase - The raw passphrase used to derive the Crypto key used for decryption.
+ * It must match the passphrase used for encryption
+ * @return {Promise<string>} The decrypted payload, a Stringified JSON representing the wallet
+ * @throws {Error} If the passphrase is incorrect,
+ * or if the payload doesn't adhere to the format [salt - IV - payload]
+ */
 export async function decrypt(encrypted: string, passphrase: string): Promise<any> {
   const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
   const salt = encryptedBytes.slice(0, SALT_LENGTH)
