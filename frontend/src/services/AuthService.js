@@ -13,11 +13,6 @@ export default {
     return Api().post('auth/login', userData);
   },
 
-  /* Logout the user */
-  logout() {
-    return Api().post('auth/logout');
-  },
-
   /* Recover password */
   recoverPassword() {
     //TODO: Implement password recovery logic
