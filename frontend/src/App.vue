@@ -1,6 +1,6 @@
 <script>
 /* ======================= IMPORTS ======================= */
-import NavBar from "./components/NavBar.vue";
+import NavBar from './components/nav/NavBar.vue';
 
 /* ======================= CONFIG ======================= */
 export default {
@@ -10,7 +10,7 @@ export default {
   computed: {
     showNavBar() {
       // Show NavBar only if the current route is not 'auth'
-      return !this.$route.path.startsWith("/auth");
+      return !this.$route.path.startsWith('/auth');
     },
   },
 };
