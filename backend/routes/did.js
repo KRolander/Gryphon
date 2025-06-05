@@ -53,7 +53,7 @@ router.post('/create', async (req, res, next) => {
 });
 
 router.get('/getDIDDoc/', async (req, res) => {
-  res.status(400).send('DID is required');
+  return res.status(400).send('DID is required');
 });
 router.get('/getDIDDoc/:did', async (req, res) => {
   try {
@@ -74,7 +74,7 @@ router.get('/getDIDDoc/:did', async (req, res) => {
 });
 
 router.patch('/updateDIDDoc/addController/', async (req, res) => {
-  res.status(400).send("No target DID");
+  return res.status(400).send("No target DID");
 });
 router.patch('/updateDIDDoc/addController/:did', async (req, res) => {
   try {
@@ -119,11 +119,12 @@ router.patch('/updateDIDDoc/addController/:did', async (req, res) => {
   }
 });
 
+router.delete('/deleteDID/', async (req, res) => {
+  return res.status(400).send('DID is required');
+});
 router.delete('/deleteDID/:did', async (req, res) => {
   try {
     const DID = req.params.did;
-
-    if (!DID) return res.status(400).send('DID required');
 
     if (getGateway() == null) await startGateway();
 

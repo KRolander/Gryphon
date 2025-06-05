@@ -14,6 +14,9 @@ export default {
   },
 
   deleteDID(DID){
+    if (!DID){
+      return Api().delete(`did/deleteDID/`);
+    }
     return Api().delete(`did/deleteDID/${DID}`);
 
   },

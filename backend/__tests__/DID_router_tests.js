@@ -9,7 +9,7 @@ jest.mock('../../utils/DIDDocumentBuilder', () => ({
 }));
 
 const request = require('supertest');
-const { startGateway, getGateway, getContract, storeDID, getDIDDoc, addDIDController } = require('../gateway');
+const { startGateway, getGateway, getContract, storeDID, getDIDDoc, addDIDController, deleteDID} = require('../gateway');
 const app = require("../app");
 const {createDID} = require("../utility/DIDUtils");
 const DIDDocumentBuilder  = require('../../utils/DIDDocumentBuilder');
@@ -21,6 +21,7 @@ jest.mock('../gateway', () => ({
     storeDID: jest.fn(),
     getDIDDoc: jest.fn(),
     addDIDController: jest.fn(),
+    deleteDID: jest.fn(),
 }));
 
 jest.mock('../utility/DIDUtils', () => ({
@@ -29,16 +30,17 @@ jest.mock('../utility/DIDUtils', () => ({
 
 const publicKey = 'testKey';
 const DID = 'did:hlf:testDID';
-const doc = {
-    DID: "docDID",
-    controllers: [DID],
-    publicKey: publicKey,
-}
+
 const contract = {};
 const operation = "addController";
 const newController = "did:hlf:testController";
-
+let doc;
 beforeEach(() => {
+    doc = {
+        DID: "docDID",
+        controllers: [DID],
+        publicKey: publicKey,
+    }
     jest.clearAllMocks(); // Reset mocks before each test so previous calls don't affect new ones
     createDID.mockResolvedValue(DID);
     storeDID.mockResolvedValue(doc);
@@ -161,6 +163,7 @@ describe("GET/getDIDDoc/:did?", () =>{
         describe("gateway not null", () => {
 
             beforeEach(async ()=> {
+                getGateway.mockReturnValue(true);
                 await request(app)
                     .get(`/did/getDIDDoc/${DID}`);
             });
@@ -309,6 +312,87 @@ describe("PATCH/updateDIDDoc/addController/:did?", () =>{
             .patch(`/did/updateDIDDoc/addController/${DID}`)
             .send({operation: operation, newController: newController});
         expect(doc.controllers).toContain(newController);
+    });
+});
+
+describe("DELETE/deleteDID/:did?", () =>{
+
+    describe("testing returned values", () => {
+
+        it ("should return 200 and a valid message", async() => {
+            const response = await request(app)
+                .delete(`/did/deleteDID/${DID}`);
+            expect(response.status).toBe(200);
+            expect(response.text).toBe('DID deleted successfully');
+
+        });
+
+        it("should return 400 - no DID", async () => {
+            const response = await request(app)
+                .delete(`/did/deleteDID/`);
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('DID is required');
+        });
+
+        it ("should return 404 - deleteDID error", async () => {
+            deleteDID.mockImplementation( () => {
+                const error = new Error("DID not found");
+                error.details = [
+                    {message: "it doesn't exist"}
+                ];
+                throw error;
+            });
+            const response = await request(app)
+                .delete(`/did/deleteDID/${DID}`);
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({
+                reason: 'DID_NOT_FOUND',
+                message: `DID ${DID} does not exist on-chain`,
+            });
+        });
+
+        it ("should return 500 - deleteDID unknown error", async () => {
+            deleteDID.mockImplementation( () => {
+                throw new Error("Error");
+            });
+            const response = await request(app)
+                .delete(`/did/deleteDID/${DID}`);
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({
+                reason: 'UNKNOWN_ERROR',
+                message: 'Failed to delete DID',
+            });
+        });
+    });
+
+    describe("testing function calls", () => {
+
+        describe("gateway not null", () => {
+
+            beforeEach(async ()=> {
+                getGateway.mockReturnValue(true);
+                await request(app)
+                    .delete(`/did/deleteDID/${DID}`);
+            });
+
+            it("gateway calls", async () => {
+                expect(getGateway.mock.calls.length).toBe(1);
+                expect(startGateway).not.toHaveBeenCalled();
+            });
+
+            it ("DID deletion logic", async () => {
+                expect(deleteDID.mock.calls.length).toBe(1);
+                expect(deleteDID).toHaveBeenCalledWith(contract,DID);
+            });
+        });
+
+        it ("gateway calls - gateway null", async () => {
+            getGateway.mockReturnValue(null);
+            await request(app)
+                .delete(`/did/deleteDID/${DID}`);
+            expect(getGateway.mock.calls.length).toBe(1);
+            expect(startGateway.mock.calls.length).toBe(1);
+        });
     });
 });
 
