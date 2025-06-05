@@ -19,6 +19,9 @@ export default {
   },
 
   modifyController(DID, operation, newController) {
+    if (!DID){
+      return Api().patch(`did/updateDIDDoc/addController/`,{operation,newController})
+    }
     return Api().patch(`did/updateDIDDoc/addController/${DID}`,{operation,newController});
   }
 };

@@ -9,7 +9,7 @@ jest.mock('../../utils/DIDDocumentBuilder', () => ({
 }));
 
 const request = require('supertest');
-const { startGateway, getGateway, getContract, storeDID, getDIDDoc } = require('../gateway');
+const { startGateway, getGateway, getContract, storeDID, getDIDDoc, addDIDController } = require('../gateway');
 const app = require("../app");
 const {createDID} = require("../utility/DIDUtils");
 const DIDDocumentBuilder  = require('../../utils/DIDDocumentBuilder');
@@ -20,6 +20,7 @@ jest.mock('../gateway', () => ({
     getContract: jest.fn(() => ({ /* mock contract object */ })),
     storeDID: jest.fn(),
     getDIDDoc: jest.fn(),
+    addDIDController: jest.fn(),
 }));
 
 jest.mock('../utility/DIDUtils', () => ({
@@ -28,8 +29,14 @@ jest.mock('../utility/DIDUtils', () => ({
 
 const publicKey = 'testKey';
 const DID = 'did:hlf:testDID';
-const doc = 'testDoc';
+const doc = {
+    DID: "docDID",
+    controllers: [DID],
+    publicKey: publicKey,
+}
 const contract = {};
+const operation = "addController";
+const newController = "did:hlf:testController";
 
 beforeEach(() => {
     jest.clearAllMocks(); // Reset mocks before each test so previous calls don't affect new ones
@@ -127,7 +134,7 @@ describe("GET/getDIDDoc/:did?", () =>{
             const response = await request(app)
                 .get(`/did/getDIDDoc/${DID}`);
             expect(response.status).toBe(200);
-            expect(response.body).toBe(doc);
+            expect(response.body).toEqual(doc);
 
         });
 
@@ -179,4 +186,130 @@ describe("GET/getDIDDoc/:did?", () =>{
         });
     });
 });
+
+describe("PATCH/updateDIDDoc/addController/:did?", () =>{
+
+    describe("testing returned values", () => {
+
+        it ("should return 200 and a valid message", async() => {
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+            expect(response.status).toBe(200);
+            expect(response.text).toBe('Controller added successfully');
+
+        });
+
+        it("should return 400 - no operation", async () => {
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({newController: newController});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('Invalid request');
+        });
+
+        it("should return 400 - invalid operation", async () => {
+            const invalidOp = "invalid operation";
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation:invalidOp, newController: newController});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('Not yet implemented or operation not allowed');
+        });
+
+        it("should return 400 - invalid controller", async () => {
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('Invalid request');
+        });
+
+        it("should return 400 - no target DID", async () => {
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/`)
+                .send({operation: operation, newController: newController});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('No target DID');
+        });
+
+        it("should return 400 - no controller", async () => {
+            getDIDDoc.mockImplementation(() => {
+                throw new Error("There is no controller");
+            })
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('No controller');
+        });
+
+        it("should return 400 - duplicate controller", async () => {
+
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: DID});
+            expect(response.status).toBe(400);
+            expect(response.text).toBe(`DID ${DID} already has controller ${DID}`);
+        });
+
+        it ("should return 500 - getDIDDoc second application error", async () => {
+            getDIDDoc.mockResolvedValueOnce(doc)
+                .mockImplementationOnce(() => {
+                    throw new Error("Error retrieving the document from blockchain:")
+                })
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+            expect(response.status).toBe(500);
+            expect(response.text).toBe('Error querying DID from blockchain');
+        });
+
+        it ("should return 500 - addDIDController error", async () => {
+
+            addDIDController.mockImplementationOnce(() => {
+                    throw new Error("Failed to add controller");
+                })
+            const response = await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+            expect(response.status).toBe(500);
+            expect(response.text).toBe('Error querying DID from blockchain');
+        });
+    });
+
+    describe("testing function calls", () => {
+
+        it ("good request - getDIDDoc calls", async () => {
+            await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+
+            expect(getDIDDoc.mock.calls.length).toBe(2);
+            expect(getDIDDoc.mock.calls[0]).toEqual([contract,newController]);
+            expect(getDIDDoc.mock.calls[1]).toEqual([contract,DID]);
+
+        });
+
+        it ("good request - addDIDController and getContract calls", async () => {
+            await request(app)
+                .patch(`/did/updateDIDDoc/addController/${DID}`)
+                .send({operation: operation, newController: newController});
+
+            expect(addDIDController.mock.calls.length).toBe(1);
+            expect(addDIDController).toHaveBeenCalledWith(contract,DID,doc);
+            expect(getContract.mock.calls.length).toBe(3);
+
+        });
+    });
+
+    it ("testing controller is added", async () => {
+        expect(doc.controllers).not.toContain(newController);
+        await request(app)
+            .patch(`/did/updateDIDDoc/addController/${DID}`)
+            .send({operation: operation, newController: newController});
+        expect(doc.controllers).toContain(newController);
+    });
+});
+
 

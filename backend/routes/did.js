@@ -73,12 +73,15 @@ router.get('/getDIDDoc/:did', async (req, res) => {
   }
 });
 
+router.patch('/updateDIDDoc/addController/', async (req, res) => {
+  res.status(400).send("No target DID");
+});
 router.patch('/updateDIDDoc/addController/:did', async (req, res) => {
   try {
     const targetDID = req.params.did;
     const { operation, newController } = req.body;
 
-    if(!targetDID || !operation || !newController)
+    if(!operation || !newController)
       res.status(400).send("Invalid request");
     if(operation === "addController") {
 
