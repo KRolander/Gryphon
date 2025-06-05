@@ -7,6 +7,9 @@ export default {
   },
 
   getDIDDoc(DID){
+    if (!DID){
+      return Api().get(`did/getDIDDoc/`);
+    }
     return Api().get(`did/getDIDDoc/${DID}`);
   },
 

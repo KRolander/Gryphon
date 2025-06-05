@@ -52,11 +52,12 @@ router.post('/create', async (req, res, next) => {
   next();
 });
 
+router.get('/getDIDDoc/', async (req, res) => {
+  res.status(400).send('DID is required');
+});
 router.get('/getDIDDoc/:did', async (req, res) => {
   try {
     const DID = req.params.did;
-
-    if (!DID) return res.status(400).send('DID is required');
 
     if (getGateway() == null) await startGateway();
 

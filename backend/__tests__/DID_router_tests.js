@@ -9,7 +9,7 @@ jest.mock('../../utils/DIDDocumentBuilder', () => ({
 }));
 
 const request = require('supertest');
-const { startGateway, getGateway, getContract, storeDID } = require('../gateway');
+const { startGateway, getGateway, getContract, storeDID, getDIDDoc } = require('../gateway');
 const app = require("../app");
 const {createDID} = require("../utility/DIDUtils");
 const DIDDocumentBuilder  = require('../../utils/DIDDocumentBuilder');
@@ -19,25 +19,28 @@ jest.mock('../gateway', () => ({
     getGateway: jest.fn(() => true),
     getContract: jest.fn(() => ({ /* mock contract object */ })),
     storeDID: jest.fn(),
+    getDIDDoc: jest.fn(),
 }));
 
 jest.mock('../utility/DIDUtils', () => ({
     createDID: jest.fn(),
 }));
 
-describe("POST/did/create", ()=>{
-    const publicKey = 'testKey';
-    const DID = 'did:hlf:testDID';
-    const doc = 'testDoc';
-    const contract = {};
+const publicKey = 'testKey';
+const DID = 'did:hlf:testDID';
+const doc = 'testDoc';
+const contract = {};
 
-    beforeEach(() => {
-        jest.clearAllMocks(); // Reset mocks before each test so previous calls don't affect new ones
-        createDID.mockResolvedValue(DID);
-        storeDID.mockResolvedValue(doc);
-        getContract.mockReturnValue(contract);
-        mockBuild.mockReturnValue(doc);
-    });
+beforeEach(() => {
+    jest.clearAllMocks(); // Reset mocks before each test so previous calls don't affect new ones
+    createDID.mockResolvedValue(DID);
+    storeDID.mockResolvedValue(doc);
+    getContract.mockReturnValue(contract);
+    mockBuild.mockReturnValue(doc);
+    getDIDDoc.mockResolvedValue(doc);
+});
+describe("POST/did/create", ()=>{
+
     describe("testing returned values",() => {
         it("should return 200 and a valid message ", async () => {
 
@@ -114,5 +117,66 @@ describe("POST/did/create", ()=>{
         });
     });
 
+});
+
+describe("GET/getDIDDoc/:did?", () =>{
+
+    describe("testing returned values", () => {
+
+        it ("should return 200 and a valid message", async() => {
+            const response = await request(app)
+                .get(`/did/getDIDDoc/${DID}`);
+            expect(response.status).toBe(200);
+            expect(response.body).toBe(doc);
+
+        });
+
+        it("should return 400 - no DID", async () => {
+            const response = await request(app)
+                .get(`/did/getDIDDoc/`);
+            expect(response.status).toBe(400);
+            expect(response.text).toBe('DID is required');
+        });
+
+        it ("should return 500 - getDIDDoc error", async () => {
+            getDIDDoc.mockImplementation( () => {
+                throw new Error("Error getting the document");
+            })
+            const response = await request(app)
+                .get(`/did/getDIDDoc/${DID}`);
+            expect(response.status).toBe(500);
+            expect(response.text).toBe('Error querying DID from blockchain');
+        });
+    });
+
+    describe("testing function calls", () => {
+
+        describe("gateway not null", () => {
+
+            beforeEach(async ()=> {
+                await request(app)
+                    .get(`/did/getDIDDoc/${DID}`);
+            });
+
+            it("gateway calls", async () => {
+                expect(getGateway.mock.calls.length).toBe(1);
+                expect(startGateway).not.toHaveBeenCalled();
+            });
+
+            it ("DID document logic", async () => {
+                expect(getDIDDoc.mock.calls.length).toBe(1);
+                expect(getContract.mock.calls.length).toBe(1);
+                expect(getDIDDoc).toHaveBeenCalledWith(contract,DID);
+            });
+        });
+
+        it ("gateway calls - gateway null", async () => {
+            getGateway.mockReturnValue(null);
+            await request(app)
+                .get(`/did/getDIDDoc/${DID}`);
+            expect(getGateway.mock.calls.length).toBe(1);
+            expect(startGateway.mock.calls.length).toBe(1);
+        });
+    });
 });
 
