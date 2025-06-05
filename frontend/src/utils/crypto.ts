@@ -37,6 +37,14 @@ export async function deleteSessionKey(userId: string): Promise<void> {
   await del(`${SESSION_KEY_PREFIX}-${userId}`)
 }
 
+/**
+ * Derives a Crypto key from the given passphrase and salt.
+ * The derivation is deterministic, that is, a given passphrase and a salt
+ * always derive the same Crypto key.
+ * @param {string} passphrase - The raw passphrase
+ * @param {Uint8Array} salt - The salt, as a binary array
+ * @return {Promise<CryptoKey>} The Crypto key derived from the given parameters
+ */
 export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -60,6 +68,15 @@ export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<C
   )
 }
 
+/**
+ * Encrypts the given payload with the given Crypto key.
+ * To ensure uniqueness a random IV (Initialization Vector) is used as well for encryption
+ * The randomly generated IV is then prepended to the encrypted payload, for decryption
+ * @param {any} payload - The payload to encrypt, the user wallet
+ * @param {CryptoKey} sessionKey - The Crypto key used for encryption
+ * @return {Promise<string>} The random IV followed by the encrypted payload
+ * as a Base64-encoded ASCII string
+ */
 export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
   const plaintext = encoder.encode(JSON.stringify(payload))
@@ -74,6 +91,14 @@ export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey)
   return btoa(String.fromCharCode(...encryptedBytes))
 }
 
+/**
+ * Decrypts the given encrypted payload with the given Crypto key.
+ * The payload should
+ * @param {string} encrypted - The encrypted payload to decrypt, a Base64-encoded ASCII string
+ * @param {CryptoKey} sessionKey - The Crypto key used for decryption, must be the save used for encryption
+ * @return {Promise<string>} The decrypted payload, a Stringified JSON representing the wallet
+ * @throws {Error} If the sessionKey is incorrect or invalid
+ */
 export async function decryptWithSessionKey(encrypted: string, sessionKey: CryptoKey): Promise<any> {
   const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
   const iv = encryptedBytes.slice(0, IV_LENGTH)
