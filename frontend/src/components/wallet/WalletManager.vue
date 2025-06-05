@@ -26,10 +26,40 @@
   save: this.save
 }", :ready="isReady" />
 
-  <!--Prompt password-->
+  <!--Create password for new wallet-->
+  <v-dialog v-model="newWalletPwDialog" persistent max-width="400px">
+    <v-card>
+      <v-card-title class="headline">Create a Passphrase</v-card-title>
+      <v-card-subtitle class="headline">You will need it to unlock your wallet</v-card-subtitle>
+      <v-card-text>
+        <v-text-field
+          v-model="passphrase"
+          label="Passphrase"
+          type="password"
+          autofocus
+          :error="passphrase.length > 0 && passphrase.length <= 5"
+          :error-messages="passphrase.length > 0 && passphrase.length <= 5 ? ['Passphrase must be at least 6 characters'] : []"
+          @keyup.enter="onEnter"
+        />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          :disabled="passphrase.length <= 5"
+          color="primary"
+          @click="onEnter"
+        >
+          Unlock
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--Input password to unlock wallet-->
   <v-dialog v-model="walletPwDialog" persistent max-width="400px">
     <v-card>
-      <v-card-title class="headline">Enter Wallet Passphrase</v-card-title>
+      <v-card-title class="headline">Unlock your wallet</v-card-title>
 
       <v-card-text>
         <v-text-field
@@ -78,7 +108,8 @@ export default {
       initialized: false,
 
       // Dialog state
-      walletPwDialog: false
+      walletPwDialog: false,
+      newWalletPwDialog: false
     }
   },
 
@@ -91,6 +122,7 @@ export default {
       return new Promise(resolve => {
         this._resolvePassphrase = () => {
           this.walletPwDialog = false
+          this.newWalletPwDialog = false
           resolve()
         }
       })
@@ -101,7 +133,7 @@ export default {
 
       if (!exists) {
         console.log("making new wallet")
-        this.walletPwDialog = true
+        this.newWalletPwDialog = true
         await this.waitForPassphrase()
         await this.walletStore.initEmptyWallet(this.userId, this.passphrase)
         const salt = await this.walletStore.getSalt(this.userId)
