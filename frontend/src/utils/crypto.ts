@@ -156,6 +156,12 @@ export async function decrypt(encrypted: string, passphrase: string): Promise<an
   return await decryptWithSessionKey(btoa(String.fromCharCode(...rest)), key)
 }
 
+/**
+ * Extracts the salt from the given encrypted payload
+ * The payload should follow the format [salt - IV - payload]
+ * @param {string} encrypted - The encrypted payload, a Base64-encoded ASCII string
+ * @return {Uint8Array} The salt stored in the encrypted payload, as a binary array
+ */
 export function extractSalt(encrypted: string): Uint8Array {
   const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
   return encryptedBytes.slice(0, SALT_LENGTH)
