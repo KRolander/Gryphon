@@ -54,7 +54,9 @@ authRouter.post('/signup', async (req, res) => {
 
     res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
-    res.status(500).send('Signup failed. Please try again later.');
+    res
+      .status(500)
+      .send('Signup failed. Please try again later.' + error.message);
   }
 });
 
