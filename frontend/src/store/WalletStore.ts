@@ -2,9 +2,17 @@ import { defineStore } from 'pinia'
 import { get, set } from 'idb-keyval'
 import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey, extractSalt, SALT_LENGTH } from '@/utils/crypto'
 
-// The wallet is persisted in IndexedDB (idb) as a key-value pair
-// Where the key corresponds to the Keycloak's subject claim (sub)
-// And the value is an encrypted base64 string with the wallet data
+/**
+ * Defines the structure of the wallet to be stored and the available methods.
+ *
+ * A wallet is defined as a list of DIDs, and each DID has a private
+ * and public key, metadata, and a list of verifiable credentials.
+ *
+ * Each wallet is persisted in the IndexedDB as a key-value pair, using
+ * the unique userId from keycloak as the key
+ * @external idb-keyval
+ * @external defineStore
+ */
 export const useWalletStore = defineStore('wallet', {
   state: () => ({
     dids: {} as Record<string, {
@@ -17,6 +25,17 @@ export const useWalletStore = defineStore('wallet', {
   }),
 
   actions: {
+    /**
+     * Adds the `did` to the current wallet with the associated private and public key,
+     * Also saves the current date and time and stores it in the did metadata.
+     *
+     * Sets the newly created did as the `activeDid`
+     *
+     * @param {string} did - The did to add to the wallet, follows the format "**did:hlf:<uniqueId>**"
+     * @param {{string, string}} keyPair - The pair of keys associated to `did`,
+     * they must be cryptographically related and Base64-encoded ASCII strings
+     * @param {string} name - Name to identify the `did` for the user
+     */
     addDid(did: string, keyPair: { publicKey: string, privateKey: string }, name: string) {
       this.dids[did] = {
         keyPair,
@@ -26,14 +45,32 @@ export const useWalletStore = defineStore('wallet', {
       this.activeDid = did
     },
 
+    /**
+     * Adds a new Verifiable Credential (VC), to the given `did`
+     *
+     * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
+     * @param {JSON} credential - The VC issued to the `did`
+     */
     addCredential(did: string, credential: any) {
       this.dids[did]?.credentials.push(credential)
     },
 
+    /**
+     * Sets the `did` as the `activeDid`, if it exists
+     *
+     * @param {string} did - `did` to set as active
+     */
     switchDid(did: string) {
       if (this.dids[did]) this.activeDid = did
     },
 
+    /**
+     * Removes the `did` from the wallet, if it exists.
+     *
+     * If it also was the `activeDid`, sets another existing one to be the `activeDid`
+     *
+     * @param {string} did - `did` to remove from the wallet
+     */
     removeDid(did: string) {
       delete this.dids[did]
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null
@@ -66,7 +103,6 @@ export const useWalletStore = defineStore('wallet', {
 
       await set(`wallet-${userId}`, saltedEncrypted)
     },
-
 
     async loadWallet(userId: string, passphrase: string) {
       const encrypted = await get(`wallet-${userId}`)
