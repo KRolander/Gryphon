@@ -76,21 +76,63 @@ export const useWalletStore = defineStore('wallet', {
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null
     },
 
+    /**
+     * Checks in the IndexedDB (`idb`) if the user with `userId` already has a wallet
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @returns {Promise<boolean>} - True, if there's a wallet in `idb`, indexed at `userId`,
+     * False otherwise
+     */
     async walletExists(userId: string): Promise<boolean> {
       const exists = await get(`wallet-${userId}`)
       return !!exists
     },
 
+    /**
+     * Creates a new instance of `walletStore`, without any data yet.
+     * Encrypts the wallet with the given `passphrase`.
+     * Stores the wallet in the IndexedDB (`idb`), indexed at `userId`
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {string} passphrase - The raw passphrase used to encrypt the wallet
+     */
     async initEmptyWallet(userId: string, passphrase: string) {
       const encrypted = await encrypt({ dids: {}, activeDid: null }, passphrase)
       await set(`wallet-${userId}`, encrypted)
     },
 
+    /**
+     * Encrypts the current wallet with the given `passphrase` and
+     * stores it in the IndexedDB (`idb`), indexed at `userId`.
+     *
+     * Either this or {@link saveWalletWithSessionKey} must be used after
+     * performing any altering operation, such as:
+     * {@link addDid}, {@link removeDid}, {@link addCredential}
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {string} passphrase - The raw passphrase used to encrypt the wallet
+     */
     async saveWallet(userId: string, passphrase: string) {
       const encrypted = await encrypt({ dids: this.dids, activeDid: this.activeDid }, passphrase)
       await set(`wallet-${userId}`, encrypted)
     },
 
+    /**
+     * Encrypts the current wallet with the given `sessionKey` and
+     * stores it in the IndexedDB (`idb`), indexed at `userId`.
+     *
+     * Either this or {@link saveWallet} must be used after
+     * performing any altering operation, such as:
+     * {@link addDid}, {@link removeDid}, {@link addCredential}
+     *
+     * Unlike {@link saveWallet}, this method doesn't rely on a method
+     * to generate a random salt for encryption, instead it extract the salt
+     * of the current encryption and prepends it to the encrypted payload,
+     * to consistently store encrypted wallets in the same format.
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {CryptoKey} sessionKey - The Crypto key used for encryption
+     */
     async saveWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
       const salt = await this.getSalt(userId)
       const encrypted = await encryptWithSessionKey({ dids: this.dids, activeDid: this.activeDid }, sessionKey)
