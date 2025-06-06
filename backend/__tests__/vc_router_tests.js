@@ -35,9 +35,11 @@ const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null);
 const doc = docBuilder.build();
 const keylessDoc = noKeyBuilder.build();
 
+
 describe("POST /vc/verify", () => {
     it("should return 200 and a valid message", async () => {
         getDIDDoc.mockReturnValue(doc);
+
         /**---------Create the unsigne VC--------- */
         const subDID = "did:hlf:subject";
         const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
