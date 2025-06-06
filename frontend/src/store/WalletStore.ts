@@ -80,7 +80,7 @@ export const useWalletStore = defineStore('wallet', {
      * Checks in the IndexedDB (`idb`) if the user with `userId` already has a wallet
      *
      * @param {string} userId - The ID of the user, in hexadecimal format
-     * @returns {Promise<boolean>} - True, if there's a wallet in `idb`, indexed at `userId`,
+     * @returns True, if there's a wallet in `idb`, indexed at `userId`,
      * False otherwise
      */
     async walletExists(userId: string): Promise<boolean> {
@@ -146,6 +146,16 @@ export const useWalletStore = defineStore('wallet', {
       await set(`wallet-${userId}`, saltedEncrypted)
     },
 
+    /**
+     * Searches in the IndexedDB (`idb`), for a wallet indexed at `userId`.
+     * If there is one, it tries to decrypt it, using `passphrase`.
+     * If it succeeds, it overrides the local wallet with the decrypted one
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {string} passphrase - The raw passphrase used to decrypt the wallet
+     * @throws {Error} If the passphrase is incorrect,
+     * or if the wallet wasn't encrypted correctly
+     */
     async loadWallet(userId: string, passphrase: string) {
       const encrypted = await get(`wallet-${userId}`)
       if (!encrypted) return
@@ -158,6 +168,18 @@ export const useWalletStore = defineStore('wallet', {
       }
     },
 
+    /**
+     * Searches in the IndexedDB (`idb`), for a wallet indexed at `userId`.
+     *
+     * If there is one, it removes the salt from the encrypted payload and tries to decrypt it, using `sessionKey`.
+     *
+     * If it succeeds, it overrides the local wallet with the decrypted one
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {CryptoKey} sessionKey - The Crypto key used to decrypt the wallet
+     * @throws {Error} If `sessionKey` is invalid,
+     * or if the wallet wasn't encrypted correctly
+     */
     async loadWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
       const encrypted = await get(`wallet-${userId}`)
       if (!encrypted) return
@@ -173,7 +195,15 @@ export const useWalletStore = defineStore('wallet', {
       }
     },
 
-    // Exports the encrypted wallet for multi-device porting
+    /**
+     * Exports the encrypted wallet in the IndexedDB (`idb`), indexed at `userId`
+     * as a JSON file, and lets the user download it.
+     *
+     * It can be used to keep a local copy of the wallet, since it only lives in
+     * the `idb` in the browser memory, it also enables multi-device porting
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     */
     async exportWallet(userId: string) {
       // Check if the wallet exists
       const encrypted = await get(`wallet-${userId}`)
@@ -193,6 +223,22 @@ export const useWalletStore = defineStore('wallet', {
       URL.revokeObjectURL(url)
     },
 
+    /**
+     * Imports a wallet from the given `encryptedFile`,
+     * from which an encrypted wallet is parsed.
+     *
+     * It first tries to decrypt the encrypted wallet with `passphrase`.
+     *
+     * If it succeeds, it loads the decrypted wallet and also
+     * stores the encrypted one in the IndexedDB (`idb`), indexed at `userId`
+     *
+     * @param {File} encryptedFile - The JSON file that contains an encrypted wallet,
+     * possibly created from {@link exportWallet}
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @param {string} passphrase - The raw passphrase used to decrypt the wallet
+     * @throws {Error} If the passphrase is incorrect,
+     * or if the wallet wasn't encrypted correctly
+     */
     async importWallet(encryptedFile: File, userId: string, passphrase: string) {
       const encrypted = await encryptedFile.text()
 
@@ -211,7 +257,18 @@ export const useWalletStore = defineStore('wallet', {
       }
     },
 
-    async getSalt(userId: string) {
+    /**
+     * Searches in the IndexedDB (`idb`), for a wallet indexed at `userId`.
+     *
+     * If there is any, it calls the utils function {@link extractSalt} to
+     * get the salt that was used for the encryption
+     *
+     * @param {string} userId - The ID of the user, in hexadecimal format
+     * @returns The salt stored in the encrypted payload,
+     * as a binary array
+     * @throws {Error} - If there is no wallet indexed at `userId`
+     */
+    async getSalt(userId: string): Promise<Uint8Array> {
       const encrypted = await get(`wallet-${userId}`)
       if (!encrypted) {
         throw new Error("No wallet found for this user")
