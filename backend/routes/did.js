@@ -52,11 +52,12 @@ router.post('/create', async (req, res, next) => {
   next();
 });
 
+router.get('/getDIDDoc/', async (req, res) => {
+  return res.status(400).send('DID is required');
+});
 router.get('/getDIDDoc/:did', async (req, res) => {
   try {
     const DID = req.params.did;
-
-    if (!DID) return res.status(400).send('DID is required');
 
     if (getGateway() == null) await startGateway();
 
@@ -72,12 +73,15 @@ router.get('/getDIDDoc/:did', async (req, res) => {
   }
 });
 
+router.patch('/updateDIDDoc/addController/', async (req, res) => {
+  return res.status(400).send("No target DID");
+});
 router.patch('/updateDIDDoc/addController/:did', async (req, res) => {
   try {
     const targetDID = req.params.did;
     const { operation, newController } = req.body;
 
-    if(!targetDID || !operation || !newController)
+    if(!operation || !newController)
       res.status(400).send("Invalid request");
     if(operation === "addController") {
 
@@ -115,11 +119,12 @@ router.patch('/updateDIDDoc/addController/:did', async (req, res) => {
   }
 });
 
+router.delete('/deleteDID/', async (req, res) => {
+  return res.status(400).send('DID is required');
+});
 router.delete('/deleteDID/:did', async (req, res) => {
   try {
     const DID = req.params.did;
-
-    if (!DID) return res.status(400).send('DID required');
 
     if (getGateway() == null) await startGateway();
 
