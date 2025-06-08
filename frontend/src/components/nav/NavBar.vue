@@ -1,8 +1,6 @@
 <template>
   <v-app-bar>
-    <v-app-bar-title
-      class="text-h4 font-weight-bold"
-      @click="navigateTo({ path: '/' })"
+    <v-app-bar-title class="text-h4 font-weight-bold" @click="navigateTo({ path: '/' })"
       ><span class="cursor-pointer">Gryphon</span></v-app-bar-title
     >
 
@@ -17,19 +15,19 @@
 <script lang="js">
 /* ======================= IMPORTS ======================= */
 // components
-import ProfileMenu from "./ProfileMenu.vue"
+import ProfileMenu from "./ProfileMenu.vue";
 
 /* ======================= CONFIG ======================= */
 export default {
   name: "NavBar",
   components: {
-    ProfileMenu
+    ProfileMenu,
   },
   methods: {
     navigateTo(path) {
       this.$router.push(path);
     },
-  }
-}
+  },
+};
 </script>
 <style lang="css" scoped></style>

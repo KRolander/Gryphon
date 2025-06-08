@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    class="fill-height d-flex flex-column align-center justify-center"
-    max-width="600"
-  >
+  <v-container class="fill-height d-flex flex-column align-center justify-center" max-width="600">
     <!-- Welcome message -->
     <div>
       <div class="mb-8 text-center">
@@ -54,19 +51,12 @@
               :disabled="loading"
             >
               <span v-if="!loading">Login</span>
-              <v-progress-circular
-                v-else
-                color="primary"
-                indeterminate
-              ></v-progress-circular>
+              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
             </v-btn>
 
             <span class="font-weight-light"
               >Don't have an account yet? Signup
-              <router-link
-                :to="{ name: 'signup' }"
-                class="text-decoration-none text-primary"
-              >
+              <router-link :to="{ name: 'signup' }" class="text-decoration-none text-primary">
                 here</router-link
               ></span
             >
@@ -80,31 +70,31 @@
 <script>
 /* ======================= IMPORTS ======================= */
 // Auth
-import AuthService from '@/services/AuthService';
+import AuthService from "@/services/AuthService";
 
 // Store
-import { useUserStore } from '@/store/userStore';
-import { mapStores } from 'pinia';
+import { useUserStore } from "@/store/userStore";
+import { mapStores } from "pinia";
 
 /* ======================= CONFIG ======================= */
 export default {
-  name: 'LoginForm',
+  name: "LoginForm",
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      email: '',
+      email: "",
       emailHasCustomError: false,
-      emailCustomErrorMessage: '',
+      emailCustomErrorMessage: "",
 
-      password: '',
+      password: "",
 
       /* --------------------- RULES --------------------- */
-      username: '',
-      usernameRules: [(v) => !!v || 'Username is required'],
+      username: "",
+      usernameRules: [(v) => !!v || "Username is required"],
 
-      passwordRules: [(v) => !!v || 'Password is required'],
+      passwordRules: [(v) => !!v || "Password is required"],
     };
   },
   computed: {
@@ -132,7 +122,7 @@ export default {
         }
 
         // Store the token inside the local storage
-        localStorage.setItem('access_token', res.data.access_token);
+        localStorage.setItem("access_token", res.data.access_token);
 
         // Store the user data in the Pinia store
         await this.userStore.setUser({
@@ -144,9 +134,9 @@ export default {
         console.log(this.userStore.getUser);
 
         // Redirect to the home page
-        this.$router.push({ name: 'home' });
+        this.$router.push({ name: "home" });
       } else {
-        console.log('Form is invalid');
+        console.log("Form is invalid");
       }
     },
   },

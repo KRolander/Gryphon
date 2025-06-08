@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    class="fill-height d-flex flex-column align-center justify-center"
-    max-width="600"
-  >
+  <v-container class="fill-height d-flex flex-column align-center justify-center" max-width="600">
     <!-- ====================  WELCOME ==================== -->
     <div>
       <div class="mb-8 text-center">
@@ -39,9 +36,7 @@
                 v-model="email"
                 :rules="emailRules"
                 :error="emailHasCustomError"
-                :error-messages="
-                  emailHasCustomError ? emailCustomErrorMessage : ''
-                "
+                :error-messages="emailHasCustomError ? emailCustomErrorMessage : ''"
                 required
               ></v-text-field>
 
@@ -79,19 +74,12 @@
               :disabled="loading"
             >
               <span v-if="!loading">Sign Up</span>
-              <v-progress-circular
-                v-else
-                color="primary"
-                indeterminate
-              ></v-progress-circular>
+              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
             </v-btn>
 
             <span class="font-weight-light"
               >Already have an account? Login
-              <router-link
-                :to="{ name: 'login' }"
-                class="text-decoration-none text-primary"
-              >
+              <router-link :to="{ name: 'login' }" class="text-decoration-none text-primary">
                 here</router-link
               ></span
             >
@@ -105,54 +93,52 @@
 <script>
 /* ======================= IMPORTS ======================= */
 // Auth
-import AuthService from '@/services/AuthService';
+import AuthService from "@/services/AuthService";
 import { mapStores } from "pinia";
 import { useUserStore } from "@/store/userStore.js";
 
 /* ======================= CONFIG ======================= */
 export default {
-  name: 'SignupForm',
+  name: "SignupForm",
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      username: '',
+      username: "",
 
-      email: '',
+      email: "",
       emailHasCustomError: false,
-      emailCustomErrorMessage: '',
+      emailCustomErrorMessage: "",
 
-      password: '',
-      confirmPassword: '',
+      password: "",
+      confirmPassword: "",
 
       /* --------------------- RULES --------------------- */
 
       usernameRules: [
-        (v) => !!v || 'Username is required',
-        (v) => (v && v.length >= 3) || 'Username must be at least 3 characters',
-        (v) =>
-          (v && v.length <= 20) || 'Username must be at most 20 characters',
+        (v) => !!v || "Username is required",
+        (v) => (v && v.length >= 3) || "Username must be at least 3 characters",
+        (v) => (v && v.length <= 20) || "Username must be at most 20 characters",
       ],
 
       emailRules: [
-        (v) => !!v || 'E-mail is required',
+        (v) => !!v || "E-mail is required",
         (v) =>
           /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(
             v
-          ) || 'E-mail must be valid',
+          ) || "E-mail must be valid",
       ],
 
       passwordRules: [
-        (v) => !!v || 'Password is required',
-        (v) => (v && v.length >= 6) || 'Password must be at least 6 characters',
-        (v) =>
-          (v && v.length <= 20) || 'Password must be at most 20 characters',
+        (v) => !!v || "Password is required",
+        (v) => (v && v.length >= 6) || "Password must be at least 6 characters",
+        (v) => (v && v.length <= 20) || "Password must be at most 20 characters",
       ],
 
       confirmPasswordRules: [
-        (v) => !!v || 'Confirm Password is required',
-        (v) => v === this.password || 'Passwords do not match',
+        (v) => !!v || "Confirm Password is required",
+        (v) => v === this.password || "Passwords do not match",
       ],
     };
   },
@@ -183,7 +169,7 @@ export default {
         }
 
         // Store the token inside the local storage
-        localStorage.setItem('access_token', res.data.access_token);
+        localStorage.setItem("access_token", res.data.access_token);
 
         // Store the user data in the Pinia store
         await this.userStore.setUser({
@@ -193,9 +179,9 @@ export default {
         });
 
         // Redirect to the home page
-        this.$router.push({ name: 'home' });
+        this.$router.push({ name: "home" });
       } else {
-        console.log('Form is invalid');
+        console.log("Form is invalid");
       }
     },
   },

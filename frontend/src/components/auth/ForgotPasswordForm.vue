@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    class="fill-height d-flex flex-column align-center justify-center"
-    max-width="800"
-  >
+  <v-container class="fill-height d-flex flex-column align-center justify-center" max-width="800">
     <!-- Welcome message -->
     <div>
       <div class="mb-8 text-center">

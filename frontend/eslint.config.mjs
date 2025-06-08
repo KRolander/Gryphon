@@ -53,15 +53,11 @@ export default defineConfig([
     },
     plugins: {
       vue,
-      '@typescript-eslint': ts,
       prettier,
     },
     rules: {
       'prettier/prettier': 'error',
       'no-console': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'warn',
       'vue/no-unused-components': 'warn',
       'vue/require-v-for-key': 'error',
       'vue/no-mutating-props': 'warn',
