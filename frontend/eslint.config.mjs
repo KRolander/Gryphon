@@ -8,8 +8,10 @@ import globals from 'globals';
 
 export default defineConfig([
   {
+    ignores: ['vite.config.js', 'dist', 'node_modules', '.vite', '.vscode'],
+  },
+  {
     files: ['**/*.ts', '**/*.js'],
-    ignores: ['vite.config.js'],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 2021,
