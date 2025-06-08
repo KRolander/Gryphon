@@ -1,5 +1,5 @@
 {
-    "name": "identity_management_system_chaincode",
+    "name": "did_chaincode",
     "version": "1.0.0",
     "main": "build/src/index.js",
     "type": "module",
