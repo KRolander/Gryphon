@@ -1,13 +1,13 @@
 const fs = require("fs/promises");
 const grpc = require("@grpc/grpc-js");
-const crypto = require("crypto"); 
+const crypto = require("crypto");
 const { connect } = require("@hyperledger/fabric-gateway");
 
 jest.mock("fs/promises");
 jest.mock("@grpc/grpc-js");
 jest.mock("@hyperledger/fabric-gateway");
 
-const gatewayModule = require("../gateway"); 
+const gatewayModule = require("../gateway");
 
 describe("startGateway", () => {
   beforeEach(() => {
