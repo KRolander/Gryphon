@@ -1,13 +1,13 @@
 /* ----------------------- IMPORTS ----------------------- */
 // Core
-import { createApp } from 'vue';
-import { markRaw } from 'vue';
-import { createPinia } from 'pinia';
-import vuetify from './plugins/vuetify';
-import router from './router/router';
+import { createApp } from "vue";
+import { markRaw } from "vue";
+import { createPinia } from "pinia";
+import vuetify from "./plugins/vuetify";
+import router from "./router/router";
 
 // Components
-import App from './App.vue';
+import App from "./App.vue";
 
 /* ----------------------- CONFIG ----------------------- */
 // Create app
@@ -28,4 +28,4 @@ app.use(vuetify);
 app.use(router);
 
 // Mount app
-app.mount('#app');
+app.mount("#app");
