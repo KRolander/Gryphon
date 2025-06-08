@@ -8,6 +8,7 @@ import globals from 'globals';
 export default defineConfig([
   {
     files: ['**/*.ts', '**/*.js', '**/*.vue'],
+    ignores: ['vite.config.js'],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 2021,
@@ -28,12 +29,12 @@ export default defineConfig([
       prettier,
     },
     rules: {
-      ...ts.configs.recommended.rules,
-      ...vue.configs['vue3-essential'].rules,
       'prettier/prettier': 'error',
       'no-console': 'warn',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'vue/require-v-for-key': 'error',
     },
-  }
+  },
 ])
