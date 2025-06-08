@@ -1,8 +1,5 @@
 <template>
-  <v-container
-      class="fill-height d-flex flex-column align-center justify-center"
-      max-width="800"
-    >
+  <v-container class="fill-height d-flex flex-column align-center justify-center" max-width="800">
     <!-- Welcome message -->
     <div>
       <div class="mb-8 text-center">
@@ -13,84 +10,71 @@
 
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
-
         <div style="display: none">
           {{ refreshDIDs(wallet) }}
         </div>
 
-      <!-- Card containing DIDs -->
-      <v-row class="w-100">
-        <v-col cols="12">
-          <v-card class="mx-auto">
-            <!-- Card title -->
-            <template v-slot:title>
-              <span class="font-weight-black">Your DIDs</span>
-            </template>
+        <!-- Card containing DIDs -->
+        <v-row class="w-100">
+          <v-col cols="12">
+            <v-card class="mx-auto">
+              <!-- Card title -->
+              <template v-slot:title>
+                <span class="font-weight-black">Your DIDs</span>
+              </template>
 
-            <!-- Add button together with icon -->
-            <template v-slot:append>
-              <v-dialog v-model="dialogOpen" max-width="500">
-                <!-- Activator button -->
-                <template v-slot:activator="{ props: activatorProps }">
-                  <v-btn
-                    v-bind="activatorProps"
-                    variant="outlined"
-                    @click="dialogOpen = true"
-                  >
-                    Add <v-icon icon="mdi-plus-circle" end></v-icon
-                  ></v-btn>
-                </template>
+              <!-- Add button together with icon -->
+              <template v-slot:append>
+                <v-dialog v-model="dialogOpen" max-width="500">
+                  <!-- Activator button -->
+                  <template v-slot:activator="{ props: activatorProps }">
+                    <v-btn v-bind="activatorProps" variant="outlined" @click="dialogOpen = true">
+                      Add <v-icon icon="mdi-plus-circle" end></v-icon
+                    ></v-btn>
+                  </template>
 
-                <!-- Dialog -->
-                <template v-slot:default="{ isActive }">
-                  <v-card title="Create DID">
-                    <v-card-text>
-                      <v-form v-model="valid" @submit.prevent="createDID">
-                        <v-text-field
-                          v-model="newDIDname"
-                          :counter="20"
-                          :rules="DIDNameRules"
-                          label="Name"
-                          required
-                        ></v-text-field>
-                      </v-form>
-                    </v-card-text>
+                  <!-- Dialog -->
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Create DID">
+                      <v-card-text>
+                        <v-form v-model="valid" @submit.prevent="createDID">
+                          <v-text-field
+                            v-model="newDIDname"
+                            :counter="20"
+                            :rules="DIDNameRules"
+                            label="Name"
+                            required
+                          ></v-text-field>
+                        </v-form>
+                      </v-card-text>
 
-                    <v-card-actions>
-                      <v-btn
-                        variant="outlined"
-                        class="ma-2s"
-                        @click="isActive.value = false"
-                      >
-                        Cancel
-                        <v-icon icon="mdi-cancel" end></v-icon>
-                      </v-btn>
+                      <v-card-actions>
+                        <v-btn variant="outlined" class="ma-2s" @click="isActive.value = false">
+                          Cancel
+                          <v-icon icon="mdi-cancel" end></v-icon>
+                        </v-btn>
 
-                      <v-spacer></v-spacer>
+                        <v-spacer></v-spacer>
 
-                      <v-btn class="ma-2" variant="outlined" @click="createDID(wallet)">
-                        Create
-                        <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </template>
-              </v-dialog>
-            </template>
+                        <v-btn class="ma-2" variant="outlined" @click="createDID(wallet)">
+                          Create
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
+              </template>
 
-            <!-- Card content -->
-            <v-card-text class="bg-surface-light pt-4">
-              <div
-                v-if="emptyDIDList"
-                class="text-body-1 font-weight-light mb-n1"
-              >
-                There are no DIDs yet. You can create one by click the button
-                above
-              </div>
+              <!-- Card content -->
+              <v-card-text class="bg-surface-light pt-4">
+                <div v-if="emptyDIDList" class="text-body-1 font-weight-light mb-n1">
+                  There are no DIDs yet. You can create one by click the button above
+                </div>
 
                 <v-card v-else v-for="DID in DIDs" :key="DID.did" class="mb-4 mt-4">
                   <template v-slot:title>
-                    <span class="font-weight-black">{{DID.name}}</span>
+                    <span class="font-weight-black">{{ DID.name }}</span>
                   </template>
 
                   <v-card-subtitle class="text-body-1 font-weight-light mb-4">
@@ -103,9 +87,13 @@
                       <!-- Activator button -->
                       <template v-slot:activator="{ props: deleteButton }">
                         <v-btn
-                            v-bind="deleteButton"
-                            variant="outlined"
-                            @click="() => {deleteDIDDialog = true, DIDToDelete=DID.did}"
+                          v-bind="deleteButton"
+                          variant="outlined"
+                          @click="
+                            () => {
+                              (deleteDIDDialog = true), (DIDToDelete = DID.did);
+                            }
+                          "
                         >
                           Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
                         ></v-btn>
@@ -115,20 +103,18 @@
                       <template v-slot:default="{ isActive }">
                         <v-card title="Are you sure you want to delete this DID?">
                           <v-card-actions>
-                            <v-btn
-                                class="ma-2s"
-                                variant="outlined"
-                                @click="isActive.value = false"
-                            >
+                            <v-btn class="ma-2s" variant="outlined" @click="isActive.value = false">
                               No
                               <v-icon icon="mdi-cancel" end></v-icon>
                             </v-btn>
 
                             <v-spacer></v-spacer>
 
-                            <v-btn class="ma-2"
-                                   variant="outlined"
-                                   @click="deleteDID(DIDToDelete, wallet)">
+                            <v-btn
+                              class="ma-2"
+                              variant="outlined"
+                              @click="deleteDID(DIDToDelete, wallet)"
+                            >
                               Yes
                               <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
                             </v-btn>
@@ -139,14 +125,17 @@
                   </template>
 
                   <v-card-actions>
-                    <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)" >
+                    <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(DID.did)">
                       <span v-if="showHideToggle[DID.did]">Hide document</span>
                       <span v-else>Show DID document</span>
                     </v-btn>
                   </v-card-actions>
                   <v-card class="mb-4 mt-4" color="grey-lighten-1">
-                    <pre v-if="didDoc[DID.did]" class="text-body-1 font-weight-light mb-n1"
-                         style="white-space: pre-wrap; word-break: break-word; padding: 0 16px;">
+                    <pre
+                      v-if="didDoc[DID.did]"
+                      class="text-body-1 font-weight-light mb-n1"
+                      style="white-space: pre-wrap; word-break: break-word; padding: 0 16px"
+                    >
                       {{ JSON.stringify(didDoc[DID.did], null, 2) }}
                       <!-- Edit DID -->
                       <v-dialog v-model="editDIDDocDialog" max-width="500">
@@ -216,18 +205,18 @@
                     </pre>
                   </v-card>
                 </v-card>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </template>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </template>
     </WalletManager>
   </v-container>
 </template>
 
 <script lang="js">
 /* ----------------------- IMPORTS ----------------------- */
-import DIDService from '@/services/DIDService';
+import DIDService from "@/services/DIDService";
 import WalletManager from "@/components/wallet/WalletManager.vue";
 
 /* ----------------------- CONFIG ----------------------- */
@@ -244,51 +233,50 @@ export default {
       DIDToDelete: null,
       editDIDDocDialog: false,
       editControllerAlert: false,
-      editControllerMessage:"",
-      alertColor:"info",
+      editControllerMessage: "",
+      alertColor: "info",
       valid: false,
       newDIDname: "",
-      newControllerName:"",
+      newControllerName: "",
       showHideToggle: {},
       didDoc: {},
-      didList:true ,
+      didList: true,
       didStructureRules: [
-          value => {
-            if (value && value.startsWith("did:hlf:")){
-              return true;
-            }
-            return "A DID should start with did:hlf:"
-          },
-          value => {
-            if (value.length<30){
-              return "DID too short, check again"
-            }
-            else if (value.length>31){
-              return "DID too long, check again"
-            }
+        (value) => {
+          if (value && value.startsWith("did:hlf:")) {
             return true;
           }
+          return "A DID should start with did:hlf:";
+        },
+        (value) => {
+          if (value.length < 30) {
+            return "DID too short, check again";
+          } else if (value.length > 31) {
+            return "DID too long, check again";
+          }
+          return true;
+        },
       ],
       DIDNameRules: [
-        value => {
-          if (value) return true
+        (value) => {
+          if (value) return true;
 
-          return 'Name is required.'
+          return "Name is required.";
         },
-        value => {
-          if (value?.length <= 20) return true
+        (value) => {
+          if (value?.length <= 20) return true;
 
-          return 'Name must be less than 20 characters.'
+          return "Name must be less than 20 characters.";
         },
       ],
-    }
+    };
   },
   methods: {
     // Method to handle the creation of a new DID
     async createDID(wallet) {
       if (this.valid) {
         // 0. Create keys
-        const {publicKey,privateKey} = await this.generateKeys(); //still needs to handle private key
+        const { publicKey, privateKey } = await this.generateKeys(); //still needs to handle private key
         const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
         const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
@@ -299,16 +287,20 @@ export default {
         console.log(res.data);
 
         // 2. Store in the wallet
-        wallet.addDid(res.data, {
-          publicKeyBase64,
-          privateKeyBase64},
-        this.newDIDname);
+        wallet.addDid(
+          res.data,
+          {
+            publicKeyBase64,
+            privateKeyBase64,
+          },
+          this.newDIDname
+        );
 
         // 3. Persist the wallet
         await wallet.save();
 
         // 4. Add to the list
-        this.refreshDIDs(wallet)
+        this.refreshDIDs(wallet);
 
         // 5. Reset the form
         this.newDIDname = "";
@@ -319,47 +311,44 @@ export default {
       }
     },
 
-    async generateKeys(){
+    async generateKeys() {
       const keyPair = await window.crypto.subtle.generateKey(
         {
           name: "ECDSA",
           namedCurve: "P-256",
         },
         true, //used for being able to export the key
-        ["sign","verify"]
-
-      )
+        ["sign", "verify"]
+      );
       //both are arrayBuffers:
-      const publicKey = await window.crypto.subtle.exportKey("spki",keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
-      const privateKey = await window.crypto.subtle.exportKey("pkcs8",keyPair.privateKey); //maybe let the user encrypt
+      const publicKey = await window.crypto.subtle.exportKey("spki", keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
+      const privateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey); //maybe let the user encrypt
 
-      return {publicKey,privateKey};
+      return { publicKey, privateKey };
     },
 
-    async formatPEM(key){
+    async formatPEM(key) {
       const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(key)));
       return `-----BEGIN PUBLIC KEY-----\n${publicKeyBase64}\n-----END PUBLIC KEY-----`;
-
     },
 
-    async getDIDDocument(DID){
-      if (this.showHideToggle[DID]){
-        this.showHideToggle[DID]=false;
-        this.didDoc[DID]=null;
+    async getDIDDocument(DID) {
+      if (this.showHideToggle[DID]) {
+        this.showHideToggle[DID] = false;
+        this.didDoc[DID] = null;
         return;
       }
       // 1. Send to backend
       const res = await DIDService.getDIDDoc(DID);
-      this.showHideToggle[DID]=true;
-      this.didDoc[DID]=res.data;
+      this.showHideToggle[DID] = true;
+      this.didDoc[DID] = res.data;
       console.log(res.data);
     },
 
-    async deleteDID(DID, wallet){
+    async deleteDID(DID, wallet) {
       try {
         await DIDService.deleteDID(DID);
       } catch (error) {
-
         // Check if the error is given by DID missing in the blockchain
         const reason = error?.response?.data?.reason || "";
 
@@ -371,7 +360,6 @@ export default {
           console.error("Unexpected error deleting DID:", error);
           return;
         }
-
       }
 
       // Delete from the wallet
@@ -379,50 +367,49 @@ export default {
 
       // Persist the wallet
       await wallet.save();
-      this.refreshDIDs(wallet)
+      this.refreshDIDs(wallet);
       this.deleteDIDDialog = false;
       this.DIDToDelete = null;
     },
 
-    async modifyController(DID,operation){
+    async modifyController(DID, operation) {
       try {
-        await DIDService.modifyController(DID,operation,this.newControllerName);
-        this.editControllerMessage = `Successfully added controller: ${ this.newControllerName}`;
-        this.newControllerName="";
+        await DIDService.modifyController(DID, operation, this.newControllerName);
+        this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
+        this.newControllerName = "";
         const res = await DIDService.getDIDDoc(DID);
         this.didDoc[DID] = res.data;
         this.editControllerAlert = true;
-        this.alertColor="success";
+        this.alertColor = "success";
         setTimeout(() => {
-          this.resetAlerts()
+          this.resetAlerts();
         }, 3000);
       } catch (err) {
         this.editControllerAlert = true;
-        this.editControllerMessage = "There was a problem when adding the controller. Try again."
-        this.alertColor="error";
+        this.editControllerMessage = "There was a problem when adding the controller. Try again.";
+        this.alertColor = "error";
         setTimeout(() => {
-          this.resetAlerts()
+          this.resetAlerts();
         }, 3000);
       }
-
     },
 
     resetAlerts() {
       this.editControllerAlert = false;
       this.editControllerMessage = "";
-      this.alertColor="info";
+      this.alertColor = "info";
     },
 
     refreshDIDs(wallet) {
       // Fill the page with the DIDs loaded from the wallet
       if (!wallet || !wallet.dids) {
-        return
+        return;
       }
       this.DIDs = Object.entries(wallet.dids).map(([did, data]) => ({
         did,
-        name: data.metadata?.name || 'Unnamed DID'
-      }))
-    }
+        name: data.metadata?.name || "Unnamed DID",
+      }));
+    },
   },
   computed: {
     emptyDIDList() {
