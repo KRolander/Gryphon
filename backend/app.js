@@ -8,7 +8,7 @@ const dotenv = require("dotenv");
 // routers
 const authRouter = require("./routes/authRouter.js");
 const didRouter = require("./routes/did");
-const registryRouter = require("../registry_routes/registry.js");
+const registryRouter = require("./routes/registry.js");
 const { router: vcRouter } = require("./routes/vc");
 
 /* ======================== CONFIG ======================== */

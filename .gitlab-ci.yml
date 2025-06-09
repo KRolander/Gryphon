@@ -18,6 +18,3 @@ test:
     - cd ../frontend
     - npm ci
     - npm run lint
-    - cd ../registry_routes
-    - npm ci
-    - npm run lint  
