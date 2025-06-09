@@ -1,6 +1,6 @@
 /* ======================= IMPORTS ======================= */
-const { credentials } = require('@grpc/grpc-js');
-const keycloakApiClient = require('../keycloakApiClient.js');
+const { credentials } = require("@grpc/grpc-js");
+const keycloakApiClient = require("../keycloakApiClient.js");
 
 /* ======================= CONFIG ======================= */
 /**
@@ -18,7 +18,7 @@ async function createUser(userData, realmName, adminAccessToken) {
     emailVerified: userData.emailVerified || false,
     credentials: [
       {
-        type: 'password',
+        type: "password",
         value: userData.password,
         temporary: false, // Set to false to avoid requiring password change on first login
       },
@@ -30,7 +30,7 @@ async function createUser(userData, realmName, adminAccessToken) {
     // lastName: userData.lastName || '', // optional
   };
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     Authorization: `Bearer ${adminAccessToken}`,
   };
 
@@ -46,13 +46,9 @@ async function createUser(userData, realmName, adminAccessToken) {
     }
 
     // Throw error if the user creation failed
-    throw new Error(
-      `User creation failed with status code: ${userCreationResponse.status}`
-    );
+    throw new Error(`User creation failed with status code: ${userCreationResponse.status}`);
   } catch (error) {
-    throw new Error(
-      `User Creation failed with the following error: ${error.message}`
-    );
+    throw new Error(`User Creation failed with the following error: ${error.message}`);
   }
 }
 
@@ -67,14 +63,14 @@ async function loginUser(userData, realmName) {
   // Create the parameters for the axios request
   const endpoint = `/realms/${realmName}/protocol/openid-connect/token`;
   const body = {
-    client_id: 'admin-cli',
+    client_id: "admin-cli",
     username: userData.username,
     password: userData.password,
-    grant_type: 'password',
-    scope: 'openid',
+    grant_type: "password",
+    scope: "openid",
   };
   const headers = {
-    'Content-Type': 'application/x-www-form-urlencoded',
+    "Content-Type": "application/x-www-form-urlencoded",
   };
 
   // Try logging the user
@@ -119,18 +115,14 @@ async function getUserData(userAccessToken, realmName) {
 
     // Check that the response status is 200 - OK
     if (getUserDataResponse.status !== 200) {
-      throw new Error(
-        `User data fetch failed with status code: ${loginResponse.status}`
-      );
+      throw new Error(`User data fetch failed with status code: ${loginResponse.status}`);
     }
 
     // console.log('User Data:', getUserDataResponse.data);
 
     return getUserDataResponse.data;
   } catch (error) {
-    throw new Error(
-      `Fetching user data failed with the following error:\n ${error.message}`
-    );
+    throw new Error(`Fetching user data failed with the following error:\n ${error.message}`);
   }
 }
 

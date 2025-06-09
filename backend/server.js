@@ -1,5 +1,5 @@
-const app = require('./app');
-const { startGateway, getNetwork } = require('./gateway');
+const app = require("./app");
+const { startGateway, getNetwork } = require("./gateway");
 
 const port = 3000;
 
@@ -9,12 +9,12 @@ const port = 3000;
     const network = await getNetwork();
 
     if (!network) {
-      throw new Error('Fabric network not started.');
+      throw new Error("Fabric network not started.");
     }
 
-    console.log('✅ Connected to Fabric network.');
+    console.log("✅ Connected to Fabric network.");
   } catch (err) {
-    console.error('❌ Failed to connect to Fabric network:', err.message);
+    console.error("❌ Failed to connect to Fabric network:", err.message);
     process.exit(1);
   }
 

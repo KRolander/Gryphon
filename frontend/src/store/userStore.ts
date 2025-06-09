@@ -1,16 +1,16 @@
 /* ======================= IMPORTS ======================= */
 // store core
-import { defineStore } from 'pinia';
-import { del, get, set } from 'idb-keyval';
+import { defineStore } from "pinia";
+import { del, get, set } from "idb-keyval";
 
 // types
-import type { User } from '../types/User';
+import type { User } from "../types/User";
 
 // utils
-import { deleteSessionKey } from '../utils/crypto';
+import { deleteSessionKey } from "../utils/crypto";
 
 /* ======================= CONFIG ======================= */
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore("user", {
   state() {
     return {
       user: null as User,
@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', {
      */
     async setUser(user: User) {
       this.user = user;
-      await set('user', user);
+      await set("user", user);
     },
 
     /**
@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', {
      */
     async loadUser() {
       if (this.user != null) return;
-      const savedUser = await get<User>('user');
+      const savedUser = await get<User>("user");
       if (savedUser) {
         this.user = savedUser;
       }
@@ -51,7 +51,7 @@ export const useUserStore = defineStore('user', {
       this.user = null;
 
       // Delete the session
-      await del('user');
+      await del("user");
     },
 
     /**
@@ -61,10 +61,10 @@ export const useUserStore = defineStore('user', {
      */
     async logout() {
       // Check if the user is null
-      if (!this.user) throw new Error('There is no user in the store');
+      if (!this.user) throw new Error("There is no user in the store");
 
       // I. Delete the access_token from localStorage
-      localStorage.removeItem('access_token');
+      localStorage.removeItem("access_token");
 
       // II. Delete the session key from IndexDB
       await deleteSessionKey(this.user.id);
@@ -72,7 +72,7 @@ export const useUserStore = defineStore('user', {
       await this.clearUser();
 
       // Send the user back to the login page
-      this.$router.push({ name: 'auth' });
+      this.$router.push({ name: "auth" });
     },
   },
 });

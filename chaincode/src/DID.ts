@@ -13,7 +13,7 @@ export default class DID extends Contract {
     // DIDExists returns true when the given DID exists in world state.
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
-        const cleanDID = DID.replace(/^"|"$/g, '');
+        const cleanDID = DID.replace(/^"|"$/g, "");
         const DIDDocJSON = await ctx.stub.getState(cleanDID); // get the DID document from the world state
         if (DIDDocJSON && DIDDocJSON.length > 0) {
             return true;
@@ -24,7 +24,7 @@ export default class DID extends Contract {
     // Returns the DID Document if it exists
     @Transaction(false)
     async getDIDDoc(ctx: Context, DID: string): Promise<string>{
-        const cleanDID = DID.replace(/^"|"$/g, '');
+        const cleanDID = DID.replace(/^"|"$/g, "");
         const DIDDocJSON= await ctx.stub.getState(cleanDID);
         if (!DIDDocJSON || DIDDocJSON.length === 0){
             throw new Error(`There is no document with DID ${DID}`);
@@ -42,7 +42,7 @@ export default class DID extends Contract {
 
         // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
-        const cleanDID = DID.replace(/^"|"$/g, '');
+        const cleanDID = DID.replace(/^"|"$/g, "");
 
         if (DIDExists) {
             // TODO Make custom error types to use instead of the generic one
@@ -69,7 +69,7 @@ export default class DID extends Contract {
     ): Promise<Buffer> {
 
         // The DID Document can only be updated if it was already stored
-        const cleanDID = DID.replace(/^"|"$/g, '');
+        const cleanDID = DID.replace(/^"|"$/g, "");
         const DIDExists = await this.DIDExists(ctx, cleanDID);
 
         if (!DIDExists) {
@@ -106,7 +106,7 @@ export default class DID extends Contract {
         // Check if the DID Document exists
 
         const DIDExists = await this.DIDExists(ctx, DID);
-        const cleanDID = DID.replace(/^"|"$/g, '');
+        const cleanDID = DID.replace(/^"|"$/g, "");
         if (!DIDExists) {
             throw new Error(`Cannot delete the DID ${cleanDID}, it doesn't exist`);
         }
