@@ -10,6 +10,7 @@ const {
   getDIDDoc,
   getMap
 } = require("../gateway");
+const { fetchRegistry } = require("../utility/VCUtils.js");
 
 router = express.Router();
 
@@ -70,10 +71,10 @@ router.post("/verifyDeep", async (req, res) => {
         if(!VC)
             return res.status(400).send("VC required");
          
-        let currentVC = VC;
-        let current = currentVC.unsignedVC.credentialSubject.id; // we get the DID of the user
+        let currentVC = VC;  
+        let currentDID = currentVC.unsignedVC.credentialSubject.id; // we get the DID of the user
         let userDID = currentVC.unsignedVC.credentialSubject.id; // this is for a more clear description
-        while(!isRoot(current)) { // if the current DID is not the root, then we continue up the trustchain
+        while(!isRoot(currentDID)) { // if the current DID is not the root, then we continue up the trustchain
             const issuerDID = currentVC.unsignedVC.issuer;
             if(!issuerDID)
                 return res.status(400).send("All VCs require an issuer field");
@@ -85,29 +86,47 @@ router.post("/verifyDeep", async (req, res) => {
     
             //get its public key
             const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+
             if(!publicKey)
                 return res.status(400).send("This DID does not have a public key"); 
 
             // run the validate method
-            const validity = await validateVC(VC, publicKey);
-            if(validity == false) {
-                if(current == userDID)
-                    return res.status(200).send("The VC is invalid, as it was not signed by the issuer.");
+            const validity = await validateVC(currentVC, publicKey);
+
+            console.log(currentVC);
+            if(!validity) {
+                if(currentDID == userDID)
+                    return res.status(200).send(`The VC is invalid, as it was not signed by the issuer. ${currentDID}`);
                 else 
-                    return res.status(200).send("The VC is invalid, there was a problem verifying it up the trustchain.");
-            }
-            else {
+                    return res.status(200).send(`The VC is invalid, there was a problem verifying it up the trustchain.${currentDID}`);
+            } else {
                 // Here is where the magic happens. There should be a function that retrieves
                 // the map from the ledger and with that information it should choose the correct VC from 
                 // the public repository
                 const map = await getMap(getContract()); // structure that maps a issed VC to the VC required by the issuer
-                const repoEndpoint = issuerDoc.service.find(serv => serv.id === `${this.DID}#vcs`); // we find the service that points towards the location of the public repository
-                const endpoint = repoEndpoint.serviceEndpoint; // we retrive the endpoint of the repository
+
+                const issuerDoc = getDIDDoc(getContract(), issuerDID);
+                const serviceArray = issuerDoc.service || [];
+                const repoEndpoint = serviceArray.find(serv => serv.id.endsWith("#vcs"));
+                if (!repoEndpoint) {
+                    return res.status(500).send("Issuer DID document does not contain a valid registry service.");
+                }
+                const endpoint = repoEndpoint.serviceEndpoint;
                 const registry = await fetchRegistry(endpoint);
+    
+                const vcType = currentVC.unsignedVC.type; // this indicates the type of the VC
+                const requiredPermission = map.get(vcType); // this is the type of VC the issuer needs 
+                console.log(registry);
+                console.log(typeof(registry));
+                const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
+                const correctVC = issuerVCs.find(vc => vc.unsignedVC.type === requiredPermission); // if there is a VC with the correct permission it will be fond
+                if(!correctVC)
+                    return res.status(200).send("The VC is invalid, an organization up the trustchain didn't have the required permission");
+                currentVC = correctVC;
+                currentDID = issuerDID;
             }
         }
-
-        
+        return res.status(200).send("The VC is valid");
     } catch (error) {
         console.log(error);
         console.error("Error validating the VC");
@@ -134,7 +153,6 @@ async function validateVC(vc, publicKey) {
     const verifier = createVerify('SHA256'); // hash the string representing the unsigned VC
     verifier.update(canon);
     verifier.end();
-
     return verifier.verify(publicKey, proof.signatureValue, 'base64'); // verify that the signature is correct
 }
 
@@ -145,30 +163,25 @@ async function verifyVC(vc, map, root) {
     }
 }
 
+
 /**
- * This function is used to retrieve the public registry of
- * an organization
- * @param {string} url the service endpoint of an organization
- * @returns the public registry of the organization orgName
+ * This function is meant to check if a VC has the necessary type in the type list
+ * @param {string | string[]} typeList the list of types of a VC
+ * @param {string} type the specific type we are looking for
+ * @returns wether or not a type is part of the typeList
  */
-async function fetchRegistry(url) {
-    const url = `http://localhost:3000/registry/${orgName}`;
-    try {
-        const response = await axios.get(url);
-        const registry = response.data;
-        console.log("Fetched registry:", registry);
-        return registry;
-    } catch (error) {
-        if (error.response) {
-            console.error("Error:", error.response.status, error.response.data);
-        } else {
-            console.error("Network or server error:", error.message);
-        }
-    return null;
-  }
+async function checkVCType(typeList, type) {
+    if(Array.isArray(typeList))
+        return typeList.includes(type);
+    return typeList === type;
+}
+
+function isRoot(did) {
+    return did === "did:hlf:root";
 }
 
 module.exports = {
     validateVC,
-    router
+    fetchRegistry,
+    router,
 }

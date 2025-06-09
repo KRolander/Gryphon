@@ -1,1 +1,24 @@
-{}
+{
+  "did:hlf:root": [
+    {
+      "unsignedVC": {
+        "@context": "https://www.w3.org/2018/credentials/v1",
+        "type": "Authorization",
+        "issuer": "did:hlf:root",
+        "issuanceDate": "date",
+        "credentialSubject": {
+          "id": "did:hlf:root",
+          "degree": "I HOLD ALL THE POWER",
+          "graduationYear": 2024
+        }
+      },
+      "proof": {
+        "type": "EcdsaSecp256r1VerificationKey2019",
+        "created": "date1",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "someURL",
+        "signatureValue": "MEYCIQDyo9NZz4DbVRBMrd6bR/Ue+xmMfvJwl41rkEjWCvZ2QQIhAOk7vecJE6OmwzTlzi+97L1qvhphXI/R7opSWsfPCBMC"
+      }
+    }
+  ]
+}

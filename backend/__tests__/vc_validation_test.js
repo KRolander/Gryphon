@@ -26,7 +26,7 @@ describe("validateVC", () => {
         degree: "Bachelor of Science",
         graduationYear: 2024
     };
-    const uVCBuilder = new UnsignedVCBuilder(["VerifiableCredential", "BachelorDegree"], "date", issuerDID, subDID, claims);
+    const uVCBuilder = new UnsignedVCBuilder("BachelorDegree", "date", issuerDID, subDID, claims);
     const baduVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", "did:hlf:somedid", subDID, claims);
     const uVC = uVCBuilder.build();
     const baduVC = baduVCBuilder.build();

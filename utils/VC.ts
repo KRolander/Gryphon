@@ -41,7 +41,7 @@ interface VerifiableCredential {
  */
 interface UnsignedVC {
   "@context": "https://www.w3.org/2018/credentials/v1";
-  type: string | string[]; // must include VerifiableCredential
+  type: string; // must include VerifiableCredential
   issuer: string;  // the DID of the issuer
   issuanceDate: string; // ISO 8601 format
   credentialSubject: CredentialSubject;
@@ -57,11 +57,11 @@ interface VerifiablePresentation {
 
 export class UnsignedVCBuilder {
   private issuer: string;
-  private vcType: string | string[];
+  private vcType: string;
   private issuanceDate: string;
   private credentialSubject: CredentialSubject;
 
-  constructor(vcType: string | string[], issuanceDate: string, issuer: string, subjectId: string, claims: { [claim: string]: unknown }) {
+  constructor(vcType: string, issuanceDate: string, issuer: string, subjectId: string, claims: { [claim: string]: unknown }) {
     this.vcType = vcType;
     this.issuer = issuer;
     this.credentialSubject = buildCredentialSubject(subjectId, claims);

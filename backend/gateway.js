@@ -179,4 +179,5 @@ module.exports = {
   getDIDDoc,
   addDIDController,
   deleteDID,
+  getMap
 };
