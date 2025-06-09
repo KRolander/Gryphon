@@ -15,9 +15,7 @@
           <p class="text-caption mt-1">{{ userStore.getEmail }}</p>
           <v-divider class="my-3"></v-divider>
 
-          <v-btn variant="text" rounded @click="userStore.logout()">
-            Logout
-          </v-btn>
+          <v-btn variant="text" rounded @click="userStore.logout()"> Logout </v-btn>
         </div>
       </v-card-text>
     </v-card>
@@ -26,19 +24,19 @@
 <script lang="js">
 /* ======================= IMPORTS ======================= */
 // pinia
-import { mapStores } from 'pinia';
+import { mapStores } from "pinia";
 
 // stores
-import { useUserStore } from '@/store/userStore';
+import { useUserStore } from "@/store/userStore";
 
 /* ======================= CONFIG ======================= */
 export default {
   computed: {
-    ...mapStores(useUserStore)
+    ...mapStores(useUserStore),
   },
   async mounted() {
     await this.userStore.loadUser();
-  }
-}
+  },
+};
 </script>
 <style scoped></style>
