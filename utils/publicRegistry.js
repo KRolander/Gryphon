@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require("fs");
 
 // The assumption is that an institution can have more than one DID
 // So we keep track of all the VCs issued for a specific DID

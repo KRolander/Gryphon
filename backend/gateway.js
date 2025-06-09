@@ -6,35 +6,35 @@
  */
 
 //IMPORTS
-const crypto = require('crypto'); // Used for generating cryptographic keys
-const path = require('path'); // Used to resolve the path to the organization's profile
-const fs = require('fs/promises');
-const { TextDecoder } = require('util'); // Used to decode the byte arrays from the blockchain
-const { v4: uuidv4 } = require('uuid');
-const stringify = require('fast-json-stable-stringify');
-const sortKeysRecursive = require('sort-keys-recursive');
+const crypto = require("crypto"); // Used for generating cryptographic keys
+const path = require("path"); // Used to resolve the path to the organization's profile
+const fs = require("fs/promises");
+const { TextDecoder } = require("util"); // Used to decode the byte arrays from the blockchain
+const { v4: uuidv4 } = require("uuid");
+const stringify = require("fast-json-stable-stringify");
+const sortKeysRecursive = require("sort-keys-recursive");
 
-const grpc = require('@grpc/grpc-js'); // gRPC is used to communicate between the gateway and the fabric network
-const { connect, hash, signers } = require('@hyperledger/fabric-gateway'); // SDK used to interact with the fabric network
+const grpc = require("@grpc/grpc-js"); // gRPC is used to communicate between the gateway and the fabric network
+const { connect, hash, signers } = require("@hyperledger/fabric-gateway"); // SDK used to interact with the fabric network
 
 const {
   envOrDefault,
   keyDirectoryPath,
   certDirectoryPath,
   tlsCertPath,
-} = require('./utility/gatewayUtilities');
+} = require("./utility/gatewayUtilities");
 //const DIDDocument = require("../chaincode/types/DIDDocument.js");
 
 //CONFIG
-const channelName = envOrDefault('CHANNEL_NAME', 'mychannel'); //the name of the channel from the fabric-network
-const chaincodeName = envOrDefault('CHAINCODE_NAME', 'tscc'); //the chaincode name used to interact with the fabric-network
-const mspId = envOrDefault('MSP_ID', 'Org1MSP');
+const channelName = envOrDefault("CHANNEL_NAME", "mychannel"); //the name of the channel from the fabric-network
+const chaincodeName = envOrDefault("CHAINCODE_NAME", "tscc"); //the chaincode name used to interact with the fabric-network
+const mspId = envOrDefault("MSP_ID", "Org1MSP");
 
 // Gateway peer endpoint
-const peerEndpoint = envOrDefault('PEER_ENDPOINT', 'localhost:7051');
+const peerEndpoint = envOrDefault("PEER_ENDPOINT", "localhost:7051");
 
 // Gateway peer SSL host name
-const peerHostAlias = envOrDefault('PEER_HOST_ALIAS', 'peer0.org1.example.com'); //connecting to localhost would cause the TLS handshake to fail.
+const peerHostAlias = envOrDefault("PEER_HOST_ALIAS", "peer0.org1.example.com"); //connecting to localhost would cause the TLS handshake to fail.
 //therefore, this commnad tells the SDK to treat localhost as peer0
 
 const utf8Decoder = new TextDecoder();
@@ -75,7 +75,7 @@ async function startGateway() {
     // Retrieve the contract from the network
     contract = network.getContract(chaincodeName); // Get the contract from the network
   } catch (error) {
-    console.error('Error starting gateway:', error); // Log the error
+    console.error("Error starting gateway:", error); // Log the error
   }
 }
 
@@ -85,7 +85,7 @@ async function newGRPCConnection() {
   const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
 
   return new grpc.Client(peerEndpoint, tlsCredentials, {
-    'grpc.ssl_target_name_override': peerHostAlias,
+    "grpc.ssl_target_name_override": peerHostAlias,
   });
 }
 
@@ -117,36 +117,29 @@ async function newSigner() {
 async function storeDID(contract, DID, DIDDoc) {
   //make sure the contract valid
   const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
-  await contract.submitTransaction('storeDID', stringify(DID), DIDDocStr);
+  await contract.submitTransaction("storeDID", stringify(DID), DIDDocStr);
   return DIDDocStr;
 }
 
 async function getDIDDoc(contract, DID) {
-  const response = await contract.evaluateTransaction(
-    'getDIDDoc',
-    stringify(DID)
-  );
+  const response = await contract.evaluateTransaction("getDIDDoc", stringify(DID));
   return parseResponse(response);
 }
 
 //for the update operation
 async function addDIDController(contract, DID, DIDDoc) {
   const DIDDocStr = stringify(sortKeysRecursive(DIDDoc));
-  const response = await contract.submitTransaction(
-    'updateDIDDoc',
-    stringify(DID),
-    DIDDocStr
-  );
+  const response = await contract.submitTransaction("updateDIDDoc", stringify(DID), DIDDocStr);
   return parseResponse(response);
 }
 
 async function deleteDID(contract, DID) {
-  await contract.submitTransaction('deleteDID', DID);
+  await contract.submitTransaction("deleteDID", DID);
 }
 
 async function getMap(contract) {
   //const response = await contract.evaluateTransaction('getMap');
-  return 'Hello World';
+  return "Hello World";
 }
 
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
@@ -179,5 +172,5 @@ module.exports = {
   getDIDDoc,
   addDIDController,
   deleteDID,
-  getMap
+  getMap,
 };

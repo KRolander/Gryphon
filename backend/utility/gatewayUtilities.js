@@ -18,7 +18,7 @@ const cryptoPath = envOrDefault(
     "..", // 15b
     "network", // 15b/network
     "example",
-    "fabric-samples", 
+    "fabric-samples",
     "test-network",
     "organizations",
     "peerOrganizations",
@@ -35,13 +35,7 @@ const keyDirectoryPath = envOrDefault(
 // Path to user certificate directory.
 const certDirectoryPath = envOrDefault(
   "CERT_DIRECTORY_PATH",
-  path.resolve(
-    cryptoPath,
-    "users",
-    "User1@org1.example.com",
-    "msp",
-    "signcerts"
-  )
+  path.resolve(cryptoPath, "users", "User1@org1.example.com", "msp", "signcerts")
 );
 
 // Path to peer tls certificate.

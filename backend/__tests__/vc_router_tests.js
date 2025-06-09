@@ -1,32 +1,34 @@
-const request = require('supertest');
-const app = require('../app');
+const request = require("supertest");
+const app = require("../app");
 const vcValidationModule = require("../routes/vc");
-const { startGateway, getGateway, getDIDDoc, getContract } = require('../gateway');
+const { startGateway, getGateway, getDIDDoc, getContract } = require("../gateway");
 const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
 const { VCBuilder, UnsignedVCBuilder } = require("../../utils/VC");
 const { createSign } = require("crypto");
 const crypto = require("crypto");
 const canonicalize = require("canonicalize");
 
-jest.mock('../gateway', () => ({
+jest.mock("../gateway", () => ({
   startGateway: jest.fn(),
   getGateway: jest.fn(() => true),
-  getContract: jest.fn(() => ({ /* mock contract object */ })),
-  getDIDDoc: jest.fn()  // define, but override later
+  getContract: jest.fn(() => ({
+    /* mock contract object */
+  })),
+  getDIDDoc: jest.fn(), // define, but override later
 }));
 
 /**---------Create the key pair for the test--------- */
-const {publicKey, privateKey} = crypto.generateKeyPairSync('ec',{
-        namedCurve: 'P-256',
-        publicKeyEncoding: {
-            type: 'spki',
-            format: 'pem' 
-        },
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem',
-        }
-    })
+const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
+  namedCurve: "P-256",
+  publicKeyEncoding: {
+    type: "spki",
+    format: "pem",
+  },
+  privateKeyEncoding: {
+    type: "pkcs8",
+    format: "pem",
+  },
+});
 const issuerDID = "did:hlf:issuer";
 /**---------Create the DID Document of the issuer--------- */
 const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey, null);
@@ -36,159 +38,165 @@ const doc = docBuilder.build();
 const keylessDoc = noKeyBuilder.build();
 
 describe("POST /vc/verify", () => {
-    it("should return 200 and a valid message", async () => {
-        getDIDDoc.mockReturnValue(doc);
-        /**---------Create the unsigne VC--------- */
-        const subDID = "did:hlf:subject";
-        const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
-        const uVC = uVCBuilder.build();
+  it("should return 200 and a valid message", async () => {
+    getDIDDoc.mockReturnValue(doc);
 
-        /**---------Create the signature--------- */
-        const canon = canonicalize(uVC);
-        const signer = createSign('SHA256');
-        signer.update(canon);
-        signer.end();
-        const signature = signer.sign(privateKey, 'base64');
+    /**---------Create the unsigne VC--------- */
+    const subDID = "did:hlf:subject";
+    const uVCBuilder = new UnsignedVCBuilder(
+      "VerifiableCredential",
+      "date",
+      issuerDID,
+      subDID,
+      "claim"
+    );
+    const uVC = uVCBuilder.build();
 
-        /**---------Sign the VC--------- */
-        const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
+    /**---------Create the signature--------- */
+    const canon = canonicalize(uVC);
+    const signer = createSign("SHA256");
+    signer.update(canon);
+    signer.end();
+    const signature = signer.sign(privateKey, "base64");
 
-        const sVC = sVCBuilder.build();
-        const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
-        const method = doc.verificationMethod.find(vm => vm.id === keyId); // find that method in the list of verification methods
+    /**---------Sign the VC--------- */
+    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
-        //if(!pkId)
-        const pk = method.publicKeyPem;
-        //const result = await vcValidationModule.validateVC(sVC, pk);
-        //console.log(result);
+    const sVC = sVCBuilder.build();
+    const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
+    const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
 
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(sVC)
-            .expect(200);
+    //if(!pkId)
+    const pk = method.publicKeyPem;
+    //const result = await vcValidationModule.validateVC(sVC, pk);
+    //console.log(result);
 
-        expect(response.text).toBe("The VC is valid (it was issued by the issuer)");
-    });
+    const response = await request(app).post("/vc/verify").send(sVC).expect(200);
 
-    it("should return 400 because of invalid issuer", async () => {
-        getDIDDoc.mockReturnValue(doc);
-        /**---------Create the unsigne VC--------- */
-        const subDID = "did:hlf:subject";
-        const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", null, subDID, "claim");
-        const uVC = uVCBuilder.build();
+    expect(response.text).toBe("The VC is valid (it was issued by the issuer)");
+  });
 
-        /**---------Create the signature--------- */
-        const canon = canonicalize(uVC);
-        const signer = createSign('SHA256');
-        signer.update(canon);
-        signer.end();
-        const signature = signer.sign(privateKey, 'base64');
+  it("should return 400 because of invalid issuer", async () => {
+    getDIDDoc.mockReturnValue(doc);
+    /**---------Create the unsigne VC--------- */
+    const subDID = "did:hlf:subject";
+    const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", null, subDID, "claim");
+    const uVC = uVCBuilder.build();
 
-        /**---------Sign the VC--------- */
-        const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
+    /**---------Create the signature--------- */
+    const canon = canonicalize(uVC);
+    const signer = createSign("SHA256");
+    signer.update(canon);
+    signer.end();
+    const signature = signer.sign(privateKey, "base64");
 
-        const sVC = sVCBuilder.build();
-        const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
-        const method = doc.verificationMethod.find(vm => vm.id === keyId); // find that method in the list of verification methods
+    /**---------Sign the VC--------- */
+    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
-        //if(!pkId)
-        const pk = method.publicKeyPem;
-        const result = vcValidationModule.validateVC(sVC, pk);
+    const sVC = sVCBuilder.build();
+    const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
+    const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
 
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(sVC)
-            .expect(400);
+    //if(!pkId)
+    const pk = method.publicKeyPem;
+    const result = vcValidationModule.validateVC(sVC, pk);
 
-        expect(response.text).toBe("All VCs require an issuer field");
-    });
+    const response = await request(app).post("/vc/verify").send(sVC).expect(400);
 
-    it("should return 400 because there is no VC", async () => {
+    expect(response.text).toBe("All VCs require an issuer field");
+  });
 
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(null)
-            .expect(400);
+  it("should return 400 because there is no VC", async () => {
+    const response = await request(app).post("/vc/verify").send(null).expect(400);
 
-        expect(response.text).toBe("VC required");
-    });
+    expect(response.text).toBe("VC required");
+  });
 
-    it("should return 500 because the issuer is not valid", async () => {
-        getDIDDoc.mockReturnValue(null);
-        /**---------Create the unsigne VC--------- */
-        const subDID = "did:hlf:subject";
-        const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
-        const uVC = uVCBuilder.build();
+  it("should return 500 because the issuer is not valid", async () => {
+    getDIDDoc.mockReturnValue(null);
+    /**---------Create the unsigne VC--------- */
+    const subDID = "did:hlf:subject";
+    const uVCBuilder = new UnsignedVCBuilder(
+      "VerifiableCredential",
+      "date",
+      issuerDID,
+      subDID,
+      "claim"
+    );
+    const uVC = uVCBuilder.build();
 
-        /**---------Create the signature--------- */
-        const canon = canonicalize(uVC);
-        const signer = createSign('SHA256');
-        signer.update(canon);
-        signer.end();
-        const signature = signer.sign(privateKey, 'base64');
+    /**---------Create the signature--------- */
+    const canon = canonicalize(uVC);
+    const signer = createSign("SHA256");
+    signer.update(canon);
+    signer.end();
+    const signature = signer.sign(privateKey, "base64");
 
-        /**---------Sign the VC--------- */
-        const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
+    /**---------Sign the VC--------- */
+    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
-        const sVC = sVCBuilder.build();
+    const sVC = sVCBuilder.build();
 
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(sVC)
-            .expect(500);
+    const response = await request(app).post("/vc/verify").send(sVC).expect(500);
 
-        expect(response.text).toBe("The DID does not exist");
-    });
+    expect(response.text).toBe("The DID does not exist");
+  });
 
-    it("should return 400 because the issuer does not have a public key", async () => {
-        getDIDDoc.mockReturnValue(keylessDoc);
-        /**---------Create the unsigne VC--------- */
-        const subDID = "did:hlf:subject";
-        const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
-        const uVC = uVCBuilder.build();
+  it("should return 400 because the issuer does not have a public key", async () => {
+    getDIDDoc.mockReturnValue(keylessDoc);
+    /**---------Create the unsigne VC--------- */
+    const subDID = "did:hlf:subject";
+    const uVCBuilder = new UnsignedVCBuilder(
+      "VerifiableCredential",
+      "date",
+      issuerDID,
+      subDID,
+      "claim"
+    );
+    const uVC = uVCBuilder.build();
 
-        /**---------Create the signature--------- */
-        const canon = canonicalize(uVC);
-        const signer = createSign('SHA256');
-        signer.update(canon);
-        signer.end();
-        const signature = signer.sign(privateKey, 'base64');
+    /**---------Create the signature--------- */
+    const canon = canonicalize(uVC);
+    const signer = createSign("SHA256");
+    signer.update(canon);
+    signer.end();
+    const signature = signer.sign(privateKey, "base64");
 
-        /**---------Sign the VC--------- */
-        const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
+    /**---------Sign the VC--------- */
+    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
-        const sVC = sVCBuilder.build();
+    const sVC = sVCBuilder.build();
 
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(sVC)
-            .expect(400);
+    const response = await request(app).post("/vc/verify").send(sVC).expect(400);
 
-        expect(response.text).toBe("This DID does not have a public key");
-    });
+    expect(response.text).toBe("This DID does not have a public key");
+  });
 
-    it("should return 200 but it should be false because the VC is not valid", async () => {
-        getDIDDoc.mockReturnValue(doc);
-        /**---------Create the unsigne VC--------- */
-        const subDID = "did:hlf:subject";
-        const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", issuerDID, subDID, "claim");
-        const uVC = uVCBuilder.build();
+  it("should return 200 but it should be false because the VC is not valid", async () => {
+    getDIDDoc.mockReturnValue(doc);
+    /**---------Create the unsigne VC--------- */
+    const subDID = "did:hlf:subject";
+    const uVCBuilder = new UnsignedVCBuilder(
+      "VerifiableCredential",
+      "date",
+      issuerDID,
+      subDID,
+      "claim"
+    );
+    const uVC = uVCBuilder.build();
 
-        /**---------Sign the VC--------- */
-        const signer = createSign('SHA256');
-        signer.update("signature");
-        signer.end();
-        const signature = signer.sign(privateKey, 'base64');
-        const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
+    /**---------Sign the VC--------- */
+    const signer = createSign("SHA256");
+    signer.update("signature");
+    signer.end();
+    const signature = signer.sign(privateKey, "base64");
+    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
-        const sVC = sVCBuilder.build();
-        const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
-        const method = doc.verificationMethod.find(vm => vm.id === keyId); // find that method in the list of verification methods
-        const response = await request(app)
-            .post("/vc/verify")
-            .send(sVC)
-            .expect(200);
+    const sVC = sVCBuilder.build();
+    const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
+    const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
+    const response = await request(app).post("/vc/verify").send(sVC).expect(200);
 
-        expect(response.text).toBe("The VC is not valid (it was not issued by the issuer)");
-    });
+    expect(response.text).toBe("The VC is not valid (it was not issued by the issuer)");
+  });
 });
