@@ -1,34 +1,85 @@
-// Define a Loki writer that point to the Loki service
+logging {
+  level  = "info"
+  format = "JSON"
+}
+
 loki.write "default" {
     endpoint {
         url = "http://loki:3100/loki/api/v1/push"
     }
 }
 
-// Defines the files that the agent must watch
-// Backend Logs
-file {
-    includes = ["/var/log/myapp/backend/*.log"]
-    exclude_files = ["*.gz", "*.old"]
-    label_configs = {
-        job = "backend"
-    }
+local.file_match "backend" {
+  path_targets = [
+    { path = "/var/log/myapp/backend/*.log" },
+  ]
 }
 
-// Chaincode Logs
-file {
-    includes = ["/var/log/myapp/chaincode/*.log"]
-    exclude_files = ["*.gz", "*.old"]
-    label_configs = {
-        job = "chaincode"
-    }
+local.file_match "chaincode" {
+  path_targets = [
+    { path = "/var/log/myapp/chaincode/*.log" },
+  ]
 }
 
-// Keycloak Logs
-file {
-    includes = ["/var/log/keycloak/*.log"]
-    exclude_files = ["*.gz", "*.old"]
-    label_configs = {
-        job = "keycloak"
-    }
+local.file_match "keycloak" {
+  path_targets = [
+    { path = "/var/log/keycloak/*.log" },
+  ]
+}
+
+loki.source.file "backend_logs" {
+  targets    = local.file_match.backend.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.process "backend" {
+  forward_to = [loki.relabel.backend.receiver]
+}
+
+loki.relabel "backend" {
+  forward_to = [loki.write.default.receiver]
+
+  rule {
+        action       = "replace"
+        target_label = "job"
+        replacement  = "backend"
+  }
+}
+
+loki.source.file "chaincode_logs" {
+  targets    = local.file_match.chaincode.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.process "chaincode" {
+  forward_to = [loki.relabel.chaincode.receiver]
+}
+
+loki.relabel "chaincode" {
+  forward_to = [loki.write.default.receiver]
+
+  rule {
+        action       = "replace"
+        target_label = "job"
+        replacement  = "chaincode"
+  }
+}
+
+loki.source.file "keycloak_logs" {
+  targets    = local.file_match.keycloak.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.process "keycloak" {
+  forward_to = [loki.relabel.keycloak.receiver]
+}
+
+loki.relabel "keycloak" {
+  forward_to = [loki.write.default.receiver]
+
+  rule {
+      action       = "replace"
+      target_label = "job"
+      replacement  = "keycloak"
+  }
 }
