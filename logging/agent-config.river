@@ -1,6 +1,5 @@
 logging {
   level  = "info"
-  format = "JSON"
 }
 
 loki.write "default" {
@@ -27,6 +26,28 @@ loki.source.file "backend_logs" {
 }
 
 loki.process "backend" {
+  stage.json {
+    expressions = {
+      timestamp     = "timestamp",
+      level         = "level",
+      correlationId = "correlationId",
+      userId        = "userId",
+      action        = "action",
+      method        = "method",
+    }
+  }
+
+  stage.labels {
+    values = {
+      source        = "backend",
+      level         = "${level}",
+      correlationId = "${correlationId}",
+      userId        = "${userId}",
+      action        = "${action}",
+      method        = "${method}",
+    }
+  }
+
   forward_to = [loki.relabel.backend.receiver]
 }
 
@@ -46,6 +67,32 @@ loki.source.file "chaincode_logs" {
 }
 
 loki.process "chaincode" {
+  stage.json {
+    expressions = {
+      timestamp     = "timestamp",
+      level         = "level",
+      correlationId = "correlationId",
+      userId        = "userId",
+      action        = "action",
+      method        = "method",
+      channel       = "channel",
+      txid          = "txid",
+    }
+  }
+
+  stage.labels {
+    values = {
+      source        = "chaincode",
+      level         = "${level}",
+      correlationId = "${correlationId}",
+      userId        = "${userId}",
+      action        = "${action}",
+      method        = "${method}",
+      channel       = "${channel}",
+      txid          = "${txid}",
+    }
+  }
+
   forward_to = [loki.relabel.chaincode.receiver]
 }
 
