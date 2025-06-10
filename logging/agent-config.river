@@ -1,0 +1,34 @@
+// Define a Loki writer that point to the Loki service
+loki.write "default" {
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}
+
+// Defines the files that the agent must watch
+// Backend Logs
+file {
+    includes = ["/var/log/myapp/backend/*.log"]
+    exclude_files = ["*.gz", "*.old"]
+    label_configs = {
+        job = "backend"
+    }
+}
+
+// Chaincode Logs
+file {
+    includes = ["/var/log/myapp/chaincode/*.log"]
+    exclude_files = ["*.gz", "*.old"]
+    label_configs = {
+        job = "chaincode"
+    }
+}
+
+// Keycloak Logs
+file {
+    includes = ["/var/log/keycloak/*.log"]
+    exclude_files = ["*.gz", "*.old"]
+    label_configs = {
+        job = "keycloak"
+    }
+}
