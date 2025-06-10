@@ -159,13 +159,14 @@ function getGateway() {
   return gateway;
 }
 
-function getContract(channel) {
-  return gateway.getContract(channel);
+function getContract(channel,chaincode) {
+  const network = gateway.getNetwork(channel);
+  return network.getContract(chaincode);
 }
 
 function getNetwork(channel) {
-  console.log(network);
-  console.log(gateway);
+  // console.log(network);
+  // console.log(gateway);
   return gateway.getNetwork(channel);
 }
 
