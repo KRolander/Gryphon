@@ -21,12 +21,6 @@ local.file_match "chaincode" {
   ]
 }
 
-local.file_match "keycloak" {
-  path_targets = [
-    { path = "/var/log/keycloak/*.log" },
-  ]
-}
-
 loki.source.file "backend_logs" {
   targets    = local.file_match.backend.targets
   forward_to = [loki.write.default.receiver]
@@ -62,24 +56,5 @@ loki.relabel "chaincode" {
         action       = "replace"
         target_label = "job"
         replacement  = "chaincode"
-  }
-}
-
-loki.source.file "keycloak_logs" {
-  targets    = local.file_match.keycloak.targets
-  forward_to = [loki.write.default.receiver]
-}
-
-loki.process "keycloak" {
-  forward_to = [loki.relabel.keycloak.receiver]
-}
-
-loki.relabel "keycloak" {
-  forward_to = [loki.write.default.receiver]
-
-  rule {
-      action       = "replace"
-      target_label = "job"
-      replacement  = "keycloak"
   }
 }

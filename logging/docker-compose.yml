@@ -10,7 +10,6 @@ services:
       - ./agent-config.river:/etc/agent/config.river:ro
       - ./logs/backend:/var/log/myapp/backend:ro
       - ./logs/chaincode:/var/log/myapp/chaincode:ro
-      - ./logs/keycloak:/var/log/keycloak:ro
     networks:
       - monitoring
 
