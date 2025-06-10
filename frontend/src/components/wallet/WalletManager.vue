@@ -126,7 +126,6 @@ export default {
   },
 
   methods: {
-
     /**
      * Shows the passphrase dialog and resolves when the user confirms it.
      * Used for both unlocking and creating wallets.

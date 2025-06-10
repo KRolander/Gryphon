@@ -20,7 +20,7 @@ import {
  * @external idb-keyval
  * @external defineStore
  */
-export const useWalletStore = defineStore('wallet', {
+export const useWalletStore = defineStore("wallet", {
   state: () => ({
     dids: {} as Record<
       string,
@@ -46,7 +46,7 @@ export const useWalletStore = defineStore('wallet', {
      * they must be cryptographically related and Base64-encoded ASCII strings
      * @param {string} name - Name to identify the `did` for the user
      */
-    addDid(did: string, keyPair: { publicKey: string, privateKey: string }, name: string) {
+    addDid(did: string, keyPair: { publicKey: string; privateKey: string }, name: string) {
       this.dids[did] = {
         keyPair,
         metadata: { createdAt: new Date().toISOString(), name: name },
