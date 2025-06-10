@@ -1,6 +1,13 @@
-import { defineStore } from 'pinia'
-import { get, set } from 'idb-keyval'
-import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey, extractSalt, SALT_LENGTH } from '@/utils/crypto'
+import { defineStore } from "pinia";
+import { get, set } from "idb-keyval";
+import {
+  encrypt,
+  decrypt,
+  encryptWithSessionKey,
+  decryptWithSessionKey,
+  extractSalt,
+  SALT_LENGTH,
+} from "@/utils/crypto";
 
 /**
  * Defines the structure of the wallet to be stored and the available methods.
@@ -15,13 +22,16 @@ import { encrypt, decrypt, encryptWithSessionKey, decryptWithSessionKey, extract
  */
 export const useWalletStore = defineStore('wallet', {
   state: () => ({
-    dids: {} as Record<string, {
-      keyPair: { publicKey: string, privateKey: string },
-      metadata: { name:string, createdAt: string, tags?: string[] },
-      credentials: any[]
-    }>,
+    dids: {} as Record<
+      string,
+      {
+        keyPair: { publicKey: string; privateKey: string };
+        metadata: { name: string; createdAt: string; tags?: string[] };
+        credentials: any[];
+      }
+    >,
     // activeDid can be used as the DID for issuing/presenting credentials
-    activeDid: null as string | null
+    activeDid: null as string | null,
   }),
 
   actions: {
@@ -40,9 +50,9 @@ export const useWalletStore = defineStore('wallet', {
       this.dids[did] = {
         keyPair,
         metadata: { createdAt: new Date().toISOString(), name: name },
-        credentials: []
-      }
-      this.activeDid = did
+        credentials: [],
+      };
+      this.activeDid = did;
     },
 
     /**
@@ -52,7 +62,7 @@ export const useWalletStore = defineStore('wallet', {
      * @param {JSON} credential - The VC issued to the `did`
      */
     addCredential(did: string, credential: any) {
-      this.dids[did]?.credentials.push(credential)
+      this.dids[did]?.credentials.push(credential);
     },
 
     /**
@@ -61,7 +71,7 @@ export const useWalletStore = defineStore('wallet', {
      * @param {string} did - `did` to set as active
      */
     switchDid(did: string) {
-      if (this.dids[did]) this.activeDid = did
+      if (this.dids[did]) this.activeDid = did;
     },
 
     /**
@@ -72,8 +82,8 @@ export const useWalletStore = defineStore('wallet', {
      * @param {string} did - `did` to remove from the wallet
      */
     removeDid(did: string) {
-      delete this.dids[did]
-      if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null
+      delete this.dids[did];
+      if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null;
     },
 
     /**
@@ -84,8 +94,8 @@ export const useWalletStore = defineStore('wallet', {
      * False otherwise
      */
     async walletExists(userId: string): Promise<boolean> {
-      const exists = await get(`wallet-${userId}`)
-      return !!exists
+      const exists = await get(`wallet-${userId}`);
+      return !!exists;
     },
 
     /**
@@ -97,8 +107,8 @@ export const useWalletStore = defineStore('wallet', {
      * @param {string} passphrase - The raw passphrase used to encrypt the wallet
      */
     async initEmptyWallet(userId: string, passphrase: string) {
-      const encrypted = await encrypt({ dids: {}, activeDid: null }, passphrase)
-      await set(`wallet-${userId}`, encrypted)
+      const encrypted = await encrypt({ dids: {}, activeDid: null }, passphrase);
+      await set(`wallet-${userId}`, encrypted);
     },
 
     /**
@@ -113,8 +123,8 @@ export const useWalletStore = defineStore('wallet', {
      * @param {string} passphrase - The raw passphrase used to encrypt the wallet
      */
     async saveWallet(userId: string, passphrase: string) {
-      const encrypted = await encrypt({ dids: this.dids, activeDid: this.activeDid }, passphrase)
-      await set(`wallet-${userId}`, encrypted)
+      const encrypted = await encrypt({ dids: this.dids, activeDid: this.activeDid }, passphrase);
+      await set(`wallet-${userId}`, encrypted);
     },
 
     /**
@@ -134,16 +144,19 @@ export const useWalletStore = defineStore('wallet', {
      * @param {CryptoKey} sessionKey - The Crypto key used for encryption
      */
     async saveWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
-      const salt = await this.getSalt(userId)
-      const encrypted = await encryptWithSessionKey({ dids: this.dids, activeDid: this.activeDid }, sessionKey)
+      const salt = await this.getSalt(userId);
+      const encrypted = await encryptWithSessionKey(
+        { dids: this.dids, activeDid: this.activeDid },
+        sessionKey
+      );
 
       const encryptedBytes = Uint8Array.from([
         ...salt,
-        ...Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
-      ])
-      const saltedEncrypted = btoa(String.fromCharCode(...encryptedBytes))
+        ...Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0)),
+      ]);
+      const saltedEncrypted = btoa(String.fromCharCode(...encryptedBytes));
 
-      await set(`wallet-${userId}`, saltedEncrypted)
+      await set(`wallet-${userId}`, saltedEncrypted);
     },
 
     /**
@@ -157,14 +170,14 @@ export const useWalletStore = defineStore('wallet', {
      * or if the wallet wasn't encrypted correctly
      */
     async loadWallet(userId: string, passphrase: string) {
-      const encrypted = await get(`wallet-${userId}`)
-      if (!encrypted) return
+      const encrypted = await get(`wallet-${userId}`);
+      if (!encrypted) return;
       try {
-        const decrypted = await decrypt(encrypted, passphrase)
-        this.dids = decrypted.dids
-        this.activeDid = decrypted.activeDid
-      } catch(error) {
-        throw new Error("Failed to decrypt wallet. Check your passphrase.")
+        const decrypted = await decrypt(encrypted, passphrase);
+        this.dids = decrypted.dids;
+        this.activeDid = decrypted.activeDid;
+      } catch (error) {
+        throw new Error("Failed to decrypt wallet. Check your passphrase.");
       }
     },
 
@@ -181,17 +194,20 @@ export const useWalletStore = defineStore('wallet', {
      * or if the wallet wasn't encrypted correctly
      */
     async loadWalletWithSessionKey(userId: string, sessionKey: CryptoKey) {
-      const encrypted = await get(`wallet-${userId}`)
-      if (!encrypted) return
+      const encrypted = await get(`wallet-${userId}`);
+      if (!encrypted) return;
       try {
-        const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
-        const saltlessBytes = encryptedBytes.slice(SALT_LENGTH)
-        const decrypted = await decryptWithSessionKey(btoa(String.fromCharCode(...saltlessBytes)), sessionKey)
+        const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+        const saltlessBytes = encryptedBytes.slice(SALT_LENGTH);
+        const decrypted = await decryptWithSessionKey(
+          btoa(String.fromCharCode(...saltlessBytes)),
+          sessionKey
+        );
 
-        this.dids = decrypted.dids
-        this.activeDid = decrypted.activeDid
-      } catch(error) {
-        throw new Error("Failed to decrypt wallet. Check your passphrase.")
+        this.dids = decrypted.dids;
+        this.activeDid = decrypted.activeDid;
+      } catch (error) {
+        throw new Error("Failed to decrypt wallet. Check your passphrase.");
       }
     },
 
@@ -206,21 +222,21 @@ export const useWalletStore = defineStore('wallet', {
      */
     async exportWallet(userId: string) {
       // Check if the wallet exists
-      const encrypted = await get(`wallet-${userId}`)
-      if (!encrypted) throw new Error("No wallet found for export")
+      const encrypted = await get(`wallet-${userId}`);
+      if (!encrypted) throw new Error("No wallet found for export");
 
       // Turn the wallet into a JSON Binary Large Object (BLOB)
-      const blob: Blob = new Blob([encrypted], { type: 'application/json' })
-      const url: string = URL.createObjectURL(blob)
+      const blob: Blob = new Blob([encrypted], { type: "application/json" });
+      const url: string = URL.createObjectURL(blob);
 
       // Make a downloadable link and download it on the user PC
-      const downloadLink = document.createElement('a')
-      downloadLink.href = url
-      downloadLink.download = 'wallet.json'
-      downloadLink.click()
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = "wallet.json";
+      downloadLink.click();
 
       // Cleanup BLOB from browser memory (to prevent memory leak)
-      URL.revokeObjectURL(url)
+      URL.revokeObjectURL(url);
     },
 
     /**
@@ -240,20 +256,20 @@ export const useWalletStore = defineStore('wallet', {
      * or if the wallet wasn't encrypted correctly
      */
     async importWallet(encryptedFile: File, userId: string, passphrase: string) {
-      const encrypted = await encryptedFile.text()
+      const encrypted = await encryptedFile.text();
 
       // Try to decrypt, to ensure the passphrase correctly decrypts the encrypted file
       try {
-        const decrypted = await decrypt(encrypted, passphrase)
+        const decrypted = await decrypt(encrypted, passphrase);
 
         // If valid, replace local wallet values with the imported ones
-        this.dids = decrypted.dids
-        this.activeDid = Object.keys(this.dids)[0] || null
+        this.dids = decrypted.dids;
+        this.activeDid = Object.keys(this.dids)[0] || null;
 
         // Save the wallet in the IndexedDB in local memory
-        await set(`wallet-${userId}`, encrypted)
+        await set(`wallet-${userId}`, encrypted);
       } catch (err) {
-        throw new Error("Failed to import wallet. Check your passphrase or file.")
+        throw new Error("Failed to import wallet. Check your passphrase or file.");
       }
     },
 
@@ -269,11 +285,11 @@ export const useWalletStore = defineStore('wallet', {
      * @throws {Error} - If there is no wallet indexed at `userId`
      */
     async getSalt(userId: string): Promise<Uint8Array> {
-      const encrypted = await get(`wallet-${userId}`)
+      const encrypted = await get(`wallet-${userId}`);
       if (!encrypted) {
-        throw new Error("No wallet found for this user")
+        throw new Error("No wallet found for this user");
       }
-      return extractSalt(encrypted)
-    }
-  }
-})
+      return extractSalt(encrypted);
+    },
+  },
+});

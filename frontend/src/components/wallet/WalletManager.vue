@@ -1,5 +1,4 @@
 <template>
-
   <!-- Import/Export wallet -->
   <v-container class="pt-4 pb-2" fluid>
     <v-row>
@@ -21,10 +20,14 @@
     </v-row>
   </v-container>
 
-  <slot :wallet="{
-  ...walletStore,
-  save: this.save
-}", :ready="isReady" />
+  <slot
+    :wallet="{
+      ...walletStore,
+      save: this.save,
+    }"
+    ,
+    :ready="isReady"
+  />
 
   <!--Create password for new wallet-->
   <v-dialog v-model="newWalletPwDialog" persistent max-width="400px">
@@ -38,20 +41,18 @@
           type="password"
           autofocus
           :error="passphrase.length > 0 && passphrase.length <= 5"
-          :error-messages="passphrase.length > 0 && passphrase.length <= 5 ? ['Passphrase must be at least 6 characters'] : []"
+          :error-messages="
+            passphrase.length > 0 && passphrase.length <= 5
+              ? ['Passphrase must be at least 6 characters']
+              : []
+          "
           @keyup.enter="onEnter"
         />
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
-        <v-btn
-          :disabled="passphrase.length <= 5"
-          color="primary"
-          @click="onEnter"
-        >
-          Unlock
-        </v-btn>
+        <v-btn :disabled="passphrase.length <= 5" color="primary" @click="onEnter"> Unlock </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -68,27 +69,25 @@
           type="password"
           autofocus
           :error="passphrase.length > 0 && passphrase.length <= 5"
-          :error-messages="passphrase.length > 0 && passphrase.length <= 5 ? ['Passphrase must be at least 6 characters'] : []"
+          :error-messages="
+            passphrase.length > 0 && passphrase.length <= 5
+              ? ['Passphrase must be at least 6 characters']
+              : []
+          "
           @keyup.enter="onEnter"
         />
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
-        <v-btn
-          :disabled="passphrase.length <= 5"
-          color="primary"
-          @click="onEnter"
-        >
-          Unlock
-        </v-btn>
+        <v-btn :disabled="passphrase.length <= 5" color="primary" @click="onEnter"> Unlock </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-import { useWalletStore } from '@/store/WalletStore.ts'
+import { useWalletStore } from "@/store/WalletStore.ts";
 import { mapStores } from "pinia";
 import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto.js";
 import { useUserStore } from "@/store/userStore.js";
@@ -118,8 +117,8 @@ export default {
 
       // Dialog state
       walletPwDialog: false,
-      newWalletPwDialog: false
-    }
+      newWalletPwDialog: false,
+    };
   },
 
   computed: {
@@ -133,13 +132,13 @@ export default {
      * Used for both unlocking and creating wallets.
      */
     async waitForPassphrase() {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         this._resolvePassphrase = () => {
-          this.walletPwDialog = false
-          this.newWalletPwDialog = false
-          resolve()
-        }
-      })
+          this.walletPwDialog = false;
+          this.newWalletPwDialog = false;
+          resolve();
+        };
+      });
     },
 
     /**
@@ -149,17 +148,17 @@ export default {
      * the user has to create a password to encrypt it
      */
     async ensureWallet() {
-      const exists = await this.walletStore.walletExists(this.userId)
+      const exists = await this.walletStore.walletExists(this.userId);
 
       if (!exists) {
-        console.log("making new wallet")
-        this.newWalletPwDialog = true
-        await this.waitForPassphrase()
-        await this.walletStore.initEmptyWallet(this.userId, this.passphrase)
-        const salt = await this.walletStore.getSalt(this.userId)
-        this.sessionKey = await deriveKey(this.passphrase, salt)
-        this.passphrase = ""
-        await storeSessionKey(this.userId, this.sessionKey)
+        console.log("making new wallet");
+        this.newWalletPwDialog = true;
+        await this.waitForPassphrase();
+        await this.walletStore.initEmptyWallet(this.userId, this.passphrase);
+        const salt = await this.walletStore.getSalt(this.userId);
+        this.sessionKey = await deriveKey(this.passphrase, salt);
+        this.passphrase = "";
+        await storeSessionKey(this.userId, this.sessionKey);
       }
     },
 
@@ -176,50 +175,50 @@ export default {
      */
     async unlockWallet(retries = 0) {
       if (retries > 3) {
-        console.error("Too many failed attempts")
-        return
+        console.error("Too many failed attempts");
+        return;
       }
       // if there is no sessionKey, generate one with current passphrase and wallet's salt
       if (!this.sessionKey) {
         try {
-          const salt = await this.walletStore.getSalt(this.userId)
-          this.sessionKey = await deriveKey(this.passphrase, salt)
-        } catch(error) {
-          console.error("Failed to get salt or derive key:", error)
-          this.walletPwDialog = true
+          const salt = await this.walletStore.getSalt(this.userId);
+          this.sessionKey = await deriveKey(this.passphrase, salt);
+        } catch (error) {
+          console.error("Failed to get salt or derive key:", error);
+          this.walletPwDialog = true;
 
           // Wait for the password and try again
-          await this.waitForPassphrase()
-          return await this.unlockWallet(retries + 1)
+          await this.waitForPassphrase();
+          return await this.unlockWallet(retries + 1);
         }
       }
 
       // Try to unlock the wallet with the sessionKey
       try {
-        await this.walletStore.loadWalletWithSessionKey(this.userId, this.sessionKey)
-        await storeSessionKey(this.userId, this.sessionKey)
-      } catch(error) {
-        console.error("Failed to load wallet with session key:", error)
+        await this.walletStore.loadWalletWithSessionKey(this.userId, this.sessionKey);
+        await storeSessionKey(this.userId, this.sessionKey);
+      } catch (error) {
+        console.error("Failed to load wallet with session key:", error);
 
         // Discard invalid session key and prompt for a password
-        this.sessionKey = null
-        this.walletPwDialog = true
+        this.sessionKey = null;
+        this.walletPwDialog = true;
 
         // Wait for the password and try again
-        await this.waitForPassphrase()
-        return await this.unlockWallet(retries + 1)
+        await this.waitForPassphrase();
+        return await this.unlockWallet(retries + 1);
       }
     },
 
     onEnter() {
       if (this.passphrase.length > 5 && this._resolvePassphrase) {
-        this._resolvePassphrase()
-        this._resolvePassphrase = null
+        this._resolvePassphrase();
+        this._resolvePassphrase = null;
       }
     },
 
     async exportWallet() {
-      await this.walletStore.exportWallet(this.userId)
+      await this.walletStore.exportWallet(this.userId);
     },
 
     /**
@@ -230,29 +229,29 @@ export default {
      */
     async importWallet() {
       if (!this.walletFile) {
-        alert("Please select a valid file.")
-        return
+        alert("Please select a valid file.");
+        return;
       }
 
-      this.walletPwDialog = true
-      await this.waitForPassphrase()
+      this.walletPwDialog = true;
+      await this.waitForPassphrase();
 
       try {
-        this.sessionKey = null
-        await this.walletStore.importWallet(this.walletFile, this.userId, this.passphrase)
+        this.sessionKey = null;
+        await this.walletStore.importWallet(this.walletFile, this.userId, this.passphrase);
 
-        await this.unlockWallet()
+        await this.unlockWallet();
 
-        this.walletFile = null
-        alert("Wallet imported successfully!")
-      } catch(error) {
-        alert("Failed to import wallet")
+        this.walletFile = null;
+        alert("Wallet imported successfully!");
+      } catch (error) {
+        alert("Failed to import wallet");
       }
     },
 
     async save() {
-      await this.walletStore.saveWalletWithSessionKey(this.userId, this.sessionKey)
-    }
+      await this.walletStore.saveWalletWithSessionKey(this.userId, this.sessionKey);
+    },
   },
 
   /**
@@ -270,35 +269,32 @@ export default {
    * 5. Wallet data loading
    */
   async mounted() {
-    await this.userStore.loadUser()
+    await this.userStore.loadUser();
     // Wait for keycloak to finish storing the user
     watch(
       () => this.userStore.getUser,
       async (newUser) => {
         if (newUser && !this.initialized) {
           // Set initialized flag false, to avoid reacting to every user change
-          this.initialized = true
-          this.userId = newUser.id
+          this.initialized = true;
+          this.userId = newUser.id;
 
           if (!this.userId) {
-            console.error(`No user id found`)
-            return
+            console.error(`No user id found`);
+            return;
           }
-          console.log(`Mounting wallet with user id: ${this.userId}`)
-          this.sessionKey = await loadSessionKey(this.userId)
-          await this.ensureWallet()
-          await this.unlockWallet()
-          console.log(`Wallet mounted`)
-          this.isReady = true
+          console.log(`Mounting wallet with user id: ${this.userId}`);
+          this.sessionKey = await loadSessionKey(this.userId);
+          await this.ensureWallet();
+          await this.unlockWallet();
+          console.log(`Wallet mounted`);
+          this.isReady = true;
         }
       },
       { immediate: true }
-    )
-  }
-}
+    );
+  },
+};
 </script>
 
-
-<style scoped lang="css">
-
-</style>
+<style scoped lang="css"></style>

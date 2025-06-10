@@ -8,8 +8,13 @@ test:
   script:
     - cd backend
     - npm ci
+    - npm run lint
     - npm test
     - cd ../chaincode
     - npm ci
+    - npm run lint
     - npm run build
     - npm run test
+    - cd ../frontend
+    - npm ci
+    - npm run lint

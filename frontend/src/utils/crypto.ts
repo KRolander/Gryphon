@@ -1,14 +1,14 @@
-import { get, set, del } from 'idb-keyval'
+import { get, set, del } from "idb-keyval";
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
-export const SALT_LENGTH = 16
-const IV_LENGTH = 12
-const ITERATIONS = 100_000
-const KEY_LENGTH = 256
+export const SALT_LENGTH = 16;
+const IV_LENGTH = 12;
+const ITERATIONS = 100_000;
+const KEY_LENGTH = 256;
 
-const SESSION_KEY_PREFIX = 'session-key'
+const SESSION_KEY_PREFIX = "session-key";
 
 /**
  * Stores the Session key of the user in the IndexedDB, indexed with the userId.
@@ -16,7 +16,7 @@ const SESSION_KEY_PREFIX = 'session-key'
  * @param {CryptoKey} key - The Session key to store
  */
 export async function storeSessionKey(userId: string, key: CryptoKey): Promise<void> {
-  await set(`${SESSION_KEY_PREFIX}-${userId}`, key)
+  await set(`${SESSION_KEY_PREFIX}-${userId}`, key);
 }
 
 /**
@@ -25,8 +25,8 @@ export async function storeSessionKey(userId: string, key: CryptoKey): Promise<v
  * @returns {CryptoKey|null} - The Session key that was stored last under this userId, or null if no key could be retrieved
  */
 export async function loadSessionKey(userId: string): Promise<CryptoKey | null> {
-  const key = await get(`${SESSION_KEY_PREFIX}-${userId}`)
-  return key ?? null
+  const key = await get(`${SESSION_KEY_PREFIX}-${userId}`);
+  return key ?? null;
 }
 
 /**
@@ -34,7 +34,7 @@ export async function loadSessionKey(userId: string): Promise<CryptoKey | null> 
  * @param {string} userId - The ID of the user, in hexadecimal format
  */
 export async function deleteSessionKey(userId: string): Promise<void> {
-  await del(`${SESSION_KEY_PREFIX}-${userId}`)
+  await del(`${SESSION_KEY_PREFIX}-${userId}`);
 }
 
 /**
@@ -47,25 +47,25 @@ export async function deleteSessionKey(userId: string): Promise<void> {
  */
 export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(passphrase),
-    { name: 'PBKDF2' },
+    { name: "PBKDF2" },
     false,
-    ['deriveKey']
-  )
+    ["deriveKey"]
+  );
 
   return crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt,
       iterations: ITERATIONS,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: KEY_LENGTH },
+    { name: "AES-GCM", length: KEY_LENGTH },
     false,
-    ['encrypt', 'decrypt']
-  )
+    ["encrypt", "decrypt"]
+  );
 }
 
 /**
@@ -78,17 +78,13 @@ export async function deriveKey(passphrase: string, salt: Uint8Array): Promise<C
  * following the format [IV - payload]
  */
 export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey): Promise<string> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
-  const plaintext = encoder.encode(JSON.stringify(payload))
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+  const plaintext = encoder.encode(JSON.stringify(payload));
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    sessionKey,
-    plaintext
-  )
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, sessionKey, plaintext);
 
-  const encryptedBytes = new Uint8Array([...iv, ...new Uint8Array(ciphertext)])
-  return btoa(String.fromCharCode(...encryptedBytes))
+  const encryptedBytes = new Uint8Array([...iv, ...new Uint8Array(ciphertext)]);
+  return btoa(String.fromCharCode(...encryptedBytes));
 }
 
 /**
@@ -99,20 +95,19 @@ export async function encryptWithSessionKey(payload: any, sessionKey: CryptoKey)
  * @return {Promise<string>} The decrypted payload, a Stringified JSON representing the wallet
  * @throws {Error} If the sessionKey is incorrect or invalid
  */
-export async function decryptWithSessionKey(encrypted: string, sessionKey: CryptoKey): Promise<any> {
-  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
-  const iv = encryptedBytes.slice(0, IV_LENGTH)
-  const ciphertext = encryptedBytes.slice(IV_LENGTH)
+export async function decryptWithSessionKey(
+  encrypted: string,
+  sessionKey: CryptoKey
+): Promise<any> {
+  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+  const iv = encryptedBytes.slice(0, IV_LENGTH);
+  const ciphertext = encryptedBytes.slice(IV_LENGTH);
 
   try {
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      sessionKey,
-      ciphertext
-    )
-    return JSON.parse(decoder.decode(decrypted))
-  } catch(error) {
-    throw new Error('Decryption failed. Check your passphrase')
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, sessionKey, ciphertext);
+    return JSON.parse(decoder.decode(decrypted));
+  } catch (error) {
+    throw new Error("Decryption failed. Check your passphrase");
   }
 }
 
@@ -127,12 +122,15 @@ export async function decryptWithSessionKey(encrypted: string, sessionKey: Crypt
  * following the format [salt - IV - payload]
  */
 export async function encrypt(payload: any, passphrase: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
-  const key = await deriveKey(passphrase, salt)
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+  const key = await deriveKey(passphrase, salt);
 
-  const encrypted = await encryptWithSessionKey(payload, key)
-  const encryptedBytes = new Uint8Array([...salt, ...Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))])
-  return btoa(String.fromCharCode(...encryptedBytes))
+  const encrypted = await encryptWithSessionKey(payload, key);
+  const encryptedBytes = new Uint8Array([
+    ...salt,
+    ...Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0)),
+  ]);
+  return btoa(String.fromCharCode(...encryptedBytes));
 }
 
 /**
@@ -148,12 +146,12 @@ export async function encrypt(payload: any, passphrase: string): Promise<string>
  * or if the payload doesn't adhere to the format [salt - IV - payload]
  */
 export async function decrypt(encrypted: string, passphrase: string): Promise<any> {
-  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
-  const salt = encryptedBytes.slice(0, SALT_LENGTH)
-  const rest = encryptedBytes.slice(SALT_LENGTH)
+  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+  const salt = encryptedBytes.slice(0, SALT_LENGTH);
+  const rest = encryptedBytes.slice(SALT_LENGTH);
 
-  const key = await deriveKey(passphrase, salt)
-  return await decryptWithSessionKey(btoa(String.fromCharCode(...rest)), key)
+  const key = await deriveKey(passphrase, salt);
+  return await decryptWithSessionKey(btoa(String.fromCharCode(...rest)), key);
 }
 
 /**
@@ -163,6 +161,6 @@ export async function decrypt(encrypted: string, passphrase: string): Promise<an
  * @return {Uint8Array} The salt stored in the encrypted payload, as a binary array
  */
 export function extractSalt(encrypted: string): Uint8Array {
-  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0))
-  return encryptedBytes.slice(0, SALT_LENGTH)
+  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+  return encryptedBytes.slice(0, SALT_LENGTH);
 }
