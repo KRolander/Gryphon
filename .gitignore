@@ -16,3 +16,6 @@ backend/.env
 
 #CLI node-modules
 frontendCLI/node_modules
+
+#Logger
+loki-data/
