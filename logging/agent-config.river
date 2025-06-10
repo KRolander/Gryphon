@@ -27,24 +27,23 @@ loki.source.file "backend_logs" {
 
 loki.process "backend" {
   stage.json {
-    expressions = {
-      timestamp     = "timestamp",
-      level         = "level",
-      correlationId = "correlationId",
-      userId        = "userId",
-      action        = "action",
-      method        = "method",
+      expressions = {
+        timestamp     = "timestamp",
+        level         = "level",
+        correlationId = "correlationId",
+        action        = "action",
+        userId        = "userId",
+        message       = "message",
+      }
     }
-  }
 
   stage.labels {
     values = {
       source        = "backend",
       level         = "${level}",
       correlationId = "${correlationId}",
-      userId        = "${userId}",
       action        = "${action}",
-      method        = "${method}",
+      userId        = "${userId}",
     }
   }
 
@@ -72,11 +71,9 @@ loki.process "chaincode" {
       timestamp     = "timestamp",
       level         = "level",
       correlationId = "correlationId",
-      userId        = "userId",
       action        = "action",
-      method        = "method",
-      channel       = "channel",
       txid          = "txid",
+      message       = "message",
     }
   }
 
@@ -85,10 +82,7 @@ loki.process "chaincode" {
       source        = "chaincode",
       level         = "${level}",
       correlationId = "${correlationId}",
-      userId        = "${userId}",
       action        = "${action}",
-      method        = "${method}",
-      channel       = "${channel}",
       txid          = "${txid}",
     }
   }
