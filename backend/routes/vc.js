@@ -3,8 +3,12 @@ const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
 const { startGateway, getGateway, getContract, getDIDDoc } = require("../gateway");
+const {envOrDefault} = require("../utility/gatewayUtilities");
 
 router = express.Router();
+
+const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of the channel from the fabric-network
+const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
 
 /**
  * This function recieves a JSON of a
@@ -25,7 +29,7 @@ router.post("/verify", async (req, res) => {
     if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
     // get issuer DID Document
-    const issuerDoc = getDIDDoc(getContract(), issuerDID);
+    const issuerDoc = getDIDDoc(getContract(DIDchannelName), issuerDID);
     if (!issuerDoc) return res.status(500).send("The DID does not exist");
 
     //get its public key

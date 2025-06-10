@@ -53,7 +53,7 @@ function deployCC() {
 
     # If any problem is encountered, exit
     if [ $? -ne 0 ]; then
-        fatalln "The chaincode for DIDs couldn't be deployed."
+        fatalln "The chaincode for VCs couldn't be deployed."
     fi
 
   # Move back to 15b

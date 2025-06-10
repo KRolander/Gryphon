@@ -26,8 +26,10 @@ const {
 //const DIDDocument = require("../chaincode/types/DIDDocument.js");
 
 //CONFIG
-const channelName = envOrDefault("CHANNEL_NAME", "mychannel"); //the name of the channel from the fabric-network
-const chaincodeName = envOrDefault("CHAINCODE_NAME", "tscc"); //the chaincode name used to interact with the fabric-network
+// const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of the channel from the fabric-network
+// const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
+// const DIDchaincodeName = envOrDefault("CHAINCODE_NAME", "DIDcc"); //the chaincode name used to interact with the fabric-network
+// const VCchaincodeName = envOrDefault("CHAINCODE_NAME", "VCcc");
 const mspId = envOrDefault("MSP_ID", "Org1MSP");
 
 // Gateway peer endpoint
@@ -44,7 +46,7 @@ let contract = null;
 
 //GATEWAY
 
-//Initializes the gateway that will be used for the connection
+//Initializes the gateway that will be used for the connection for both VCs and DIDs
 async function startGateway() {
   const client = await newGRPCConnection(); // Create a new gRPC connection
 
@@ -68,15 +70,24 @@ async function startGateway() {
     },
   });
 
-  try {
-    // Create the network
-    network = gateway.getNetwork(channelName); // Get the network from the gateway
-
-    // Retrieve the contract from the network
-    contract = network.getContract(chaincodeName); // Get the contract from the network
-  } catch (error) {
-    console.error("Error starting gateway:", error); // Log the error
-  }
+  // try {
+  //   // Create the network
+  //   if (channel===DIDchannelName){
+  //     network = gateway.getNetwork(DIDchannelName); // Get the network from the gateway
+  //
+  //     // Retrieve the contract from the network
+  //     contract = network.getContract(DIDchaincodeName); // Get the contract from the network
+  //   }
+  //   else if (channel===VCchannelName){
+  //     network = gateway.getNetwork(VCchannelName); // Get the network from the gateway
+  //
+  //     // Retrieve the contract from the network
+  //     contract = network.getContract(VCchaincodeName); // Get the contract from the network
+  //   }
+  //   return {gateway,network,contract};
+  // } catch (error) {
+  //   console.error("Error starting gateway:", error); // Log the error
+  // }
 }
 
 // Initializes the client
@@ -148,14 +159,14 @@ function getGateway() {
   return gateway;
 }
 
-function getContract() {
-  return contract;
+function getContract(channel) {
+  return gateway.getContract(channel);
 }
 
-function getNetwork() {
+function getNetwork(channel) {
   console.log(network);
   console.log(gateway);
-  return network;
+  return gateway.getNetwork(channel);
 }
 
 module.exports = {
