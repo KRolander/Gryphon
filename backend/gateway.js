@@ -69,25 +69,6 @@ async function startGateway() {
       return { deadline: Date.now() + 60000 }; // 1 minute
     },
   });
-
-  // try {
-  //   // Create the network
-  //   if (channel===DIDchannelName){
-  //     network = gateway.getNetwork(DIDchannelName); // Get the network from the gateway
-  //
-  //     // Retrieve the contract from the network
-  //     contract = network.getContract(DIDchaincodeName); // Get the contract from the network
-  //   }
-  //   else if (channel===VCchannelName){
-  //     network = gateway.getNetwork(VCchannelName); // Get the network from the gateway
-  //
-  //     // Retrieve the contract from the network
-  //     contract = network.getContract(VCchaincodeName); // Get the contract from the network
-  //   }
-  //   return {gateway,network,contract};
-  // } catch (error) {
-  //   console.error("Error starting gateway:", error); // Log the error
-  // }
 }
 
 // Initializes the client

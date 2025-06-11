@@ -132,7 +132,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       // run the validate method
       const validity = await validateVC(currentVC, publicKey);
 
-      console.log(currentVC);
+      //console.log(currentVC);
       if (!validity) {
         if (currentDID == userDID)
           return res
@@ -148,7 +148,6 @@ router.post("/verifyTrustchain", async (req, res) => {
         // Here is where the magic happens. There should be a function that retrieves
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
-        const map = await getMap(getContract()); // structure that maps a issed VC to the VC required by the issuer
 
         const issuerDoc = getDIDDoc(getContract(), issuerDID);
         const serviceArray = issuerDoc.service || [];
@@ -167,12 +166,13 @@ router.post("/verifyTrustchain", async (req, res) => {
           else temp = currentVC.type[0];
         } else return res.status(400).send("A VC requires 2 types to be valid");
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = map.get(vcType); // this is the type of VC the issuer needs
-        console.log(registry);
-        console.log(typeof registry);
+        const requiredPermission = await getMapValue(getContract(),vcType);
+
+        //console.log(registry);
+        //console.log(typeof registry);
         const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
-        console.log(map);
-        console.log(issuerVCs);
+        //console.log(map);
+        //console.log(issuerVCs);
         const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
         if (!correctVC)
           return res
@@ -213,17 +213,6 @@ async function validateVC(vc, publicKey) {
   verifier.end();
 
   return verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
-}
-
-/**
- * This function is meant to check if a VC has the necessary type in the type list
- * @param {string | string[]} typeList the list of types of a VC
- * @param {string} type the specific type we are looking for
- * @returns wether or not a type is part of the typeList
- */
-async function checkVCType(typeList, type) {
-  if (Array.isArray(typeList)) return typeList.includes(type);
-  return typeList === type;
 }
 
 function isRoot(did) {

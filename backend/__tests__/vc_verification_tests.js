@@ -16,20 +16,15 @@ jest.mock("../gateway", () => ({
     /* mock contract object */
   })),
   getDIDDoc: jest.fn(), // define, but override later
-  getMap: jest.fn(),
+  getMapValue: jest.fn(),
 }));
 
-const { startGateway, getGateway, getDIDDoc, getContract, getMap } = require("../gateway");
+const { startGateway, getGateway, getDIDDoc, getContract, getMapValue } = require("../gateway");
 
 jest.mock("../utility/VCUtils", () => ({
   fetchRegistry: jest.fn(),
 }));
 const { fetchRegistry } = require("../utility/VCUtils");
-
-/**---------Create the map with required authorizations--------- */
-const map = new Map();
-map.set("BachelorDegree", "DiplomaIssuing"); // for someone to issue a VC for a BachelorDegree they need a DiplomaIssuing VC
-map.set("DiplomaIssuing", "Authorization"); // for someone to issue a VC for a DiplomaIssuing they need am Authorization VC
 
 /**---------Create the key pair for the student--------- */
 let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
@@ -110,9 +105,13 @@ describe("POST /vc/verifyTrustchain", () => {
       return "unknown";
     });
 
-    console.log(loadRegistryAsMap("../registries/university.json"));
+    // console.log(loadRegistryAsMap("../registries/university.json"));
 
-    getMap.mockResolvedValue(map);
+    getMapValue.mockImplementation((_, value) => {
+      if(value === "BachelorDegree") return "DiplomaIssuing";
+      if(value === "DiplomaIssuing") return "Authorization";
+      return "unknown";
+    });
     const studentVCClaims = {
       degree: "Bachelor of Science",
       graduationYear: 2024,
@@ -147,7 +146,7 @@ describe("POST /vc/verifyTrustchain", () => {
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
-    console.log(signatureStudentVC);
+    //console.log(signatureStudentVC);
 
     /**---------Create the unsigne VC for university--------- */
     const uniuVCBuilder = new UnsignedVCBuilder(
@@ -167,7 +166,7 @@ describe("POST /vc/verifyTrustchain", () => {
     const signatureUniVC = signer2.sign(privateKeyRoot, "base64");
     const unisVCBuilder = new VCBuilder(uniuVC, "date1", "someURL", signatureUniVC);
 
-    console.log(signatureUniVC);
+    //console.log(signatureUniVC);
     const unisVC = unisVCBuilder.build();
 
     /**---------Create the unsigne VC for root--------- */
