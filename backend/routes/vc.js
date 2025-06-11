@@ -45,7 +45,7 @@ router.post("/verify", async (req, res) => {
   }
 });
 
-router.post("/verifyDeep", async (req, res) => {
+router.post("/verifyTrustchain", async (req, res) => {
   try {
     if (getGateway() == null) {
       await startGateway();

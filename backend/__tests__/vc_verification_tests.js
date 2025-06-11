@@ -96,7 +96,7 @@ const studentDoc = docBuilderStudent.build();
 const uniDoc = docBuilderUni.build();
 const rootDoc = docBuilderRoot.build();
 
-describe("POST /vc/verifyDeep", () => {
+describe("POST /vc/verifyTrustchain", () => {
   afterEach(() => {
     const fs = require("fs");
     fs.writeFileSync("../registries/MOE.json", JSON.stringify({}));
@@ -208,7 +208,7 @@ describe("POST /vc/verifyDeep", () => {
 
     // import it here because we need the registries to be populated first
     const app = require("../app");
-    const response = await request(app).post("/vc/verifyDeep").send(studentsVC).expect(200);
+    const response = await request(app).post("/vc/verifyTrustchain").send(studentsVC).expect(200);
 
     expect(response.text).toBe("The VC is valid");
 
