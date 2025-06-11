@@ -3,11 +3,18 @@ const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
 
-const { startGateway, getGateway, getContract, getDIDDoc, getMapValue, storeMapping, storeDID} = require("../gateway");
-const {envOrDefault} = require("../utility/gatewayUtilities");
+const {
+  startGateway,
+  getGateway,
+  getContract,
+  getDIDDoc,
+  getMapValue,
+  storeMapping,
+  storeDID,
+} = require("../gateway");
+const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
 const { fetchRegistry } = require("../utility/VCUtils.js");
-
 
 router = express.Router();
 
@@ -38,7 +45,7 @@ router.post("/verify", async (req, res) => {
     if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
     // get issuer DID Document
-    const issuerDoc = getDIDDoc(getContract(DIDchannelName,DIDchaincodeName), issuerDID);
+    const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
     if (!issuerDoc) return res.status(500).send("The DID does not exist");
 
     //get its public key
@@ -64,7 +71,7 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
 
     console.log("Retrieving VC type mapping...");
 
-    const mappingValueType = await getMapValue(getContract(VCchannelName,VCchaincodeName),VCType);
+    const mappingValueType = await getMapValue(getContract(VCchannelName, VCchaincodeName), VCType);
 
     console.log(`✅ Mapping for VC of type ${VCType} retrieved succesfully!`);
     res.status(200).json(mappingValueType);
@@ -79,15 +86,19 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
     if (getGateway() == null) {
       await startGateway();
     }
-    const  {mappingKey,mappingValue}  = req.params;
+    const { mappingKey, mappingValue } = req.params;
     if (!mappingKey) {
       return res.status(400).send("Key for the mapping is required");
     }
-    if (!mappingValue){
-      return res.status(400).send("Value for the mapping is required")
+    if (!mappingValue) {
+      return res.status(400).send("Value for the mapping is required");
     }
 
-    const result = await storeMapping(getContract(VCchannelName,VCchaincodeName), mappingKey, mappingValue);
+    const result = await storeMapping(
+      getContract(VCchannelName, VCchaincodeName),
+      mappingKey,
+      mappingValue
+    );
 
     console.log(`Mapping for VC type ${mappingKey} with type ${mappingValue} stored successfully!`); // Log the transaction
     res.status(200).send("Mapping stored successfully"); // Send the DID to the client
@@ -136,14 +147,14 @@ router.post("/verifyTrustchain", async (req, res) => {
       if (!validity) {
         if (currentDID == userDID)
           return res
-              .status(200)
-              .send(`The VC is invalid, as it was not signed by the issuer. ${currentDID}`);
+            .status(200)
+            .send(`The VC is invalid, as it was not signed by the issuer. ${currentDID}`);
         else
           return res
-              .status(200)
-              .send(
-                  `The VC is invalid, there was a problem verifying it up the trustchain.${currentDID}`
-              );
+            .status(200)
+            .send(
+              `The VC is invalid, there was a problem verifying it up the trustchain.${currentDID}`
+            );
       } else {
         // Here is where the magic happens. There should be a function that retrieves
         // the map from the ledger and with that information it should choose the correct VC from
@@ -154,8 +165,8 @@ router.post("/verifyTrustchain", async (req, res) => {
         const repoEndpoint = serviceArray.find((serv) => serv.id.endsWith("#vcs"));
         if (!repoEndpoint) {
           return res
-              .status(500)
-              .send("Issuer DID document does not contain a valid registry service.");
+            .status(500)
+            .send("Issuer DID document does not contain a valid registry service.");
         }
         const endpoint = repoEndpoint.serviceEndpoint;
         const registry = await fetchRegistry(endpoint);
@@ -166,7 +177,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           else temp = currentVC.type[0];
         } else return res.status(400).send("A VC requires 2 types to be valid");
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = await getMapValue(getContract(),vcType);
+        const requiredPermission = await getMapValue(getContract(), vcType);
 
         //console.log(registry);
         //console.log(typeof registry);

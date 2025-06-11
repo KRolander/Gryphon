@@ -129,12 +129,12 @@ async function deleteDID(contract, DID) {
   await contract.submitTransaction("deleteDID", DID);
 }
 
-async function getMapValue(contract, mapKey){
+async function getMapValue(contract, mapKey) {
   const response = await contract.evaluateTransaction("getMapValue", mapKey);
   return parseResponse(response);
 }
 
-async function storeMapping(contract, mapKey, mapValue){
+async function storeMapping(contract, mapKey, mapValue) {
   const response = await contract.submitTransaction("storeMapping", mapKey, mapValue);
   return parseResponse(response);
 }
@@ -150,7 +150,7 @@ function getGateway() {
   return gateway;
 }
 
-function getContract(channel,chaincode) {
+function getContract(channel, chaincode) {
   const network = gateway.getNetwork(channel);
   return network.getContract(chaincode);
 }

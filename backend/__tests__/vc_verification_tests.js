@@ -108,8 +108,8 @@ describe("POST /vc/verifyTrustchain", () => {
     // console.log(loadRegistryAsMap("../registries/university.json"));
 
     getMapValue.mockImplementation((_, value) => {
-      if(value === "BachelorDegree") return "DiplomaIssuing";
-      if(value === "DiplomaIssuing") return "Authorization";
+      if (value === "BachelorDegree") return "DiplomaIssuing";
+      if (value === "DiplomaIssuing") return "Authorization";
       return "unknown";
     });
     const studentVCClaims = {
