@@ -11,7 +11,7 @@ const fs = require("fs");
  * @param {object} vc 
  */
 function addVC(publicRegistry, vc) {
-  const subject = vc.unsignedVC.credentialSubject.id;
+  const subject = vc.credentialSubject.id;
   if (!publicRegistry.has(subject)) publicRegistry.set(subject, []);
   publicRegistry.get(subject).push(vc);
 }
