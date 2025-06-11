@@ -31,8 +31,8 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
 });
 const issuerDID = "did:hlf:issuer";
 /**---------Create the DID Document of the issuer--------- */
-const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey);
-const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null);
+const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey, null);
+const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null, null);
 //this will be the doc of the issuer
 const doc = docBuilder.build();
 const keylessDoc = noKeyBuilder.build();
