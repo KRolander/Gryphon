@@ -130,7 +130,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the unsigne VC for student--------- */
     const studentuVCBuilder = new UnsignedVCBuilder(
-      "BachelorDegree",
+      ["VerifiableCredential", "BachelorDegree"],
       "date",
       uniDID,
       studentDID,
@@ -151,7 +151,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the unsigne VC for university--------- */
     const uniuVCBuilder = new UnsignedVCBuilder(
-      "DiplomaIssuing",
+      ["VerifiableCredential", "DiplomaIssuing"],
       "date",
       rootDID,
       uniDID,
@@ -172,7 +172,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the unsigne VC for root--------- */
     const rootuVCBuilder = new UnsignedVCBuilder(
-      "Authorization",
+      ["VerifiableCredential", "Authorization"],
       "date",
       rootDID,
       rootDID,

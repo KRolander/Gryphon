@@ -23,6 +23,9 @@ router.post("/verify", async (req, res) => {
 
     if (!VC) return res.status(400).send("VC required");
 
+    if (!VC.type.includes("VerifiableCredential"))
+      return res.status(400).send("The VC does not have the correct type");
+
     const issuerDID = VC.issuer;
     if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
@@ -59,6 +62,12 @@ router.post("/verifyTrustchain", async (req, res) => {
     let currentDID = currentVC.credentialSubject.id; // we get the DID of the user
     let userDID = currentVC.credentialSubject.id; // this is for a more clear description
     while (!isRoot(currentDID)) {
+      if (!currentVC.type.includes("VerifiableCredential"))
+        return res
+          .status(400)
+          .send(
+            `The VC owned by ${currentDID} does not have the correct type(VerifiableCredential)`
+          );
       // if the current DID is not the root, then we continue up the trustchain
       const issuerDID = currentVC.issuer;
       if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
@@ -104,17 +113,24 @@ router.post("/verifyTrustchain", async (req, res) => {
         const endpoint = repoEndpoint.serviceEndpoint;
         const registry = await fetchRegistry(endpoint);
 
-        const vcType = currentVC.type; // this indicates the type of the VC
+        let temp = "";
+        if (currentVC.type.length == 2) {
+          if (currentVC.type[0] == "VerifiableCredential") temp = currentVC.type[1];
+          else temp = currentVC.type[0];
+        } else return res.status(400).send("A VC requires 2 types to be valid");
+        const vcType = temp; // this indicates the type of the VC
         const requiredPermission = map.get(vcType); // this is the type of VC the issuer needs
         console.log(registry);
         console.log(typeof registry);
         const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
-        const correctVC = issuerVCs.find((vc) => vc.type === requiredPermission); // if there is a VC with the correct permission it will be fond
+        console.log(map);
+        console.log(issuerVCs);
+        const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
         if (!correctVC)
           return res
             .status(200)
             .send(
-              "The VC is invalid, an organization up the trustchain didn't have the required permission"
+              `The VC is invalid, an organization up the trustchain didn't have the required permission ${currentDID}`
             );
         currentVC = correctVC;
         currentDID = issuerDID;
