@@ -3,6 +3,7 @@ const vcValidationModule = require("../routes/vc");
 const { createSign } = require("crypto");
 const crypto = require("crypto");
 const canonicalize = require("canonicalize");
+const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
 
 describe("validateVC", () => {
   /**---------Create the key pair for the test--------- */

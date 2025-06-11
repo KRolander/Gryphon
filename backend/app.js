@@ -8,6 +8,7 @@ const dotenv = require("dotenv");
 // routers
 const authRouter = require("./routes/authRouter.js");
 const didRouter = require("./routes/did");
+const registryRouter = require("./routes/registry.js");
 const { router: vcRouter } = require("./routes/vc");
 
 /* ======================== CONFIG ======================== */
@@ -24,5 +25,6 @@ app.use(cors());
 app.use("/did", didRouter);
 app.use("/auth", authRouter);
 app.use("/vc", vcRouter);
+app.use("/registry", registryRouter);
 
 module.exports = app;

@@ -25,11 +25,13 @@ export default class DIDDocumentBuilder {
     private DID: string;
     private controllers: string[];
     private publicKey: string;
+    private serviceEndPoint: string;
 
-    constructor(DID: string, controllers: string[] | string, publicKey: string) {
+    constructor(DID: string, controllers: string[] | string, publicKey: string, serviceEndPoint: string) {
         this.DID = DID;
          this.controllers = Array.isArray(controllers) ? controllers : [controllers];
         this.publicKey = publicKey;
+        this.serviceEndPoint = serviceEndPoint;
     }
 
     build(): DIDDocument {
@@ -49,13 +51,13 @@ export default class DIDDocumentBuilder {
             ],
             authentication: [keyId],
             assertionMethod: [keyId],
-            // service: [
-            //     {
-            //         id: `${this.DID}#vcs`,
-            //         type: "VerifiableCredentialService",
-            //         serviceEndpoint: "https://example.com/vc/"
-            //     }
-            // ]
+            service: [
+                {
+                    id: `${this.DID}#vcs`,
+                    type: "VerifiableCredentialService",
+                    serviceEndpoint: this.serviceEndPoint
+                }
+            ]
         };
     }
 }
