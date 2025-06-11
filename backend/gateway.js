@@ -148,6 +148,16 @@ async function deleteDID(contract, DID) {
   await contract.submitTransaction("deleteDID", DID);
 }
 
+async function getMapValue(contract, mapKey){
+  const response = await contract.evaluateTransaction("getMapValue", mapKey);
+  return parseResponse(response);
+}
+
+async function storeMapping(contract, mapKey, mapValue){
+  const response = await contract.submitTransaction("storeMapping", mapKey, mapValue);
+  return parseResponse(response);
+}
+
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
 async function parseResponse(response) {
   const responseJson = utf8Decoder.decode(response);
@@ -179,4 +189,6 @@ module.exports = {
   getDIDDoc,
   addDIDController,
   deleteDID,
+  getMapValue,
+  storeMapping,
 };

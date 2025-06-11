@@ -2,8 +2,10 @@
 const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
-const { startGateway, getGateway, getContract, getDIDDoc } = require("../gateway");
+const { startGateway, getGateway, getContract, getDIDDoc, getMapValue, storeMapping, storeDID} = require("../gateway");
 const {envOrDefault} = require("../utility/gatewayUtilities");
+const {createDID} = require("../utility/DIDUtils");
+const {default: DIDDocumentBuilder} = require("../../utils/DIDDocumentBuilder");
 
 router = express.Router();
 
@@ -46,6 +48,49 @@ router.post("/verify", async (req, res) => {
     console.log(error);
     console.error("Error validating the VC");
     res.status(500).send("Error validating the VC");
+  }
+});
+
+router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
+  try {
+    const VCType = req.params.mappingKey;
+
+    if (getGateway() == null) await startGateway();
+
+    console.log("Retrieving VC type mapping...");
+
+    const mappingValueType = await getMapValue(getContract(VCchannelName,VCchaincodeName),VCType);
+
+    console.log(`✅ Mapping for VC of type ${VCType} retrieved succesfully!`);
+    res.status(200).json(mappingValueType);
+  } catch (error) {
+    console.error("❌ Error retrieving the mapping from blockchain:", error);
+    res.status(500).send("Error querying the mapping from blockchain");
+  }
+});
+
+router.post("/createMapping/:key/:value", async (req, res, next) => {
+  try {
+    // Check if the gateway is already started
+    if (getGateway() == null) {
+      await startGateway();
+    }
+
+    const  {mappingKey,mappingValue}  = req.params;
+    if (!mappingKey) {
+      return res.status(400).send("Key for the mapping is required");
+    }
+    if (!mappingValue){
+      return res.status(400).send("Value for the mapping is required")
+    }
+
+    const result = await storeMapping(getContract(VCchannelName,VCchaincodeName), mappingKey, mappingValue);
+
+    console.log(`Mapping for VC type ${mappingKey} with type ${mappingValue} stored successfully!`); // Log the transaction
+    res.status(200).send("Mapping stored successfully"); // Send the DID to the client
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error storing mapping on the blockchain"); // Send an error message to the client
   }
 });
 

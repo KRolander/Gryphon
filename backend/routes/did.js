@@ -30,7 +30,6 @@ const DIDchaincodeName = envOrDefault("CHAINCODE_NAME", "DIDcc"); //the chaincod
 const VCchaincodeName = envOrDefault("CHAINCODE_NAME", "VCcc");
 
 router.post("/create", async (req, res, next) => {
-  //TODO: create the DID somewhere around here
   try {
     // Check if the gateway is already started
     if (getGateway() == null) {
