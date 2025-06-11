@@ -44,13 +44,20 @@ var UnsignedVCBuilder = /** @class */ (function () {
 }());
 exports.UnsignedVCBuilder = UnsignedVCBuilder;
 var VCBuilder = /** @class */ (function () {
-    function VCBuilder(unsignedVC, creationDate, verificationMethd, signature) {
-        this.unsignedVC = unsignedVC;
-        this.proof = buildProof(creationDate, verificationMethd, signature);
+    function VCBuilder(unsignedVC, signatureCreationDate, verificationMethd, signature) {
+        this.issuer = unsignedVC.issuer;
+        this.vcType = unsignedVC.type;
+        this.issuanceDate = unsignedVC.issuanceDate;
+        this.credentialSubject = unsignedVC.credentialSubject;
+        this.proof = buildProof(signatureCreationDate, verificationMethd, signature);
     }
     VCBuilder.prototype.build = function () {
         return {
-            unsignedVC: this.unsignedVC,
+            "@context": "https://www.w3.org/2018/credentials/v1",
+            type: this.vcType,
+            issuer: this.issuer,
+            issuanceDate: this.issuanceDate,
+            credentialSubject: this.credentialSubject,
             proof: this.proof
         };
     };
