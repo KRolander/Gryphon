@@ -23,7 +23,7 @@ router.post("/verify", async (req, res) => {
 
     if (!VC) return res.status(400).send("VC required");
 
-    const issuerDID = VC.unsignedVC.issuer;
+    const issuerDID = VC.issuer;
     if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
     // get issuer DID Document
@@ -56,11 +56,11 @@ router.post("/verifyTrustchain", async (req, res) => {
     if (!VC) return res.status(400).send("VC required");
 
     let currentVC = VC;
-    let currentDID = currentVC.unsignedVC.credentialSubject.id; // we get the DID of the user
-    let userDID = currentVC.unsignedVC.credentialSubject.id; // this is for a more clear description
+    let currentDID = currentVC.credentialSubject.id; // we get the DID of the user
+    let userDID = currentVC.credentialSubject.id; // this is for a more clear description
     while (!isRoot(currentDID)) {
       // if the current DID is not the root, then we continue up the trustchain
-      const issuerDID = currentVC.unsignedVC.issuer;
+      const issuerDID = currentVC.issuer;
       if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
       // get issuer DID Document
@@ -104,12 +104,12 @@ router.post("/verifyTrustchain", async (req, res) => {
         const endpoint = repoEndpoint.serviceEndpoint;
         const registry = await fetchRegistry(endpoint);
 
-        const vcType = currentVC.unsignedVC.type; // this indicates the type of the VC
+        const vcType = currentVC.type; // this indicates the type of the VC
         const requiredPermission = map.get(vcType); // this is the type of VC the issuer needs
         console.log(registry);
         console.log(typeof registry);
         const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
-        const correctVC = issuerVCs.find((vc) => vc.unsignedVC.type === requiredPermission); // if there is a VC with the correct permission it will be fond
+        const correctVC = issuerVCs.find((vc) => vc.type === requiredPermission); // if there is a VC with the correct permission it will be fond
         if (!correctVC)
           return res
             .status(200)
@@ -141,7 +141,7 @@ async function validateVC(vc, publicKey) {
     throw new Error("Missing or invalid proof");
   }
 
-  const canon = canonicalize(rest.unsignedVC); //serialize the VC (without the proof field)
+  const canon = canonicalize(rest); //serialize the VC (without the proof field)
   if (!canon) throw new Error("Faild to canonicalize VC");
 
   const verifier = createVerify("SHA256"); // hash the string representing the unsigned VC
@@ -149,13 +149,6 @@ async function validateVC(vc, publicKey) {
   verifier.end();
 
   return verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
-}
-
-async function verifyVC(vc, map, root) {
-  let curr = vc.unsignedVC.credentialSubject.id; // this is the DID of the user
-  while (curr != root) {
-    // if the current DID is the same as the DID of the root (in this case maybe the government), then it emans we finshed the trustchain
-  }
 }
 
 /**

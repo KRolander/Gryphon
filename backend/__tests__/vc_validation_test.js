@@ -23,14 +23,14 @@ describe("validateVC", () => {
   const issuerDID = "did:hlf:issuer";
   const subDID = "did:hlf:subject";
   const uVCBuilder = new UnsignedVCBuilder(
-    "VerifiableCredential",
+    ["VerifiableCredential"],
     "date",
     issuerDID,
     subDID,
     "claim"
   );
   const baduVCBuilder = new UnsignedVCBuilder(
-    "VerifiableCredential",
+    ["VerifiableCredential"],
     "date",
     "did:hlf:somedid",
     subDID,
