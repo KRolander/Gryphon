@@ -14,12 +14,6 @@ local.file_match "backend" {
   ]
 }
 
-local.file_match "chaincode" {
-  path_targets = [
-    { path = "/var/log/myapp/chaincode/*.log" },
-  ]
-}
-
 loki.source.file "backend_logs" {
   targets    = local.file_match.backend.targets
   forward_to = [loki.write.default.receiver]
@@ -57,45 +51,5 @@ loki.relabel "backend" {
         action       = "replace"
         target_label = "job"
         replacement  = "backend"
-  }
-}
-
-loki.source.file "chaincode_logs" {
-  targets    = local.file_match.chaincode.targets
-  forward_to = [loki.write.default.receiver]
-}
-
-loki.process "chaincode" {
-  stage.json {
-    expressions = {
-      timestamp     = "timestamp",
-      level         = "level",
-      correlationId = "correlationId",
-      action        = "action",
-      txid          = "txid",
-      message       = "message",
-    }
-  }
-
-  stage.labels {
-    values = {
-      source        = "chaincode",
-      level         = "${level}",
-      correlationId = "${correlationId}",
-      action        = "${action}",
-      txid          = "${txid}",
-    }
-  }
-
-  forward_to = [loki.relabel.chaincode.receiver]
-}
-
-loki.relabel "chaincode" {
-  forward_to = [loki.write.default.receiver]
-
-  rule {
-        action       = "replace"
-        target_label = "job"
-        replacement  = "chaincode"
   }
 }

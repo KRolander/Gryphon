@@ -9,7 +9,6 @@ services:
     volumes:
       - ./agent-config.river:/etc/agent/config.river:ro
       - ./logs/backend:/var/log/myapp/backend:ro
-      - ./logs/chaincode:/var/log/myapp/chaincode:ro
     networks:
       - monitoring
 
