@@ -22,14 +22,14 @@ app.use(
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.send("O zi buna!");
+  res.send("Have a nice day!");
 });
 
 // register routes
 app.use("/did", didRouter);
 // app.use('/auth', authRouter);
 
-const { startGateway, getContract, getNetwork } = require("./gateway");
+const { startGateway, getNetwork } = require("./gateway");
 
 (async () => {
   try {

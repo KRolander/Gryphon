@@ -32,7 +32,11 @@ function buildProof(date: string, verificationMethod: string, signature: string)
  * The signed VC
  */
 interface VerifiableCredential {
-  unsignedVC: UnsignedVC;
+  "@context": "https://www.w3.org/2018/credentials/v1";
+  type: string[]; // must include VerifiableCredential
+  issuer: string;  // the DID of the issuer
+  issuanceDate: string; // ISO 8601 format
+  credentialSubject: CredentialSubject;
   proof: Proof;
 }
 
@@ -41,7 +45,7 @@ interface VerifiableCredential {
  */
 interface UnsignedVC {
   "@context": "https://www.w3.org/2018/credentials/v1";
-  type: string | string[]; // must include VerifiableCredential
+  type: string[]; // must include VerifiableCredential
   issuer: string;  // the DID of the issuer
   issuanceDate: string; // ISO 8601 format
   credentialSubject: CredentialSubject;
@@ -57,11 +61,11 @@ interface VerifiablePresentation {
 
 export class UnsignedVCBuilder {
   private issuer: string;
-  private vcType: string | string[];
+  private vcType: string[];
   private issuanceDate: string;
   private credentialSubject: CredentialSubject;
 
-  constructor(vcType: string | string[], issuanceDate: string, issuer: string, subjectId: string, claims: { [claim: string]: unknown }) {
+  constructor(vcType: string[], issuanceDate: string, issuer: string, subjectId: string, claims: { [claim: string]: unknown }) {
     this.vcType = vcType;
     this.issuer = issuer;
     this.credentialSubject = buildCredentialSubject(subjectId, claims);
@@ -80,17 +84,27 @@ export class UnsignedVCBuilder {
 }
 
 export class VCBuilder {
-  private unsignedVC;
+  private issuer: string;
+  private vcType: string[];
+  private issuanceDate: string;
+  private credentialSubject: CredentialSubject;
   private proof: Proof;
 
-  constructor(unsignedVC: UnsignedVC, creationDate: string, verificationMethd: string, signature: string) {
-    this.unsignedVC = unsignedVC;
-    this.proof = buildProof(creationDate, verificationMethd, signature);
+  constructor(unsignedVC: UnsignedVC, signatureCreationDate: string, verificationMethd: string, signature: string) {
+    this.issuer = unsignedVC.issuer;
+    this.vcType = unsignedVC.type;
+    this.issuanceDate = unsignedVC.issuanceDate;
+    this.credentialSubject = unsignedVC.credentialSubject;
+    this.proof = buildProof(signatureCreationDate, verificationMethd, signature);
   }
 
   build(): VerifiableCredential {
     return {
-      unsignedVC: this.unsignedVC,
+      "@context": "https://www.w3.org/2018/credentials/v1",
+      type: this.vcType,
+      issuer: this.issuer,
+      issuanceDate: this.issuanceDate,
+      credentialSubject: this.credentialSubject,
       proof: this.proof
     }
   }
