@@ -18,22 +18,27 @@ const {
 const { createDID } = require("../utility/DIDUtils.js");
 const DIDDocument = require("../../utils/DIDDocumentBuilder.js");
 const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
-
+const logger = require("../utility/logger.js");
+const { generateCorrelationId } = require("../utility/loggerUtils");
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
 const utf8Decoder = new TextDecoder();
 
 router.post("/create", async (req, res, next) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
   //TODO: create the DID somewhere around here
   try {
-    // Check if the gateway is already started
+    // Check if the gateway has already been started
     if (getGateway() == null) {
       await startGateway();
     }
 
     const { publicKey } = req.body;
     if (!publicKey) {
-      return res.status(400).send("Public key is required");
+      const message = "Public key is required";
+      logger.warn({ action: "POST /did/create", correlationId: correlationId, message: message });
+      return res.status(400).send(message);
     }
     const DID = await createDID();
     const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
@@ -41,11 +46,24 @@ router.post("/create", async (req, res, next) => {
 
     const resultBytes = await storeDID(getContract(), DID, doc);
 
-    console.log(`DID ${DID} stored successfully!`); // Log the transaction
+    const successMessage = `DID ${DID} stored successfully!`;
+    console.log(successMessage);
+    logger.info({
+      action: "POST /did/create",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
     res.status(200).send(DID); // Send the DID to the client
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Error storing DID on the blockchain"); // Send an error message to the client
+    const errorMessage = `Error storing DID ${DID} on the blockchain`;
+    console.log(errorMessage);
+    logger.error({
+      action: "POST /did/create",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send(errorMessage); // Send an error message to the client
   }
   next();
 });
