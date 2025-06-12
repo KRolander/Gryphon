@@ -1,4 +1,4 @@
-import fabricContractApi, {Context} from "fabric-contract-api";
+import fabricContractApi, { Context } from "fabric-contract-api";
 const { Contract, Transaction } = fabricContractApi;
 
 export default class VC extends Contract{
@@ -23,7 +23,7 @@ export default class VC extends Contract{
         if (!mapValue || mapValue.length === 0){
             throw new Error(`There is no mapping for this type of VC ${mapKey}`);
         }
-        return mapValue;
+        return mapValue.toString();
     }
 
     @Transaction()

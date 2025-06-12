@@ -15,6 +15,10 @@ test:
     - npm run lint
     - npm run build
     - npm run test
+    - cd ../chaincodeVC
+    - npm ci
+    - npm run lint
+    - npm run build
     - cd ../frontend
     - npm ci
     - npm run lint

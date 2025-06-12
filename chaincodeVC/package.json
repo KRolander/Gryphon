@@ -31,6 +31,6 @@
         "clean": "rimraf build",
         "compile": "tsc",
         "build": "tsc",
-        "fix": "eslint . --ext .ts,.js --fix"
+        "lint:fix": "eslint . --ext .ts,.js --fix"
     }
 }
