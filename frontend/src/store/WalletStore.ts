@@ -8,6 +8,7 @@ import {
   extractSalt,
   SALT_LENGTH,
 } from "@/utils/crypto";
+import { VCBuilder,  UnsignedVCBuilder, VerifiableCredential } from "@/../../utils/VC";
 
 // The wallet is persisted in IndexedDB (idb) as a key-value pair
 // Where the key corresponds to the Keycloak's subject claim (sub)
@@ -19,7 +20,7 @@ export const useWalletStore = defineStore("wallet", {
       {
         keyPair: { publicKey: string; privateKey: string };
         metadata: { name: string; createdAt: string; tags?: string[] };
-        credentials: any[];
+        credentials: VerifiableCredential[];
       }
     >,
     // activeDid can be used as the DID for issuing/presenting credentials
@@ -36,8 +37,20 @@ export const useWalletStore = defineStore("wallet", {
       this.activeDid = did;
     },
 
-    addCredential(did: string, credential: any) {
-      this.dids[did]?.credentials.push(credential);
+    addVC(did: string, credential: string) {
+      this.dids[did]?.credentials.push(JSON.parse(credential) as VerifiableCredential);
+    },
+
+    getVCs(did: string) {
+      return this.dids[did];
+    },
+
+    removeVC(did: string, credential: string) {
+      const VC: VerifiableCredential = JSON.parse(credential);
+      const index = this.dids[did]?.credentials.findIndex(cred => cred === VC);
+      if (index && index != -1) {
+        this.dids[did].credentials.splice(index, 1);
+      }
     },
 
     switchDid(did: string) {
