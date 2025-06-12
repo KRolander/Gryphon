@@ -20,6 +20,7 @@
             <v-form v-model="valid" @submit.prevent="signup">
               <!-- USERNAME FIELD -->
               <v-text-field
+                id="signupUsernamneField"
                 class="mb-4 mt-4"
                 label="Username"
                 v-model="username"
