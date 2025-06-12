@@ -3,13 +3,13 @@ const fs = require("fs");
 const path = require("path");
 
 const logDirectory = path.resolve(__dirname, "../../logging/logs/backend");
-const logFilePath = path.join(logDirectory, "backend.log")
+const logFilePath = path.join(logDirectory, "backend.log");
 
 if (!fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory, { recursive: true });
 }
 
-export const logger = pino(
+const logger = pino(
   {
     base: undefined,
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -21,3 +21,5 @@ export const logger = pino(
   },
   pino.destination({ dest: logFilePath, append: true })
 );
+
+module.exports = logger;
