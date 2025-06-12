@@ -2,6 +2,10 @@
 const { credentials } = require("@grpc/grpc-js");
 const keycloakApiClient = require("../keycloakApiClient.js");
 
+// Logger
+const logger = require("../../utility/logger");
+const { generateCorrelationId } = require("../../utility/loggerUtils");
+
 /* ======================= CONFIG ======================= */
 /**
  * Creates a new user in Keycloak with the provided user data and realm name.
@@ -9,7 +13,7 @@ const keycloakApiClient = require("../keycloakApiClient.js");
  * @param {string} realmName - The name of the realm in which the user will be created
  * @param {string} adminAccessToken - The access token of the admin user
  */
-async function createUser(userData, realmName, adminAccessToken) {
+async function createUser(userData, realmName, adminAccessToken, correlationId = "unknown") {
   // Create the parameters for the axios request
   const endpoint = `/admin/realms/users/${realmName}`;
   const body = {
@@ -42,13 +46,30 @@ async function createUser(userData, realmName, adminAccessToken) {
 
     // Check that the response status is 201 - Created
     if (userCreationResponse.status === 201) {
+      logger.info({
+        action: `createUser(${userData.username})`,
+        correlationId: correlationId,
+        message: "User creation was successful",
+      });
       return userCreationResponse.data;
     }
 
     // Throw error if the user creation failed
-    throw new Error(`User creation failed with status code: ${userCreationResponse.status}`);
+    const errorMessage = `User creation failed with status code: ${userCreationResponse.status}`;
+    logger.error({
+      action: `createUser(${userData.username})`,
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    throw new Error(errorMessage);
   } catch (error) {
-    throw new Error(`User Creation failed with the following error: ${error.message}`);
+    const errorMessage = `User Creation failed with the following error: ${error.message}`;
+    logger.error({
+      action: `createUser(${userData.username})`,
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    throw new Error(errorMessage);
   }
 }
 
@@ -59,7 +80,7 @@ async function createUser(userData, realmName, adminAccessToken) {
  * @returns {string} The access token of the logged-in user
  * @throws {Error} If the login fails or the user is not found
  */
-async function loginUser(userData, realmName) {
+async function loginUser(userData, realmName, correlationId = "unknown") {
   // Create the parameters for the axios request
   const endpoint = `/realms/${realmName}/protocol/openid-connect/token`;
   const body = {
@@ -81,14 +102,31 @@ async function loginUser(userData, realmName) {
 
     // Check that the response status is 200 - OK
     if (loginResponse.status !== 200) {
-      throw new Error(`Login failed with status code: ${loginResponse.status}`);
+      const errorMessage = `Login failed with status code: ${loginResponse.status}`;
+      logger.error({
+        action: `loginUser(${userData.username})`,
+        correlationId: correlationId,
+        message: errorMessage,
+      });
+      throw new Error(errorMessage);
     }
 
     const token = loginResponse.data.access_token;
 
+    logger.info({
+      action: `loginUser(${userData.username})`,
+      correlationId: correlationId,
+      message: "Log in was successful",
+    });
     return token;
   } catch (error) {
-    throw new Error(`Login failed with the following error: ${error.message}`);
+    const errorMessage = `Login failed with the following error: ${error.message}`;
+    logger.error({
+      action: `loginUser(${userData.username})`,
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    throw new Error(errorMessage);
   }
 }
 
