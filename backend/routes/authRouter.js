@@ -48,9 +48,9 @@ authRouter.post("/signup", async (req, res) => {
     //! THIS REALM IN KEYCLOAK
     const realmName = "users";
 
-    await usersService.createUser(userCredentials, realmName, adminAccessToken);
+    await usersService.createUser(userCredentials, realmName, adminAccessToken, correlationId);
 
-    const userAccessToken = await usersService.loginUser(userCredentials, realmName);
+    const userAccessToken = await usersService.loginUser(userCredentials, realmName, correlationId);
     console.log("User Token:", userAccessToken);
 
     const userData = await usersService.getUserData(userAccessToken, realmName);
@@ -89,7 +89,7 @@ authRouter.post("/login", async (req, res) => {
     };
     const realmName = "users";
 
-    const userAccessToken = await usersService.loginUser(userCredentials, realmName);
+    const userAccessToken = await usersService.loginUser(userCredentials, realmName, correlationId);
 
     const userData = await usersService.getUserData(userAccessToken, realmName);
 
