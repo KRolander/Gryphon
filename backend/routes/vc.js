@@ -150,9 +150,19 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
     }
     const { mappingKey, mappingValue } = req.params;
     if (!mappingKey) {
+      logger.warn({
+        action: "POST /vc/createMapping",
+        correlationId: correlationId,
+        message: "Key for the mapping is missing",
+      });
       return res.status(400).send("Key for the mapping is required");
     }
     if (!mappingValue) {
+      logger.warn({
+        action: `POST /vc/createMapping/${mappingKey}`,
+        correlationId: correlationId,
+        message: "Value for the mapping is missing",
+      });
       return res.status(400).send("Value for the mapping is required");
     }
 
@@ -162,11 +172,23 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
       mappingValue
     );
 
-    console.log(`Mapping for VC type ${mappingKey} with type ${mappingValue} stored successfully!`); // Log the transaction
+    const successMessage = `Mapping for VC type ${mappingKey} with type ${mappingValue} stored successfully!`;
+    logger.info({
+      action: `POST /vc/createMapping/${mappingKey}`,
+      correlationId: correlationId,
+      message: successMessage,
+    });
+    console.log(successMessage);
     res.status(200).send("Mapping stored successfully"); // Send the DID to the client
   } catch (error) {
+    const errorMessage = "Error storing mapping on the blockchain";
+    logger.error({
+      action: "POST /vc/createMapping",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
     console.log(error);
-    res.status(500).send("Error storing mapping on the blockchain"); // Send an error message to the client
+    res.status(500).send(errorMessage); // Send an error message to the client
   }
 });
 
