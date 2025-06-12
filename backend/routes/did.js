@@ -37,7 +37,11 @@ router.post("/create", async (req, res, next) => {
     const { publicKey } = req.body;
     if (!publicKey) {
       const message = "Public key is required";
-      logger.warn({ action: "POST /did/create", correlationId: correlationId, message: message });
+      logger.warn({
+        action: "POST /did/create",
+        correlationId: correlationId,
+        message: message,
+      });
       return res.status(400).send(message);
     }
     const DID = await createDID();
