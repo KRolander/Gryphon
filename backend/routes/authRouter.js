@@ -8,6 +8,10 @@ const adminService = require("../services/keycloak/adminService.js");
 const usersService = require("../services/keycloak/usersService.js");
 const { credentials } = require("@grpc/grpc-js");
 
+// Logger
+const logger = require("../utility/logger");
+const { generateCorrelationId } = require("../utility/loggerUtils");
+
 // ======================= CONFIG ======================= */
 const authRouter = express.Router();
 
@@ -18,6 +22,8 @@ const authRouter = express.Router();
  * @returns {Error} 500 - Internal server error if signup fails for any reason
  */
 authRouter.post("/signup", async (req, res) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
   try {
     // Retrieve the access token
     const adminAccessToken = await adminService.getAdminToken();
@@ -49,8 +55,19 @@ authRouter.post("/signup", async (req, res) => {
 
     const userData = await usersService.getUserData(userAccessToken, realmName);
 
+    logger.info({
+      action: "POST /auth/signup",
+      correlationId: correlationId,
+      message: `User ${req.body.username} successfully signed up`,
+    });
+
     res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
+    logger.error({
+      action: "POST /auth/signup",
+      correlationId: correlationId,
+      message: `Sign up failed for user ${req.body.username}`,
+    });
     res.status(500).send("Signup failed. Please try again later." + error.message);
   }
 });
@@ -62,6 +79,8 @@ authRouter.post("/signup", async (req, res) => {
  * @returns {Error} 500 - Internal server error if login fails for any reason
  */
 authRouter.post("/login", async (req, res) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
   try {
     // Setup
     const userCredentials = {
@@ -73,8 +92,20 @@ authRouter.post("/login", async (req, res) => {
     const userAccessToken = await usersService.loginUser(userCredentials, realmName);
 
     const userData = await usersService.getUserData(userAccessToken, realmName);
+
+    logger.info({
+      action: "POST /auth/login",
+      correlationId: correlationId,
+      message: `User ${req.body.username} successfully logged in`,
+    });
+
     res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
+    logger.error({
+      action: "POST /auth/login",
+      correlationId: correlationId,
+      message: `Login failed for user ${req.body.username}`,
+    });
     res.status(500).send("Login failed. Please try again later.\n" + error.message);
   }
 });
