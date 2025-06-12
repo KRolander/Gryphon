@@ -69,7 +69,7 @@ export default class DID extends Contract {
     ): Promise<Buffer> {
 
         // The DID Document can only be updated if it was already stored
-        const cleanDID = DID.replace(/^"|"$/g, "");
+        const cleanDID= DID.replace(/^"|"$/g, "");
         const DIDExists = await this.DIDExists(ctx, cleanDID);
 
         if (!DIDExists) {
