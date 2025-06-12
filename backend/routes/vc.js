@@ -133,9 +133,19 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
 
     const mappingValueType = await getMapValue(getContract(VCchannelName, VCchaincodeName), VCType);
 
-    console.log(`✅ Mapping for VC of type ${VCType} retrieved succesfully!`);
+    logger.info({
+      action: "POST /vc/getVCTypeMapping",
+      correlationId: correlationId,
+      message: `Mapping for VC of type ${VCType} retrieved successfully!`,
+    });
+    console.log(`✅ Mapping for VC of type ${VCType} retrieved successfully!`);
     res.status(200).json(mappingValueType);
   } catch (error) {
+    logger.error({
+      action: "POST /vc/getVCTypeMapping",
+      correlationId: correlationId,
+      message: "Error querying the mapping from blockchain",
+    });
     console.error("❌ Error retrieving the mapping from blockchain:", error);
     res.status(500).send("Error querying the mapping from blockchain");
   }
