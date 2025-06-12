@@ -1,7 +1,7 @@
 /**
  * This module is used to create the gateway and connect the backend to the
  * chaincode.
- * The gateway is a way transfer information recieved by the backend to the blockchain
+ * The gateway is a way transfer information received by the backend to the blockchain
  * The code was taken from the hyperledger fabric gateway example
  */
 
@@ -35,7 +35,7 @@ const peerEndpoint = envOrDefault("PEER_ENDPOINT", "localhost:7051");
 
 // Gateway peer SSL host name
 const peerHostAlias = envOrDefault("PEER_HOST_ALIAS", "peer0.org1.example.com"); //connecting to localhost would cause the TLS handshake to fail.
-//therefore, this commnad tells the SDK to treat localhost as peer0
+//therefore, this command tells the SDK to treat localhost as peer0
 
 const utf8Decoder = new TextDecoder();
 let gateway = null;

@@ -1,4 +1,4 @@
-/*----------IMOPRTS----------*/
+/*----------IMPORTS----------*/
 const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
@@ -11,8 +11,8 @@ const { generateCorrelationId } = require("../utility/loggerUtils");
 router = express.Router();
 
 /**
- * This function recieves a JSON of a
- * VC and it checks if the signature
+ * This function receives a JSON of a
+ * VC, and it checks if the signature
  * is correct or not
  */
 router.post("/verify", async (req, res) => {

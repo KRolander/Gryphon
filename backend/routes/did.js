@@ -27,7 +27,6 @@ const utf8Decoder = new TextDecoder();
 router.post("/create", async (req, res, next) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
-  //TODO: create the DID somewhere around here
   try {
     // Check if the gateway has already been started
     if (getGateway() == null) {
@@ -141,12 +140,12 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
         return res.status(400).send("No controller");
       }
 
-      //retrieve the targetDID document
+      // retrieve the targetDID document
       let doc = await getDIDDoc(getContract(), targetDID);
       if (typeof doc.controllers === "string") {
         doc.controllers = [doc.controllers];
       }
-      //could also check if the DID we want to add as a controller exists
+      // could also check if the DID we want to add as a controller exists
       if (doc.controllers.includes(newController)) {
         const errorMessage = "Duplicate controller";
         logger.warn({

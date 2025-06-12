@@ -18,7 +18,7 @@ const authRouter = express.Router();
 /**
  * Handles the signup request
  * @route POST /auth/signup
- * @returns {object} An object containing the access tokend
+ * @returns {object} An object containing the access token
  * @returns {Error} 500 - Internal server error if signup fails for any reason
  */
 authRouter.post("/signup", async (req, res) => {
@@ -75,7 +75,7 @@ authRouter.post("/signup", async (req, res) => {
 /**
  * Handles the login request
  * @route POST /auth/login
- * @returns {object} An object containing the access tokend
+ * @returns {object} An object containing the access token
  * @returns {Error} 500 - Internal server error if login fails for any reason
  */
 authRouter.post("/login", async (req, res) => {
