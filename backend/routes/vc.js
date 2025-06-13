@@ -15,8 +15,8 @@ const {
 const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
 const { fetchRegistry } = require("../utility/VCUtils.js");
-
-router = express.Router();
+const { isRoot } = require("../utility/VCUtils.js");
+const router = express.Router();
 
 const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of the channel from the fabric-network
 const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
@@ -109,6 +109,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
 });
 
 router.post("/verifyTrustchain", async (req, res) => {
+
   try {
     if (getGateway() == null) {
       await startGateway();
@@ -120,7 +121,9 @@ router.post("/verifyTrustchain", async (req, res) => {
     let currentVC = VC;
     let currentDID = currentVC.credentialSubject.id; // we get the DID of the user
     let userDID = currentVC.credentialSubject.id; // this is for a more clear description
+
     while (!isRoot(currentDID)) {
+
       if (!currentVC.type.includes("VerifiableCredential"))
         return res
           .status(400)
@@ -132,7 +135,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
       // get issuer DID Document
-      const issuerDoc = getDIDDoc(getContract(), issuerDID);
+      const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
       if (!issuerDoc) return res.status(500).send("The DID does not exist");
 
       //get its public key
@@ -160,7 +163,7 @@ router.post("/verifyTrustchain", async (req, res) => {
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
 
-        const issuerDoc = getDIDDoc(getContract(), issuerDID);
+        const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
         const serviceArray = issuerDoc.service || [];
         const repoEndpoint = serviceArray.find((serv) => serv.id.endsWith("#vcs"));
         if (!repoEndpoint) {
@@ -177,7 +180,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           else temp = currentVC.type[0];
         } else return res.status(400).send("A VC requires 2 types to be valid");
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = await getMapValue(getContract(), vcType);
+        const requiredPermission = await getMapValue(getContract(VCchannelName, VCchaincodeName), vcType);
 
         //console.log(registry);
         //console.log(typeof registry);
@@ -202,6 +205,7 @@ router.post("/verifyTrustchain", async (req, res) => {
     res.status(500).send("Error validating the VC");
   }
 });
+
 /**
  * This function is only meant to verify the signature
  * of to make sure that it is valid. Later, the issuer will
@@ -224,10 +228,6 @@ async function validateVC(vc, publicKey) {
   verifier.end();
 
   return verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
-}
-
-function isRoot(did) {
-  return did === "did:hlf:root";
 }
 
 module.exports = {

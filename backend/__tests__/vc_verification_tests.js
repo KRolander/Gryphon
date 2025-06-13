@@ -21,9 +21,14 @@ jest.mock("../gateway", () => ({
 
 const { startGateway, getGateway, getDIDDoc, getContract, getMapValue } = require("../gateway");
 
-jest.mock("../utility/VCUtils", () => ({
-  fetchRegistry: jest.fn(),
-}));
+jest.mock("../utility/VCUtils", () => {
+  const actual = jest.requireActual("../utility/VCUtils");
+  return {
+    ...actual,
+    fetchRegistry: jest.fn(),
+  };
+});
+
 const { fetchRegistry } = require("../utility/VCUtils");
 
 /**---------Create the key pair for the student--------- */

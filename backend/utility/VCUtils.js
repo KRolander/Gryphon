@@ -1,4 +1,7 @@
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
 /**
  * This function is used to retrieve the public registry of
  * an organization
@@ -21,6 +24,14 @@ async function fetchRegistry(url) {
   }
 }
 
+function isRoot(did) {
+  const configPath = path.join(__dirname,"..", "config", "config.json");
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+
+  return did === config.rootTAO.did;
+}
+
 module.exports = {
   fetchRegistry,
+  isRoot,
 };
