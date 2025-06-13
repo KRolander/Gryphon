@@ -1,12 +1,10 @@
 /* ======================= IMPORTS ======================= */
 // core
 const express = require("express");
-const bodyParser = require("body-parser");
 
 // API
 const adminService = require("../services/keycloak/adminService.js");
 const usersService = require("../services/keycloak/usersService.js");
-const { credentials } = require("@grpc/grpc-js");
 
 // Logger
 const logger = require("../utility/logger");
