@@ -28,7 +28,10 @@ export const useWalletStore = defineStore("wallet", {
       {
         keyPair: { publicKey: string; privateKey: string };
         metadata: { name: string; createdAt: string; tags?: string[] };
-        credentials: VerifiableCredential[];
+        credentials: Record<
+          string,
+          VerifiableCredential
+        >;
       }
     >,
     // activeDid can be used as the DID for issuing/presenting credentials
@@ -51,7 +54,7 @@ export const useWalletStore = defineStore("wallet", {
       this.dids[did] = {
         keyPair,
         metadata: { createdAt: new Date().toISOString(), name: name },
-        credentials: [],
+        credentials: {},
       };
       this.activeDid = did;
     },
@@ -83,20 +86,18 @@ export const useWalletStore = defineStore("wallet", {
      * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
      * @param {JSON} credential - The VC issued to the `did`
      */
-    addVC(did: string, credential: string) {
-      this.dids[did]?.credentials.push(JSON.parse(credential) as VerifiableCredential);
+    addVC(did: string, name: string, credential: string) {
+      if (!this.dids[did].credentials) this.dids[did].credentials = {};
+      this.dids[did].credentials[name] = JSON.parse(credential) as VerifiableCredential;
     },
 
     getVCs(did: string) {
       return this.dids[did].credentials;
     },
 
-    removeVC(did: string, credential: string) {
-      const VC: VerifiableCredential = JSON.parse(credential);
-      const index = this.dids[did]?.credentials.findIndex(cred => cred === VC);
-      if (index && index != -1) {
-        this.dids[did].credentials.splice(index, 1);
-      }
+    removeVC(did: string, name: string) {
+      if (!this.dids[did].credentials) return;
+      delete this.dids[did].credentials[name];
     },
 
     /**
