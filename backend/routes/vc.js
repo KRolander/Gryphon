@@ -232,6 +232,5 @@ function isRoot(did) {
 
 module.exports = {
   validateVC,
-  fetchRegistry,
   router,
 };

@@ -4,7 +4,7 @@ const { Contract, Transaction } = fabricContractApi;
 import stringify from "json-stringify-deterministic";
 import sortKeysRecursive from "sort-keys-recursive";
 import { Context } from "fabric-contract-api";
-import DIDDocument from "../types/DIDDocument.js";
+import type { DIDDocument } from "../../utils/DIDDocumentBuilder.js";
 
 export default class DID extends Contract {
     constructor() {
