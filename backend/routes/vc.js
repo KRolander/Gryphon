@@ -109,7 +109,6 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
 });
 
 router.post("/verifyTrustchain", async (req, res) => {
-
   try {
     if (getGateway() == null) {
       await startGateway();
@@ -123,7 +122,6 @@ router.post("/verifyTrustchain", async (req, res) => {
     let userDID = currentVC.credentialSubject.id; // this is for a more clear description
 
     while (!isRoot(currentDID)) {
-
       if (!currentVC.type.includes("VerifiableCredential"))
         return res
           .status(400)
@@ -180,7 +178,10 @@ router.post("/verifyTrustchain", async (req, res) => {
           else temp = currentVC.type[0];
         } else return res.status(400).send("A VC requires 2 types to be valid");
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = await getMapValue(getContract(VCchannelName, VCchaincodeName), vcType);
+        const requiredPermission = await getMapValue(
+          getContract(VCchannelName, VCchaincodeName),
+          vcType
+        );
 
         //console.log(registry);
         //console.log(typeof registry);
