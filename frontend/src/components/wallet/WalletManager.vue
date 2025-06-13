@@ -93,17 +93,26 @@ import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto.js";
 import { useUserStore } from "@/store/userStore.js";
 import { watch } from "vue";
 
+/**
+ * @slot default
+ * @binding {Object} wallet - The wallet store instance with an additional `save()` method.
+ * @binding {boolean} ready - Whether the wallet is ready for use.
+ */
 export default {
   name: "WalletManager",
   data() {
     return {
       walletFile: null,
+
+      // Flag to signal parent pages that the wallet has been mounted
       isReady: false,
 
       // Session info
       userId: null,
       passphrase: "",
       sessionKey: null,
+
+      // Flag to prevent remounting logic from running multiple times
       initialized: false,
 
       // Dialog state
@@ -117,6 +126,10 @@ export default {
   },
 
   methods: {
+    /**
+     * Shows the passphrase dialog and resolves when the user confirms it.
+     * Used for both unlocking and creating wallets.
+     */
     async waitForPassphrase() {
       return new Promise((resolve) => {
         this._resolvePassphrase = () => {
@@ -127,6 +140,12 @@ export default {
       });
     },
 
+    /**
+     * Ensures that the user currently logged in (identified by {@link userId}), has a wallet.
+     *
+     * If they have no wallet, a new wallet is created and
+     * the user has to create a password to encrypt it
+     */
     async ensureWallet() {
       const exists = await this.walletStore.walletExists(this.userId);
 
@@ -142,6 +161,17 @@ export default {
       }
     },
 
+    /**
+     * Tries to unlock the wallet following these steps:
+     * - If the number of retries is more than 3, exits
+     * - If there's no `sessionKey`, one is generated with the passphrase and the salt
+     * - Tries to decrypt the wallet with `sessionKey`
+     * - If decryption was successful, load the wallet and save `sessionKey`
+     * - If decryption wasn't successful, ask the user to insert `passphrase` again and call
+     * the function again, with `retries` increased by 1
+     *
+     * @param {number} retries - The number of times this function called itself
+     */
     async unlockWallet(retries = 0) {
       if (retries > 3) {
         console.error("Too many failed attempts");
@@ -190,6 +220,12 @@ export default {
       await this.walletStore.exportWallet(this.userId);
     },
 
+    /**
+     * Tries to decrypt and unlock the encrypted wallet `walletFile`.
+     *
+     * It prompts the user for a passphrase used for decryption.
+     * If it succeeds, sets the decrypted wallet as the wallet of the current user
+     */
     async importWallet() {
       if (!this.walletFile) {
         alert("Please select a valid file.");
@@ -217,6 +253,20 @@ export default {
     },
   },
 
+  /**
+   * Initializes the wallet manager on component mount.
+   * Loads the user, watches for user changes, and prepares the wallet.
+   *
+   * If the loaded user has no wallet yet, it triggers the creation of a new wallet
+   * and prompts the user a passphrase to encrypt it.
+   *
+   * This executes in order:
+   * 1. User loading
+   * 2. User's Session key loading
+   * 3. Wallet creation and encryption (If the user is new)
+   * 4. Wallet decryption with Session key
+   * 5. Wallet data loading
+   */
   async mounted() {
     await this.userStore.loadUser();
     // Wait for keycloak to finish storing the user

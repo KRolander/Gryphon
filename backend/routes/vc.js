@@ -2,11 +2,26 @@
 const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
+
+const {
+  startGateway,
+  getGateway,
+  getContract,
+  getDIDDoc,
+  getMapValue,
+  storeMapping,
+  storeDID,
+} = require("../gateway");
+const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
-const { startGateway, getGateway, getContract, getDIDDoc, getMap } = require("../gateway");
 const { fetchRegistry } = require("../utility/VCUtils.js");
 
 router = express.Router();
+
+const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of the channel from the fabric-network
+const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
+const DIDchaincodeName = envOrDefault("CHAINCODE_NAME", "DIDcc"); //the chaincode name used to interact with the fabric-network
+const VCchaincodeName = envOrDefault("CHAINCODE_NAME", "VCcc");
 
 /**
  * This function recieves a JSON of a
@@ -30,7 +45,7 @@ router.post("/verify", async (req, res) => {
     if (!issuerDID) return res.status(400).send("All VCs require an issuer field");
 
     // get issuer DID Document
-    const issuerDoc = getDIDDoc(getContract(), issuerDID);
+    const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
     if (!issuerDoc) return res.status(500).send("The DID does not exist");
 
     //get its public key
@@ -48,12 +63,56 @@ router.post("/verify", async (req, res) => {
   }
 });
 
+router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
+  try {
+    const VCType = req.params.mappingKey;
+
+    if (getGateway() == null) await startGateway();
+
+    console.log("Retrieving VC type mapping...");
+
+    const mappingValueType = await getMapValue(getContract(VCchannelName, VCchaincodeName), VCType);
+
+    console.log(`✅ Mapping for VC of type ${VCType} retrieved succesfully!`);
+    res.status(200).json(mappingValueType);
+  } catch (error) {
+    console.error("❌ Error retrieving the mapping from blockchain:", error);
+    res.status(500).send("Error querying the mapping from blockchain");
+  }
+});
+
+router.post("/createMapping/:key/:value", async (req, res, next) => {
+  try {
+    if (getGateway() == null) {
+      await startGateway();
+    }
+    const { mappingKey, mappingValue } = req.params;
+    if (!mappingKey) {
+      return res.status(400).send("Key for the mapping is required");
+    }
+    if (!mappingValue) {
+      return res.status(400).send("Value for the mapping is required");
+    }
+
+    const result = await storeMapping(
+      getContract(VCchannelName, VCchaincodeName),
+      mappingKey,
+      mappingValue
+    );
+
+    console.log(`Mapping for VC type ${mappingKey} with type ${mappingValue} stored successfully!`); // Log the transaction
+    res.status(200).send("Mapping stored successfully"); // Send the DID to the client
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error storing mapping on the blockchain"); // Send an error message to the client
+  }
+});
+
 router.post("/verifyTrustchain", async (req, res) => {
   try {
     if (getGateway() == null) {
       await startGateway();
     }
-
     const VC = req.body;
 
     if (!VC) return res.status(400).send("VC required");
@@ -84,7 +143,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       // run the validate method
       const validity = await validateVC(currentVC, publicKey);
 
-      console.log(currentVC);
+      //console.log(currentVC);
       if (!validity) {
         if (currentDID == userDID)
           return res
@@ -100,7 +159,6 @@ router.post("/verifyTrustchain", async (req, res) => {
         // Here is where the magic happens. There should be a function that retrieves
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
-        const map = await getMap(getContract()); // structure that maps a issed VC to the VC required by the issuer
 
         const issuerDoc = getDIDDoc(getContract(), issuerDID);
         const serviceArray = issuerDoc.service || [];
@@ -119,12 +177,13 @@ router.post("/verifyTrustchain", async (req, res) => {
           else temp = currentVC.type[0];
         } else return res.status(400).send("A VC requires 2 types to be valid");
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = map.get(vcType); // this is the type of VC the issuer needs
-        console.log(registry);
-        console.log(typeof registry);
+        const requiredPermission = await getMapValue(getContract(), vcType);
+
+        //console.log(registry);
+        //console.log(typeof registry);
         const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
-        console.log(map);
-        console.log(issuerVCs);
+        //console.log(map);
+        //console.log(issuerVCs);
         const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
         if (!correctVC)
           return res
@@ -165,17 +224,6 @@ async function validateVC(vc, publicKey) {
   verifier.end();
 
   return verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
-}
-
-/**
- * This function is meant to check if a VC has the necessary type in the type list
- * @param {string | string[]} typeList the list of types of a VC
- * @param {string} type the specific type we are looking for
- * @returns wether or not a type is part of the typeList
- */
-async function checkVCType(typeList, type) {
-  if (Array.isArray(typeList)) return typeList.includes(type);
-  return typeList === type;
 }
 
 function isRoot(did) {
