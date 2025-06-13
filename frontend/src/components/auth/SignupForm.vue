@@ -23,7 +23,8 @@
                 id="signupUsernamneField"
                 class="mb-4 mt-4"
                 label="Username"
-                v-model="username"
+                :model-value="modelValueUsername"
+                @update:model-value="(val) => (modelValueUsername = val)"
                 :rules="usernameRules"
                 :counter="20"
                 required
@@ -101,12 +102,22 @@ import { useUserStore } from "@/store/userStore.js";
 /* ======================= CONFIG ======================= */
 export default {
   name: "SignupForm",
+  props: {
+    username: {
+      type: String,
+      default: undefined, // If this prop is defined, it means that this runs in a testing env
+    },
+  },
+  emits: ["update:username"],
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      username: "",
+      /* USERNAME */
+      internalUsername: "",
+
+      /* -------- */
 
       email: "",
       emailHasCustomError: false,
@@ -116,7 +127,6 @@ export default {
       confirmPassword: "",
 
       /* --------------------- RULES --------------------- */
-
       usernameRules: [
         (v) => !!v || "Username is required",
         (v) => (v && v.length >= 3) || "Username must be at least 3 characters",
@@ -145,9 +155,40 @@ export default {
   },
   computed: {
     ...mapStores(useUserStore),
+
+    /* --------------------- USERNAME --------------------- */
+    modelValueUsername: {
+      /**
+       * Defines the behaviour of the computer property when its value is requested.
+       * If the username prop is defined, it means that this runs in a testing env
+       * If the username prop is not defined, it means that this runs in the browser
+       * and the internalUsername is used to store the value.
+       * @returns {string} The chosen username value
+       */
+      get() {
+        return this.username !== undefined ? this.username : this.internalUsername;
+      },
+
+      /**
+       * Defines the behaviour of the computer property when its value is set.
+       * If the username prop is defined, it means that this runs in a testing env
+       * If the username prop is not defined, it means that this runs in the browser
+       * and the internalUsername is used to store the value.
+       */
+      set(val) {
+        if (this.username !== undefined) {
+          this.$emit("update:username", val);
+        } else {
+          this.internalUsername = val;
+        }
+      },
+    },
   },
   methods: {
     async signup() {
+      console.log(this.internalUsername);
+
+      return;
       // Ensire that the form is valid upoon submission
       if (this.valid) {
         // Disable the signup button

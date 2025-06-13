@@ -1,7 +1,7 @@
 /* ======================= IMPORTS ======================= */
 // core
 import { mount } from "@vue/test-utils";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // component
 import SignupForm from "../../../src/components/auth/SignupForm.vue";
@@ -19,8 +19,8 @@ describe("Page text", () => {
   });
 });
 
-describe("Form field properties", () => {
-  it("Renders the username field correctly", async () => {
+describe("Username field properties", () => {
+  it("Renders the username hardcoded fields correctly", async () => {
     // Define the fields used for testing
     const wrapper = mount(SignupForm, {
       global: {
@@ -35,8 +35,23 @@ describe("Form field properties", () => {
     expect(usernameTextField.props("label")).toBe("Username");
     expect(usernameTextField.props("counter")).toBe(20);
     expect(inputField.attributes("required")).toBeDefined();
+  });
 
-    /*TODO --------------- Test the v-model connection --------------- */
-    // TODO implement
+  it("Executes v-model correctly", async () => {
+    const updateUsernameSpy = vi.fn();
+
+    const wrapper = mount(SignupForm, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        username: "",
+        "onUpdate:username": updateUsernameSpy,
+      },
+    });
+
+    const usernameTextField = wrapper.findComponent({ name: "VTextField" });
+    await usernameTextField.setValue("updated_username");
+    expect(updateUsernameSpy).toHaveBeenCalledWith("updated_username");
   });
 });
