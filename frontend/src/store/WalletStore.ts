@@ -56,24 +56,11 @@ export const useWalletStore = defineStore("wallet", {
       this.activeDid = did;
     },
 
-<<<<<<< HEAD
-=======
-    /**
-     * Adds a new Verifiable Credential (VC), to the given `did`
-     *
-     * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
-     * @param {JSON} credential - The VC issued to the `did`
-     */
-    addCredential(did: string, credential: any) {
-      this.dids[did]?.credentials.push(credential);
-    },
-
     /**
      * Sets the `did` as the `activeDid`, if it exists
      *
      * @param {string} did - `did` to set as active
      */
->>>>>>> main
     switchDid(did: string) {
       if (this.dids[did]) this.activeDid = did;
     },
@@ -90,7 +77,12 @@ export const useWalletStore = defineStore("wallet", {
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null;
     },
 
-<<<<<<< HEAD
+    /**
+     * Adds a new Verifiable Credential (VC), to the given `did`
+     *
+     * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
+     * @param {JSON} credential - The VC issued to the `did`
+     */
     addVC(did: string, credential: string) {
       this.dids[did]?.credentials.push(JSON.parse(credential) as VerifiableCredential);
     },
@@ -107,7 +99,6 @@ export const useWalletStore = defineStore("wallet", {
       }
     },
 
-=======
     /**
      * Checks in the IndexedDB (`idb`) if the user with `userId` already has a wallet
      *
@@ -115,7 +106,6 @@ export const useWalletStore = defineStore("wallet", {
      * @returns True, if there's a wallet in `idb`, indexed at `userId`,
      * False otherwise
      */
->>>>>>> main
     async walletExists(userId: string): Promise<boolean> {
       const exists = await get(`wallet-${userId}`);
       return !!exists;
