@@ -3,6 +3,7 @@ const vcValidationModule = require("../routes/vc");
 const { createSign } = require("crypto");
 const crypto = require("crypto");
 const canonicalize = require("canonicalize");
+const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
 
 describe("validateVC", () => {
   /**---------Create the key pair for the test--------- */
@@ -22,14 +23,14 @@ describe("validateVC", () => {
   const issuerDID = "did:hlf:issuer";
   const subDID = "did:hlf:subject";
   const uVCBuilder = new UnsignedVCBuilder(
-    "VerifiableCredential",
+    ["VerifiableCredential"],
     "date",
     issuerDID,
     subDID,
     "claim"
   );
   const baduVCBuilder = new UnsignedVCBuilder(
-    "VerifiableCredential",
+    ["VerifiableCredential"],
     "date",
     "did:hlf:somedid",
     subDID,

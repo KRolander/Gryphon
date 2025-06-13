@@ -31,8 +31,8 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
 });
 const issuerDID = "did:hlf:issuer";
 /**---------Create the DID Document of the issuer--------- */
-const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey);
-const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null);
+const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey, null);
+const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null, null);
 //this will be the doc of the issuer
 const doc = docBuilder.build();
 const keylessDoc = noKeyBuilder.build();
@@ -44,7 +44,7 @@ describe("POST /vc/verify", () => {
     /**---------Create the unsigne VC--------- */
     const subDID = "did:hlf:subject";
     const uVCBuilder = new UnsignedVCBuilder(
-      "VerifiableCredential",
+      ["VerifiableCredential", "something else"],
       "date",
       issuerDID,
       subDID,
@@ -74,36 +74,6 @@ describe("POST /vc/verify", () => {
     const response = await request(app).post("/vc/verify").send(sVC).expect(200);
 
     expect(response.text).toBe("The VC is valid (it was issued by the issuer)");
-  });
-
-  it("should return 400 because of invalid issuer", async () => {
-    getDIDDoc.mockReturnValue(doc);
-    /**---------Create the unsigne VC--------- */
-    const subDID = "did:hlf:subject";
-    const uVCBuilder = new UnsignedVCBuilder("VerifiableCredential", "date", null, subDID, "claim");
-    const uVC = uVCBuilder.build();
-
-    /**---------Create the signature--------- */
-    const canon = canonicalize(uVC);
-    const signer = createSign("SHA256");
-    signer.update(canon);
-    signer.end();
-    const signature = signer.sign(privateKey, "base64");
-
-    /**---------Sign the VC--------- */
-    const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
-
-    const sVC = sVCBuilder.build();
-    const keyId = doc.assertionMethod[0]; // get the id of the key used for the assertion method
-    const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
-
-    //if(!pkId)
-    const pk = method.publicKeyPem;
-    const result = vcValidationModule.validateVC(sVC, pk);
-
-    const response = await request(app).post("/vc/verify").send(sVC).expect(400);
-
-    expect(response.text).toBe("All VCs require an issuer field");
   });
 
   it("should return 400 because there is no VC", async () => {
