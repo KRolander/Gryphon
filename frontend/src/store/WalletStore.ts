@@ -37,12 +37,21 @@ export const useWalletStore = defineStore("wallet", {
       this.activeDid = did;
     },
 
+    switchDid(did: string) {
+      if (this.dids[did]) this.activeDid = did;
+    },
+
+    removeDid(did: string) {
+      delete this.dids[did];
+      if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null;
+    },
+
     addVC(did: string, credential: string) {
       this.dids[did]?.credentials.push(JSON.parse(credential) as VerifiableCredential);
     },
 
     getVCs(did: string) {
-      return this.dids[did];
+      return this.dids[did].credentials;
     },
 
     removeVC(did: string, credential: string) {
@@ -51,15 +60,6 @@ export const useWalletStore = defineStore("wallet", {
       if (index && index != -1) {
         this.dids[did].credentials.splice(index, 1);
       }
-    },
-
-    switchDid(did: string) {
-      if (this.dids[did]) this.activeDid = did;
-    },
-
-    removeDid(did: string) {
-      delete this.dids[did];
-      if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null;
     },
 
     async walletExists(userId: string): Promise<boolean> {
