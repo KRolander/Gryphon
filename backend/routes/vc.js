@@ -83,10 +83,11 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
 
 router.post("/createMapping/:key/:value", async (req, res, next) => {
   try {
+
     if (getGateway() == null) {
       await startGateway();
     }
-    const { mappingKey, mappingValue } = req.params;
+    const { key:mappingKey, value:mappingValue } = req.params;
     if (!mappingKey) {
       return res.status(400).send("Key for the mapping is required");
     }

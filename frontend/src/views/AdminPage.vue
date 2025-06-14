@@ -50,11 +50,20 @@
               class="ma-2 mb-6"
               variant="outlined"
               @click="createMapping(newMapKey,newMapValue)"
+              :disabled="loading"
           >
-            Add
-            <v-icon icon="mdi-plus-circle" end></v-icon>
+            <span v-if="!loading" class="d-flex justify-center align-center">Add
+              <v-icon icon="mdi-plus-circle" end></v-icon>
+            </span>
+            <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
           </v-btn>
         </v-col>
+        <v-alert
+            v-if="alert"
+            :color = "alertColor"
+        >
+          {{alertMessage}}
+        </v-alert>
       </v-row>
     </v-container>
 
@@ -74,6 +83,10 @@ export default {
       newRootTao: "",
       newMapKey: "",
       newMapValue: "",
+      loading: false,
+      alertColor: "info",
+      alert: false,
+      alertMessage: "",
       didStructureRules: [
         (value) => {
           if (value && value.startsWith("did:hlf:")) {
@@ -94,11 +107,35 @@ export default {
   },
   methods: {
     async createMapping(key,value){
-      await VCService.createMapping(key,value);
-      this.newMapKey="";
-      this.newMapValue="";
-    }
+      try{
+        this.loading = true;
+        await VCService.createMapping(key,value);
+        this.newMapKey="";
+        this.newMapValue="";
+        this.loading=false;
+        this.alertMessage=`Succesfully added mapping ${key} : ${value}`;
+        this.alert=true;
+        this.alertColor="success";
+        setTimeout(() => {
+          this.resetAlerts();
+        }, 5000);
+      } catch (error) {
+        this.alertMessage="There was an error, try again!"
+        this.alert = true;
+        this.alertColor="error";
+        setTimeout(() => {
+          this.resetAlerts();
+        }, 5000);
+      }
+
+    },
+    resetAlerts() {
+      this.alert = false;
+      this.alertMessage = "";
+      this.alertColor = "info";
+    },
   },
+
 
   mounted() {
     console.log("AdminPage mounted!");
