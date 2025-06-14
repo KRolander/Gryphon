@@ -6,7 +6,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import DIDsPage from "../views/DIDsPage.vue";
 import VCsPage from "../views/VCsPage.vue";
-import AdminPage from "../views/AdminPage.vue";
+import AdminSettings from "../views/AdminPage.vue";
 
 // Auth
 import AuthPage from "../views/AuthPage.vue";
@@ -24,9 +24,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    name: "adminPage",
+    name: "AdminSettings",
     path: "/admin",
-    component: AdminPage,
+    component: AdminSettings,
     meta: {requiresAuth: true},
   },
   {
