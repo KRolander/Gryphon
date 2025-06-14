@@ -5,6 +5,12 @@
     >
 
     <template v-slot:append>
+      <v-btn
+          v-if="admin"
+          text @click="navigateTo({ path: '/admin' })"
+      >
+        Admin settings
+      </v-btn>
       <v-btn text @click="navigateTo({ path: '/dids' })">DID's</v-btn>
       <v-btn text @click="navigateTo({ path: '/vcs' })">VC's</v-btn>
       <ProfileMenu />
@@ -23,10 +29,16 @@ export default {
   components: {
     ProfileMenu,
   },
+  data() {
+    return {
+      admin: true,
+    };
+  },
   methods: {
     navigateTo(path) {
       this.$router.push(path);
     },
+    //TODO check if admin and change admin field to true
   },
 };
 </script>

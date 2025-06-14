@@ -6,6 +6,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import DIDsPage from "../views/DIDsPage.vue";
 import VCsPage from "../views/VCsPage.vue";
+import AdminPage from "../views/AdminPage.vue";
 
 // Auth
 import AuthPage from "../views/AuthPage.vue";
@@ -21,6 +22,12 @@ const routes = [
     path: "/",
     component: HomePage,
     meta: { requiresAuth: true },
+  },
+  {
+    name: "adminPage",
+    path: "/admin",
+    component: AdminPage,
+    meta: {requiresAuth: true},
   },
   {
     name: "DIDs",
