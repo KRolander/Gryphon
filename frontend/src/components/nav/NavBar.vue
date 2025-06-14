@@ -5,12 +5,7 @@
     >
 
     <template v-slot:append>
-      <v-btn
-          v-if="admin"
-          text @click="navigateTo({ path: '/admin' })"
-      >
-        Admin settings
-      </v-btn>
+      <v-btn v-if="admin" text @click="navigateTo({ path: '/admin' })"> Admin settings </v-btn>
       <v-btn text @click="navigateTo({ path: '/dids' })">DID's</v-btn>
       <v-btn text @click="navigateTo({ path: '/vcs' })">VC's</v-btn>
       <ProfileMenu />

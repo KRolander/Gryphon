@@ -27,7 +27,7 @@ const routes = [
     name: "AdminSettings",
     path: "/admin",
     component: AdminSettings,
-    meta: {requiresAuth: true},
+    meta: { requiresAuth: true },
   },
   {
     name: "DIDs",

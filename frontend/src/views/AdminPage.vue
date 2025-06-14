@@ -9,20 +9,17 @@
     </div>
     <!-- Root TAO fields -to add an @click for rules of setting TAO -->
     <v-container>
-      <v-row class="w-100 border rounded" >
+      <v-row class="w-100 border rounded">
         <v-col cols="8">
           <v-text-field
-              v-model="newRootTao"
-              label="Add new root TAO (DID)"
-              required
-              :rules="didStructureRules"
+            v-model="newRootTao"
+            label="Add new root TAO (DID)"
+            required
+            :rules="didStructureRules"
           ></v-text-field>
         </v-col>
         <v-col cols="4">
-          <v-btn
-              class="ma-2"
-              variant="outlined"
-          >
+          <v-btn class="ma-2" variant="outlined">
             Add
             <v-icon icon="mdi-plus-circle" end></v-icon>
           </v-btn>
@@ -32,41 +29,34 @@
 
     <!-- Add mapping fields -->
     <v-container>
-      <v-row class="w-100 border rounded" >
+      <v-row class="w-100 border rounded">
         <v-col cols="8">
+          <v-text-field v-model="newMapKey" label="Add new key for VC type" required></v-text-field>
           <v-text-field
-              v-model="newMapKey"
-              label="Add new key for VC type"
-              required
-          ></v-text-field>
-          <v-text-field
-              v-model="newMapValue"
-              label="Add new value for VC type"
-              required
+            v-model="newMapValue"
+            label="Add new value for VC type"
+            required
           ></v-text-field>
         </v-col>
         <v-col cols="4" class="d-flex align-center">
           <v-btn
-              class="ma-2 mb-6"
-              variant="outlined"
-              @click="createMapping(newMapKey,newMapValue)"
-              :disabled="loading"
+            class="ma-2 mb-6"
+            variant="outlined"
+            @click="createMapping(newMapKey, newMapValue)"
+            :disabled="loading"
           >
-            <span v-if="!loading" class="d-flex justify-center align-center">Add
+            <span v-if="!loading" class="d-flex justify-center align-center"
+              >Add
               <v-icon icon="mdi-plus-circle" end></v-icon>
             </span>
             <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
           </v-btn>
         </v-col>
-        <v-alert
-            v-if="alert"
-            :color = "alertColor"
-        >
-          {{alertMessage}}
+        <v-alert v-if="alert" :color="alertColor">
+          {{ alertMessage }}
         </v-alert>
       </v-row>
     </v-container>
-
   </v-container>
 </template>
 
@@ -103,31 +93,30 @@ export default {
           return true;
         },
       ],
-    }
+    };
   },
   methods: {
-    async createMapping(key,value){
-      try{
+    async createMapping(key, value) {
+      try {
         this.loading = true;
-        await VCService.createMapping(key,value);
-        this.newMapKey="";
-        this.newMapValue="";
-        this.loading=false;
-        this.alertMessage=`Succesfully added mapping ${key} : ${value}`;
-        this.alert=true;
-        this.alertColor="success";
+        await VCService.createMapping(key, value);
+        this.newMapKey = "";
+        this.newMapValue = "";
+        this.loading = false;
+        this.alertMessage = `Succesfully added mapping ${key} : ${value}`;
+        this.alert = true;
+        this.alertColor = "success";
         setTimeout(() => {
           this.resetAlerts();
         }, 5000);
       } catch (error) {
-        this.alertMessage="There was an error, try again!"
+        this.alertMessage = "There was an error, try again!";
         this.alert = true;
-        this.alertColor="error";
+        this.alertColor = "error";
         setTimeout(() => {
           this.resetAlerts();
         }, 5000);
       }
-
     },
     resetAlerts() {
       this.alert = false;
@@ -136,11 +125,9 @@ export default {
     },
   },
 
-
   mounted() {
     console.log("AdminPage mounted!");
-  }
-
+  },
 };
 </script>
 

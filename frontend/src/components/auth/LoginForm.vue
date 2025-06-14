@@ -43,29 +43,29 @@
           <v-card-actions class="d-flex flex-column justify-center">
             <!-- <v-spacer></v-spacer> -->
             <div class="d-flex justify-center ga-8">
-            <v-btn
-              color="primary"
-              size="large"
-              variant="outlined"
-              class="font-weight-bold"
-              @click="login"
-              :disabled="loading"
-            >
-              <span v-if="!loading">Login as user</span>
-              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
-            </v-btn>
-
-            <v-btn
+              <v-btn
                 color="primary"
                 size="large"
                 variant="outlined"
                 class="font-weight-bold"
                 @click="login"
                 :disabled="loading"
-            >
-              <span v-if="!loading">Login as admin</span>
-              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
-            </v-btn>
+              >
+                <span v-if="!loading">Login as user</span>
+                <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+              </v-btn>
+
+              <v-btn
+                color="primary"
+                size="large"
+                variant="outlined"
+                class="font-weight-bold"
+                @click="login"
+                :disabled="loading"
+              >
+                <span v-if="!loading">Login as admin</span>
+                <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+              </v-btn>
             </div>
 
             <span class="font-weight-light"
