@@ -1,14 +1,29 @@
 services:
+  gryphon-backend:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - LOG_PATH=/var/log/myapp/backend
+    volumes:
+      - ./logs/backend:/var/log/myapp/backend:rw
+    networks:
+      - monitoring
+      - fabric_test
 
   agent:
-    image: grafana/agent:latest
-    container_name: grafana-agent
-    environment:
-      - AGENT_MODE=flow
-    command: ["run", "/etc/agent/config.river"]
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
+    ports:
+      - 12345:12345
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     volumes:
-      - ./agent-config.river:/etc/agent/config.river:ro
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
       - ./logs/backend:/var/log/myapp/backend:ro
+    depends_on:
+      - loki
     networks:
       - monitoring
 
@@ -47,3 +62,4 @@ volumes:
 
 networks:
   monitoring: {}
+  fabric_test: {}

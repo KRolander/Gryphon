@@ -1,43 +1,37 @@
 logging {
-  level  = "info"
-}
-
-loki.write "default" {
-    endpoint {
-        url = "http://loki:3100/loki/api/v1/push"
-    }
+  level  = "debug"
 }
 
 local.file_match "backend" {
-  path_targets = [
-    { path = "/var/log/myapp/backend/*.log" },
-  ]
+  path_targets = [{"__path__" = "/var/log/myapp/backend/backend.log"}]
 }
 
 loki.source.file "backend_logs" {
   targets    = local.file_match.backend.targets
-  forward_to = [loki.write.default.receiver]
+  forward_to = [loki.process.backend.receiver]
 }
 
 loki.process "backend" {
   stage.json {
       expressions = {
-        timestamp     = "timestamp",
+        timestamp     = "time",
         level         = "level",
         correlationId = "correlationId",
         action        = "action",
-        userId        = "userId",
         message       = "message",
       }
     }
+
+  stage.timestamp {
+    source     = "timestamp"
+    format = "2006-01-02T15:04:05.000Z07:00"
+  }
 
   stage.labels {
     values = {
       source        = "backend",
       level         = "${level}",
-      correlationId = "${correlationId}",
       action        = "${action}",
-      userId        = "${userId}",
     }
   }
 
@@ -52,4 +46,10 @@ loki.relabel "backend" {
         target_label = "job"
         replacement  = "backend"
   }
+}
+
+loki.write "default" {
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
 }

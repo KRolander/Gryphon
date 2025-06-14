@@ -2,7 +2,7 @@ const pino = require("pino");
 const fs = require("fs");
 const path = require("path");
 
-const logDirectory = path.resolve(__dirname, "../../logging/logs/backend");
+const logDirectory = process.env.LOG_PATH || path.resolve(__dirname, "../../logging/logs/backend");
 const logFilePath = path.join(logDirectory, "backend.log");
 
 if (!fs.existsSync(logDirectory)) {
