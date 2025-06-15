@@ -8,7 +8,7 @@ import {
   extractSalt,
   SALT_LENGTH,
 } from "@/utils/crypto";
-import { VCBuilder,  UnsignedVCBuilder, VerifiableCredential } from "@/../../utils/VC";
+import { VerifiableCredential } from "@/../../utils/VC";
 
 /**
  * Defines the structure of the wallet to be stored and the available methods.
@@ -28,10 +28,7 @@ export const useWalletStore = defineStore("wallet", {
       {
         keyPair: { publicKey: string; privateKey: string };
         metadata: { name: string; createdAt: string; tags?: string[] };
-        credentials: Record<
-          string,
-          VerifiableCredential
-        >;
+        credentials: Record<string, VerifiableCredential>;
       }
     >,
     // activeDid can be used as the DID for issuing/presenting credentials
