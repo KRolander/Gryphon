@@ -3,14 +3,15 @@
     <div>
       <div class="mb-8 text-center">
         <div class="text-body-1 font-weight-light mb-n1">Welcome to</div>
-        <h1 class="text-h1 font-weight-bold">Your VCs</h1>
+        <h1 class="text-h2 font-weight-bold">Your VCs</h1>
       </div>
     </div>
 
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
-        <!-- Load the VCs from the wallet -->
+        <!-- Run setup functions that depend on the wallet -->
         <div style="display: none">
+          {{ getIssuableVCTypes(wallet) }}
           {{ refreshVCs(wallet) }}
         </div>
 
@@ -21,6 +22,54 @@
               <!-- Card Title -->
               <template v-slot:title>
                 <span class="font-weight-black">Your VCs</span>
+              </template>
+
+              <!-- Button to issue VCs -->
+              <template v-slot:append>
+                <v-dialog v-model="issueVCDialog" max-width="500">
+                  <!-- Activator button -->
+                  <template v-slot:activator="{ props: issueButtonProps }">
+                    <v-btn
+                      v-bind="issueButtonProps"
+                      variant="outlined"
+                      @click="issueVCDialog = true"
+                    >
+                      Issue VC <v-icon icon="mdi-file-document-plus" end></v-icon>
+                    </v-btn>
+                  </template>
+
+                  <!-- Dialog -->
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Issue VC">
+                      <v-card-text>
+                        <v-form
+                          id="issueForm"
+                          v-model="issueVCValid"
+                          @submit.prevent="(e) => issueVC(wallet)"
+                        >
+                        </v-form>
+                      </v-card-text>
+
+                      <v-card-actions>
+                        <v-btn
+                          class="ma-2s"
+                          variant="outlined"
+                          @click="() => {isActive.value = false; newControllerName=''}"
+                        >
+                          Cancel
+                          <v-icon icon="mdi-cancel" end></v-icon>
+                        </v-btn>
+
+                        <v-spacer></v-spacer>
+
+                        <v-btn class="ma-2" variant="outlined" @click="isActive.value = false">
+                          Done
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
               </template>
 
               <!-- Card content -->
@@ -173,6 +222,9 @@
 <script lang="js">
 /* ----------------------- IMPORTS ----------------------- */
 import WalletManager from "@/components/wallet/WalletManager.vue";
+import { VCBuilder, UnsignedVCBuilder } from "@/../../utils/VC.ts";
+import canonicalize from "canonicalize";
+import { sign } from "@/utils/crypto";
 
 /* ----------------------- CONFIG ----------------------- */
 export default {
@@ -181,6 +233,17 @@ export default {
   data() {
     return {
       VCs: [],
+      issueVCDialog: false,
+      issueVCValid: false,
+      issueVCFormData: {
+        name: "",
+        type: "",
+        issuer: "",
+        subject: "",
+        claims: {},
+        verificationMethod: "",
+      },
+      issuedVC: {},
     };
   },
   methods: {
@@ -204,6 +267,7 @@ export default {
           const original = credentials[key];
           credentials[key] = {
             VC: original,
+            // Here we can add any variables relating to individual VCs
             displayed: false,
           };
         });
@@ -212,15 +276,80 @@ export default {
           did,
           name: data.metadata?.name || "Unnamed DID",
           credentials,
+          // Here we can add any variables relating to VC Lists
           displayed: false,
         };
       });
-      // console.log(this.VCs);
-      // console.log(Object.entries(this.VCs[0].credentials).length);
+    },
+
+    /**
+     * A method that returns a list of VC Types that you are authorized to issue
+     * @param wallet The wallet storing the VCs
+     * @param did The did of the issuer
+     */
+    getIssuableVCTypes(wallet, did) {
+      if (!did) did = wallet.activeDid;
+    },
+
+    async issueVC(wallet) {
+      if (!this.issueVCValid) return;
+
+      // First, we make an unsigned VC
+      const issuer = this.issueVCFormData.issuer.did; // issuer is a pair of did and name
+      const creationDate = new Date().toISOString;
+      const unsigned = UnsignedVCBuilder(
+        ["VerifiableCredential", this.issueVCFormData.type],
+        creationDate,
+        issuer,
+        this.issueVCFormData.subject,
+        this.issueVCFormData.claims
+      ).build();
+
+      // Next, we sign the contents
+      // Canonicalize the unsigned VC into a string
+      const canon = canonicalize(unsigned);
+      if (!canon) throw new Error("Failed to canonicalize VC");
+
+      // Sign that string with the private key from the wallet
+      const privateKey = wallet.dids[issuer].metadata?.privateKey;
+      if (!privateKey) throw new Error(`Missing private key for this DID: ${issuer}`);
+
+      const signature = await sign(canon, privateKey);
+
+      // Finally, we put together the unsigned VC and the signature
+      const VC = VCBuilder(
+        unsigned,
+        creationDate,
+        this.issueVCFormData.verificationMethod,
+        signature
+      ).build();
+      this.issuedVC = VC;
+
+      // Next, we update the wallet if the subject did is in the wallet
+      if (wallet.dids[did]) {
+        wallet.addVC(did, this.issueVCFormData.name, VC);
+
+        // Persist the wallet
+        wallet.save();
+        this.refreshVCs(wallet);
+      }
+
+      // Reset the form
+      this.issueVCFormData = {
+        name: "",
+        type: [],
+        issuer: "",
+        subject: "",
+        claims: {},
+        verificationMethod: "",
+      };
+      this.issueVCValid = false;
+
+      // Close the dialog
+      this.issueVCDialog = false;
     },
 
     emptyCredentials(wallet, ind) {
-      console.log(Object.entries(this.VCs[ind].credentials).length);
       return Object.entries(this.VCs[ind].credentials).length === 0;
     },
 
