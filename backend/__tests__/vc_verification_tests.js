@@ -30,7 +30,7 @@ jest.mock("../utility/VCUtils", () => {
   };
 });
 
-const { fetchRegistry,isRoot } = require("../utility/VCUtils");
+const { fetchRegistry, isRoot } = require("../utility/VCUtils");
 
 /**---------Create the key pair for the student--------- */
 let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
@@ -212,9 +212,9 @@ describe("POST /vc/verifyTrustchain", () => {
     });
 
     isRoot.mockImplementation((did) => {
-      if(did === "did:hlf:root") return true;
+      if (did === "did:hlf:root") return true;
       return false;
-    })
+    });
 
     // import it here because we need the registries to be populated first
     const app = require("../app");
