@@ -90,12 +90,12 @@ export class VCBuilder {
   private credentialSubject: CredentialSubject;
   private proof: Proof;
 
-  constructor(unsignedVC: UnsignedVC, signatureCreationDate: string, verificationMethd: string, signature: string) {
+  constructor(unsignedVC: UnsignedVC, signatureCreationDate: string, verificationMethod: string, signature: string) {
     this.issuer = unsignedVC.issuer;
     this.vcType = unsignedVC.type;
     this.issuanceDate = unsignedVC.issuanceDate;
     this.credentialSubject = unsignedVC.credentialSubject;
-    this.proof = buildProof(signatureCreationDate, verificationMethd, signature);
+    this.proof = buildProof(signatureCreationDate, verificationMethod, signature);
   }
 
   build(): VerifiableCredential {
