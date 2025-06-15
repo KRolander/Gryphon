@@ -25,11 +25,12 @@ jest.mock("../utility/VCUtils", () => {
   const actual = jest.requireActual("../utility/VCUtils");
   return {
     ...actual,
+    isRoot: jest.fn(),
     fetchRegistry: jest.fn(),
   };
 });
 
-const { fetchRegistry } = require("../utility/VCUtils");
+const { fetchRegistry,isRoot } = require("../utility/VCUtils");
 
 /**---------Create the key pair for the student--------- */
 let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
@@ -209,6 +210,11 @@ describe("POST /vc/verifyTrustchain", () => {
       if (url == rootURL) return loadRegistryAsMap("../registries/MOE.json");
       return url;
     });
+
+    isRoot.mockImplementation((did) => {
+      if(did === "did:hlf:root") return true;
+      return false;
+    })
 
     // import it here because we need the registries to be populated first
     const app = require("../app");
