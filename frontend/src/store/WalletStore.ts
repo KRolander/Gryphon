@@ -83,9 +83,9 @@ export const useWalletStore = defineStore("wallet", {
      * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
      * @param {JSON} credential - The VC issued to the `did`
      */
-    addVC(did: string, name: string, credential: string) {
+    addVC(did: string, name: string, credential: VerifiableCredential) {
       if (!this.dids[did].credentials) this.dids[did].credentials = {};
-      this.dids[did].credentials[name] = JSON.parse(credential) as VerifiableCredential;
+      this.dids[did].credentials[name] = credential;
     },
 
     getVCs(did: string) {
