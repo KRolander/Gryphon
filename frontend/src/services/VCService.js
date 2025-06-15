@@ -6,6 +6,14 @@ export default {
   },
 
   getMapping(mappingKey) {
-    return Api().get(`/getVCTypeMapping/${mappingKey}`);
+    return Api().get(`vc/getVCTypeMapping/${mappingKey}`);
+  },
+
+  verify(VC) {
+    return Api().post(`vc/verify`, VC);
+  },
+
+  verifyTrustchain(VC) {
+    return Api().post(`vc/verifyTrustchain`, VC);
   },
 };

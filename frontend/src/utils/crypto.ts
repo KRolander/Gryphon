@@ -175,7 +175,7 @@ async function importKey(key: string): Promise<CryptoKey> {
       namedCurve: "P-256",
     },
     false,
-    ["sign", "verify"]
+    ["sign"]
   );
 }
 

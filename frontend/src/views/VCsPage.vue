@@ -9,23 +9,52 @@
 
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
-        <!-- Run setup functions that depend on the wallet -->
+        <!-- Initialize the VCs from the wallet -->
         <div style="display: none">
-          {{ getIssuableVCTypes(wallet) }}
           {{ refreshVCs(wallet) }}
         </div>
 
         <!-- Card for the VCs sorted by DID -->
         <v-row class="w-100">
           <v-col cols="12">
-            <v-card class="mx-auto">
+            <v-card class="mb-4 mt-4">
               <!-- Card Title -->
               <template v-slot:title>
                 <span class="font-weight-black">Your VCs</span>
               </template>
 
-              <!-- Button to issue VCs -->
+              <!-- Interaction with other VCs -->
               <template v-slot:append>
+                <!-- Button to verify a VC -->
+                <v-dialog v-model="verifyVCDialog" max-width="500">
+                  <!-- Activator button -->
+                  <template v-slot:activator="{ props: verifyButton }">
+                    <v-btn v-bind="verifyButton" variant="outlined" @click="verifyVCDialog = true">
+                      Verify VC <v-icon icon="mdi-checkbox-marked-circle" end />
+                    </v-btn>
+                  </template>
+
+                  <!-- Dialog -->
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Verify a VC">
+                      <v-card-text>
+                        <v-text-field label="VC To Verify" v-model="VCToVerify" required />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn class="ma-2s" variant="outlined" @click="isActive.value = false">
+                          Cancel <v-icon icon="mdi-cancel" end />
+                        </v-btn>
+
+                        <v-spacer />
+
+                        <v-btn class="ma-2" variant="outlined" @click="verifyVC()">
+                          Verify <v-icon icon="mdi-checkbox-marked-circle" end />
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
+                <!-- Button to issue VCs -->
                 <v-dialog v-model="issueVCDialog" max-width="500">
                   <!-- Activator button -->
                   <template v-slot:activator="{ props: issueButtonProps }">
@@ -47,6 +76,62 @@
                           v-model="issueVCValid"
                           @submit.prevent="(e) => issueVC(wallet)"
                         >
+                          <v-text-field
+                            label="VC Name"
+                            v-model="issueVCFormData.name"
+                            :counter="20"
+                            :rules="nameRules"
+                            required
+                          />
+
+                          <v-select
+                            label="Issuer DID"
+                            v-model="issueVCFormData.issuer"
+                            :items="VCs"
+                            item-title="name"
+                            return-object
+                            required
+                          />
+
+                          <v-text-field
+                            label="Subject DID"
+                            v-model="issueVCFormData.subject"
+                            :rules="[v => !!v || 'Subject is required']"
+                            required
+                          />
+
+                          <v-select
+                            label="VC Type"
+                            v-model="issueVCFormData.type"
+                            :items="getIssuableVCTypes(wallet, this.issueVCFormData.issuer)"
+                            required
+                          />
+
+                          <v-text-field
+                            label="Verification Method (DID URL)"
+                            v-model="issueVCFormData.verificationMethod"
+                            required
+                          />
+
+                          <div>
+                            <div v-for="(claim, index) in issueVCFormData.claims" :key="index" class="d-flex mb-2 gap-2">
+                              <v-text-field
+                                label="Claim Key"
+                                v-model="claim.claim"
+                                :rules="[v => !!v || 'Key required']"
+                              />
+                              <v-text-field
+                                label="Claim Value"
+                                v-model="claim.value"
+                                :rules="[v => !!v || 'Value required']"
+                              />
+                              <v-btn icon @click="removeClaim(index)">
+                                <v-icon>mdi-delete</v-icon>
+                              </v-btn>
+                            </div>
+
+                            <v-btn @click="addClaim" color="primary" variant="tonal" class="mt-2">Add Claim</v-btn>
+                          </div>
                         </v-form>
                       </v-card-text>
 
@@ -54,17 +139,27 @@
                         <v-btn
                           class="ma-2s"
                           variant="outlined"
-                          @click="() => {isActive.value = false; newControllerName=''}"
+                          @click="
+                            () => {
+                              resetIssueVCForm();
+                              isActive.value = false;
+                            }
+                          "
                         >
                           Cancel
-                          <v-icon icon="mdi-cancel" end></v-icon>
+                          <v-icon icon="mdi-cancel" end />
                         </v-btn>
 
-                        <v-spacer></v-spacer>
+                        <v-spacer />
 
-                        <v-btn class="ma-2" variant="outlined" @click="isActive.value = false">
-                          Done
-                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        <v-btn
+                          class="ma-2"
+                          variant="outlined"
+                          :disable="!issueVCValid"
+                          @click="issueVC(wallet)"
+                        >
+                          Issue
+                          <v-icon icon="mdi-checkbox-marked-circle" end />
                         </v-btn>
                       </v-card-actions>
                     </v-card>
@@ -87,49 +182,6 @@
                     <v-card-subtitle class="text-body-1 font-weight-light mb-4">
                       {{ VCList.did }}
                     </v-card-subtitle>
-
-                    <!-- Delete DID -->
-                    <!-- <template v-slot:append>
-                      <v-dialog v-model="deleteDIDDialog" max-width="500">
-                        <!-- Activator button 
-                        <template v-slot:activator="{ props: deleteButton }">
-                          <v-btn
-                            v-bind="deleteButton"
-                            variant="outlined"
-                            @click="
-                              () => {
-                                (deleteDIDDialog = true), (DIDToDelete = DID.did);
-                              }
-                            "
-                          >
-                            Delete DID <v-icon icon="mdi-file-document-remove-outline" end></v-icon
-                          ></v-btn>
-                        </template>
-
-                        <!-- Dialog 
-                        <template v-slot:default="{ isActive }">
-                          <v-card title="Are you sure you want to delete this DID?">
-                            <v-card-actions>
-                              <v-btn class="ma-2s" variant="outlined" @click="isActive.value = false">
-                                No
-                                <v-icon icon="mdi-cancel" end></v-icon>
-                              </v-btn>
-
-                              <v-spacer></v-spacer>
-
-                              <v-btn
-                                class="ma-2"
-                                variant="outlined"
-                                @click="deleteDID(DIDToDelete, wallet)"
-                              >
-                                Yes
-                                <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
-                              </v-btn>
-                            </v-card-actions>
-                          </v-card>
-                        </template>
-                      </v-dialog>
-                    </template> -->
 
                     <template v-slot:append>
                       <v-btn
@@ -222,6 +274,7 @@
 <script lang="js">
 /* ----------------------- IMPORTS ----------------------- */
 import WalletManager from "@/components/wallet/WalletManager.vue";
+import VCService from "@/services/VCService.js";
 import { VCBuilder, UnsignedVCBuilder } from "@/../../utils/VC.ts";
 import canonicalize from "canonicalize";
 import { sign } from "@/utils/crypto";
@@ -233,16 +286,51 @@ export default {
   data() {
     return {
       VCs: [],
+      verifyVCDialog: false,
+      VCToVerify: "",
       issueVCDialog: false,
       issueVCValid: false,
       issueVCFormData: {
         name: "",
         type: "",
-        issuer: "",
+        issuer: null,
         subject: "",
         claims: {},
         verificationMethod: "",
       },
+      nameRules: [
+        (value) => {
+          if (value) return true;
+
+          return "Name is required.";
+        },
+        (value) => {
+          if (value?.length <= 20) return true;
+
+          return "Name must be less than 20 characters.";
+        },
+        (value) => {
+          if (value?.length >= 2) return true;
+
+          return "Name must be longer than 2 characters.";
+        }
+      ],
+      didStructureRules: [
+        (value) => {
+          if (value && value.startsWith("did:hlf:")) {
+            return true;
+          }
+          return "A DID should start with did:hlf:";
+        },
+        (value) => {
+          if (value.length < 30) {
+            return "DID too short, check again";
+          } else if (value.length > 31) {
+            return "DID too long, check again";
+          }
+          return true;
+        },
+      ],
       issuedVC: {},
     };
   },
@@ -253,6 +341,7 @@ export default {
         // Testing only, remove later
         // const credentials = wallet.getVCs(did);
         const credentials = {
+          ...wallet.getVCs(did),
           ceva: {
             a: 1,
             b: 2,
@@ -262,7 +351,7 @@ export default {
             b: 4,
           },
         };
-        // Add any extra properties we need
+
         Object.keys(credentials).forEach((key) => {
           const original = credentials[key];
           credentials[key] = {
@@ -275,11 +364,23 @@ export default {
         return {
           did,
           name: data.metadata?.name || "Unnamed DID",
+          privateKey: data.keyPair.privateKey,
           credentials,
           // Here we can add any variables relating to VC Lists
           displayed: false,
         };
       });
+    },
+
+    async verifyVC() {
+      const VC = JSON.parse(this.VCToVerify);
+      try {
+        // await VCService.verify(VC);
+        const res = await VCService.verifyTrustchain(VC);
+        console.log(res);
+      } catch (err) {
+        console.log(err);
+      }
     },
 
     /**
@@ -289,19 +390,36 @@ export default {
      */
     getIssuableVCTypes(wallet, did) {
       if (!did) did = wallet.activeDid;
+      if (did === "a") return ["a", "b"];
+      return ["c"];
+    },
+
+    resetIssueVCForm() {
+      this.issueVCFormData = {
+        name: "",
+        type: "",
+        issuer: null,
+        subject: "",
+        claims: {},
+        verificationMethod: "",
+      };
     },
 
     async issueVC(wallet) {
+      console.log(this.issueVCFormData);
+      console.log(wallet.dids);
       if (!this.issueVCValid) return;
 
       // First, we make an unsigned VC
-      const issuer = this.issueVCFormData.issuer.did; // issuer is a pair of did and name
+      const issuer = this.issueVCFormData.issuer.did; // issuer is an object from the VCs array
+      const privateKey = this.issueVCFormData.issuer.privateKey;
+      const subject = this.issueVCFormData.subject;
       const creationDate = new Date().toISOString;
-      const unsigned = UnsignedVCBuilder(
+      const unsigned = new UnsignedVCBuilder(
         ["VerifiableCredential", this.issueVCFormData.type],
         creationDate,
         issuer,
-        this.issueVCFormData.subject,
+        subject,
         this.issueVCFormData.claims
       ).build();
 
@@ -311,23 +429,24 @@ export default {
       if (!canon) throw new Error("Failed to canonicalize VC");
 
       // Sign that string with the private key from the wallet
-      const privateKey = wallet.dids[issuer].metadata?.privateKey;
       if (!privateKey) throw new Error(`Missing private key for this DID: ${issuer}`);
 
       const signature = await sign(canon, privateKey);
 
       // Finally, we put together the unsigned VC and the signature
-      const VC = VCBuilder(
+      const VC = new VCBuilder(
         unsigned,
         creationDate,
         this.issueVCFormData.verificationMethod,
         signature
       ).build();
       this.issuedVC = VC;
+      console.log(VC);
 
       // Next, we update the wallet if the subject did is in the wallet
-      if (wallet.dids[did]) {
-        wallet.addVC(did, this.issueVCFormData.name, VC);
+      if (wallet.dids[subject]) {
+        console.log("adding to wallet");
+        wallet.addVC(subject, this.issueVCFormData.name, VC);
 
         // Persist the wallet
         wallet.save();
@@ -335,14 +454,7 @@ export default {
       }
 
       // Reset the form
-      this.issueVCFormData = {
-        name: "",
-        type: [],
-        issuer: "",
-        subject: "",
-        claims: {},
-        verificationMethod: "",
-      };
+      this.resetIssueVCForm();
       this.issueVCValid = false;
 
       // Close the dialog
