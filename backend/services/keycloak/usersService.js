@@ -4,7 +4,6 @@ const keycloakApiClient = require("../keycloakApiClient.js");
 
 // Logger
 const logger = require("../../utility/logger");
-const { generateCorrelationId } = require("../../utility/loggerUtils");
 
 /* ======================= CONFIG ======================= */
 /**
@@ -47,7 +46,7 @@ async function createUser(userData, realmName, adminAccessToken, correlationId =
     // Check that the response status is 201 - Created
     if (userCreationResponse.status === 201) {
       logger.info({
-        action: `createUser(${userData.username})`,
+        action: "createUser",
         correlationId: correlationId,
         message: "User creation was successful",
       });
@@ -57,7 +56,7 @@ async function createUser(userData, realmName, adminAccessToken, correlationId =
     // Throw error if the user creation failed
     const errorMessage = `User creation failed with status code: ${userCreationResponse.status}`;
     logger.error({
-      action: `createUser(${userData.username})`,
+      action: "createUser",
       correlationId: correlationId,
       message: errorMessage,
     });
@@ -65,7 +64,7 @@ async function createUser(userData, realmName, adminAccessToken, correlationId =
   } catch (error) {
     const errorMessage = `User Creation failed with the following error: ${error.message}`;
     logger.error({
-      action: `createUser(${userData.username})`,
+      action: "createUser",
       correlationId: correlationId,
       message: errorMessage,
     });
@@ -104,7 +103,7 @@ async function loginUser(userData, realmName, correlationId = "unknown") {
     if (loginResponse.status !== 200) {
       const errorMessage = `Login failed with status code: ${loginResponse.status}`;
       logger.error({
-        action: `loginUser(${userData.username})`,
+        action: "loginUser",
         correlationId: correlationId,
         message: errorMessage,
       });
@@ -114,7 +113,7 @@ async function loginUser(userData, realmName, correlationId = "unknown") {
     const token = loginResponse.data.access_token;
 
     logger.info({
-      action: `loginUser(${userData.username})`,
+      action: "loginUser",
       correlationId: correlationId,
       message: "Log in was successful",
     });
@@ -122,7 +121,7 @@ async function loginUser(userData, realmName, correlationId = "unknown") {
   } catch (error) {
     const errorMessage = `Login failed with the following error: ${error.message}`;
     logger.error({
-      action: `loginUser(${userData.username})`,
+      action: "loginUser",
       correlationId: correlationId,
       message: errorMessage,
     });

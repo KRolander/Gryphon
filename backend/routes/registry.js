@@ -19,7 +19,7 @@ router.get("/:org", (req, res) => {
   if (!fs.existsSync(filePath)) {
     const warningMessage = "Registry not found for this organization";
     logger.warn({
-      action: `GET /registry/${org}`,
+      action: "GET /registry/registry",
       correlationId: correlationId,
       message: warningMessage,
     });
@@ -28,7 +28,7 @@ router.get("/:org", (req, res) => {
 
   const registry = JSON.parse(fs.readFileSync(filePath));
   logger.info({
-    action: `GET /registry/${org}`,
+    action: "GET /registry/registry",
     correlationId: correlationId,
     message: "Registry fetched successfully",
   });

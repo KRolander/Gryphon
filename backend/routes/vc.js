@@ -308,7 +308,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           return res.status(500).send(errorMessage);
         }
         const endpoint = repoEndpoint.serviceEndpoint;
-        const registry = await fetchRegistry(endpoint);
+        const registry = await fetchRegistry(endpoint, correlationId);
 
         let temp = "";
         if (currentVC.type.length == 2) {

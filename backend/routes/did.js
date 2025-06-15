@@ -96,7 +96,7 @@ router.get("/getDIDDoc/:did", async (req, res) => {
     console.log(`✅ DID document for ${DID} retrieved succesfully!`);
     const successMessage = `DID document for ${DID} retrieved succesfully!`;
     logger.info({
-      action: `GET /getDIDDoc/${DID}`,
+      action: "GET /did/getDIDDoc",
       correlationId: correlationId,
       message: successMessage,
     });
@@ -106,7 +106,7 @@ router.get("/getDIDDoc/:did", async (req, res) => {
     console.error("❌ Error retrieving the document from blockchain:", error);
     const errorMessage = "Error retrieving the document from blockchain";
     logger.info({
-      action: `GET /getDIDDoc/`,
+      action: "GET /did/getDIDDoc",
       correlationId: correlationId,
       message: errorMessage,
     });
@@ -127,7 +127,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
     if (!operation || !newController) {
       const message = "Invalid request";
       logger.warn({
-        action: `PATCH /updateDIDDoc/addController/${targetDID}`,
+        action: "PATCH did/updateDIDDoc/addController",
         correlationId: correlationId,
         message: message,
       });
@@ -139,7 +139,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       } catch (err) {
         const errorMessage = `There is no controller with DID ${newController}`;
         logger.warn({
-          action: `PATCH /updateDIDDoc/addController/${targetDID}`,
+          action: "PATCH did/updateDIDDoc/addController",
           correlationId: correlationId,
           message: errorMessage,
         });
@@ -156,7 +156,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       if (doc.controllers.includes(newController)) {
         const errorMessage = "Duplicate controller";
         logger.warn({
-          action: `PATCH /updateDIDDoc/addController/${targetDID}`,
+          action: "PATCH did/updateDIDDoc/addController",
           correlationId: correlationId,
           message: errorMessage,
         });
@@ -168,7 +168,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
 
       const successMessage = `Controller ${newController} added successfully for DID ${targetDID}`;
       logger.info({
-        action: `PATCH /updateDIDDoc/addController/${targetDID}`,
+        action: "PATCH did/updateDIDDoc/addController",
         correlationId: correlationId,
         message: successMessage,
       });
@@ -177,7 +177,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
     } else {
       const errorMessage = "Not yet implemented or operation not allowed";
       logger.warn({
-        action: `PATCH /updateDIDDoc/addController/${targetDID}`,
+        action: "PATCH did/updateDIDDoc/addController",
         correlationId: correlationId,
         message: errorMessage,
       });
@@ -186,7 +186,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
   } catch (error) {
     const errorMessage = "Error retrieving the document from blockchain";
     logger.warn({
-      action: `PATCH /updateDIDDoc/addController/`,
+      action: "PATCH did/updateDIDDoc/addController",
       correlationId: correlationId,
       message: errorMessage,
     });
@@ -210,7 +210,7 @@ router.delete("/deleteDID/:did", async (req, res) => {
 
     const successMessage = `DID ${DID} deleted successfully`;
     logger.info({
-      action: `DELETE /deleteDID/${DID}`,
+      action: "DELETE /did/deleteDID",
       correlationId: correlationId,
       message: successMessage,
     });
@@ -225,7 +225,7 @@ router.delete("/deleteDID/:did", async (req, res) => {
     if (errorMessage.includes("it doesn't exist")) {
       const errorMessage = `DID ${req.params.did} does not exist on-chain`;
       logger.warn({
-        action: `DELETE /deleteDID/${req.params.did}`,
+        action: "DELETE /did/deleteDID",
         correlationId: correlationId,
         message: errorMessage,
       });
@@ -237,7 +237,7 @@ router.delete("/deleteDID/:did", async (req, res) => {
     // Otherwise return a generic error
     const errMessage = "Failed to delete DID";
     logger.warn({
-      action: `DELETE /deleteDID/${req.params.did}`,
+      action: "DELETE /did/deleteDID",
       correlationId: correlationId,
       message: errMessage,
     });
