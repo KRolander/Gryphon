@@ -24,6 +24,15 @@ services:
       - monitoring
       - fabric_test
 
+  gryphon-frontend:
+    build:
+      context: ./
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "5173:5173"
+    networks:
+      - monitoring
+
 networks:
   monitoring: {}
   fabric_test: {}
