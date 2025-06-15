@@ -1,0 +1,29 @@
+name:
+  Gryphon-app
+services:
+  keycloak:
+    ports:
+      - 9090:8080
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    image: quay.io/keycloak/keycloak:26.2.5
+    command: start-dev
+
+  gryphon-backend:
+    build:
+      context: ./
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - LOG_PATH=/var/log/myapp/backend
+    volumes:
+      - ./logging/logs/backend:/var/log/myapp/backend:rw
+    networks:
+      - monitoring
+      - fabric_test
+
+networks:
+  monitoring: {}
+  fabric_test: {}

@@ -1,18 +1,4 @@
 services:
-  gryphon-backend:
-    build:
-      context: ../
-      dockerfile: backend/Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - LOG_PATH=/var/log/myapp/backend
-    volumes:
-      - ./logs/backend:/var/log/myapp/backend:rw
-    networks:
-      - monitoring
-      - fabric_test
-
   agent:
     image: grafana/alloy:latest
     container_name: grafana-alloy
@@ -62,4 +48,3 @@ volumes:
 
 networks:
   monitoring: {}
-  fabric_test: {}
