@@ -15,7 +15,7 @@ jest.mock("../gateway", () => ({
   getContract: jest.fn(() => ({
     /* mock contract object */
   })),
-  getDIDDoc: jest.fn(), 
+  getDIDDoc: jest.fn(),
   getMapValue: jest.fn(),
 }));
 
@@ -145,7 +145,6 @@ describe("POST /vc/verifyTrustchain", () => {
       studentVCClaims
     );
     const studentuVC = studentuVCBuilder.build();
-    
 
     /**---------Create the studentVC signature--------- */
     const canonStudent = canonicalize(studentuVC);
@@ -156,7 +155,6 @@ describe("POST /vc/verifyTrustchain", () => {
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
-  
     //console.log(signatureStudentVC);
 
     /**---------Create the unsigne VC for university--------- */
@@ -226,7 +224,6 @@ describe("POST /vc/verifyTrustchain", () => {
     const response = await request(app).post("/vc/verifyTrustchain").send(studentsVC).expect(200);
 
     expect(response.text).toBe("The VC is valid");
-
   });
 
   it("should return 400 because no VC was provided", async () => {
@@ -237,7 +234,6 @@ describe("POST /vc/verifyTrustchain", () => {
   });
 
   it("should return 400 because the type of the first VC does not include Verifiable Credential", async () => {
-
     // console.log(loadRegistryAsMap("../registries/university.json"));
 
     getMapValue.mockImplementation((_, value) => {
@@ -278,8 +274,9 @@ describe("POST /vc/verifyTrustchain", () => {
     const app = require("../app");
     const response = await request(app).post("/vc/verifyTrustchain").send(studentsVC).expect(400);
 
-    expect(response.text).toBe(`The VC owned by ${studentDID} does not have the correct type(VerifiableCredential)`);
-
+    expect(response.text).toBe(
+      `The VC owned by ${studentDID} does not have the correct type(VerifiableCredential)`
+    );
   });
 
   it("should return 200 but invalid VC because the VC of the user is not valid", async () => {
@@ -332,7 +329,7 @@ describe("POST /vc/verifyTrustchain", () => {
     const studentsVC = studentsVCBuilder.build();
 
     const badStudentuVCBuilder = new UnsignedVCBuilder(
-       ["VerifiableCredential", "BachelorDegree"],
+      ["VerifiableCredential", "BachelorDegree"],
       "date",
       studentDID,
       studentDID,
@@ -340,7 +337,12 @@ describe("POST /vc/verifyTrustchain", () => {
     );
 
     const badStudentuVC = badStudentuVCBuilder.build();
-    const badStudentsVCBuilder = new VCBuilder(badStudentuVC, "date1", "someURL", signatureStudentVC);
+    const badStudentsVCBuilder = new VCBuilder(
+      badStudentuVC,
+      "date1",
+      "someURL",
+      signatureStudentVC
+    );
     const badStudentsVC = badStudentsVCBuilder.build();
 
     /**---------Create the unsigne VC for university--------- */
@@ -407,10 +409,14 @@ describe("POST /vc/verifyTrustchain", () => {
 
     // import it here because we need the registries to be populated first
     const app = require("../app");
-    const response = await request(app).post("/vc/verifyTrustchain").send(badStudentsVC).expect(200);
+    const response = await request(app)
+      .post("/vc/verifyTrustchain")
+      .send(badStudentsVC)
+      .expect(200);
 
-    expect(response.text).toBe(`The VC is invalid, as it was not signed by the issuer. ${studentDID}`);
-
+    expect(response.text).toBe(
+      `The VC is invalid, as it was not signed by the issuer. ${studentDID}`
+    );
   });
 
   it("should return 200 but should fail, because an institution up the trustchain doesn't have a valid VC", async () => {
@@ -483,7 +489,6 @@ describe("POST /vc/verifyTrustchain", () => {
     //console.log(signatureUniVC);
     const unisVC = unisVCBuilder.build();
 
-
     /**---------Create the unsigne VC for root--------- */
     const rootuVCBuilder = new UnsignedVCBuilder(
       ["VerifiableCredential", "Authorization"],
@@ -529,8 +534,8 @@ describe("POST /vc/verifyTrustchain", () => {
     const app = require("../app");
     const response = await request(app).post("/vc/verifyTrustchain").send(studentsVC).expect(200);
 
-    expect(response.text).toBe(`The VC is invalid, an organization up the trustchain didn't have the required permission did:hlf:university`);
-
+    expect(response.text).toBe(
+      `The VC is invalid, an organization up the trustchain didn't have the required permission did:hlf:university`
+    );
   });
-
 });
