@@ -15,12 +15,12 @@ const {
 const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
 const { fetchRegistry } = require("../utility/VCUtils.js");
+const { isRoot } = require("../utility/VCUtils.js");
+const router = express.Router();
 
 // Logger
 const logger = require("../utility/logger");
 const { generateCorrelationId } = require("../utility/loggerUtils");
-
-router = express.Router();
 
 const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of the channel from the fabric-network
 const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
@@ -246,7 +246,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       }
 
       // get issuer DID Document
-      const issuerDoc = getDIDDoc(getContract(), issuerDID);
+      const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
       if (!issuerDoc) {
         logger.warn({
           action: "POST /vc/verifyTrustchain",
@@ -295,7 +295,7 @@ router.post("/verifyTrustchain", async (req, res) => {
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
 
-        const issuerDoc = getDIDDoc(getContract(), issuerDID);
+        const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
         const serviceArray = issuerDoc.service || [];
         const repoEndpoint = serviceArray.find((serv) => serv.id.endsWith("#vcs"));
         if (!repoEndpoint) {
@@ -324,7 +324,10 @@ router.post("/verifyTrustchain", async (req, res) => {
           return res.status(400).send(errorMessage);
         }
         const vcType = temp; // this indicates the type of the VC
-        const requiredPermission = await getMapValue(getContract(), vcType);
+        const requiredPermission = await getMapValue(
+          getContract(VCchannelName, VCchaincodeName),
+          vcType
+        );
 
         const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
 
@@ -359,6 +362,7 @@ router.post("/verifyTrustchain", async (req, res) => {
     res.status(500).send(errorMessage);
   }
 });
+
 /**
  * This function is only meant to verify the signature
  * of to make sure that it is valid. Later, the issuer will
@@ -412,12 +416,7 @@ async function validateVC(vc, publicKey, correlationId = "unknown") {
   return isValid;
 }
 
-function isRoot(did) {
-  return did === "did:hlf:root";
-}
-
 module.exports = {
   validateVC,
-  fetchRegistry,
   router,
 };
