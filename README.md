@@ -69,7 +69,7 @@ Now, in order to do this, you must first navigate to:
 localhost:9090
 ```
 
-Here, you will have to login to the admin account. Unless specified otherwise, the username and password are the same, namely `admin`.
+Here, you will have to log in to the admin account. Unless specified otherwise, the username and password are the same, namely `admin`.
 
 Now, you will see a menu on the left side of the screen. Navigate to `Manage realms`
 
@@ -80,3 +80,19 @@ When the dialogue pops up, all you need to do is enter the `realm name` which is
 Now, go to Realm Settings, then User profile and delete the `firstname` and `lastname` attributes.
 
 After doing this, the authentication system should run flawlessly.
+
+## Logging Setup
+
+To enable logging and monitoring of the application, you can run our monitoring suite, made up of:
+1. [Grafana](https://grafana.com/), a composable observability platform, provides a centralized dashboard to monitor logs.
+2. [Loki](https://grafana.com/oss/loki/), a highly-scalable log aggregation system from the Grafana developers, provides storage for the logs
+3. [Alloy](https://grafana.com/docs/alloy/latest/), a log collector from the Grafana developers, fetches and processes local logs and sends them to Loki. 
+
+These tools can be run together by using the following `Docker compose` command from the root directory:
+
+```bash
+cd logging
+docker-compose up -d
+```
+
+Now, the Grafana dashboard can be accessed by navigating to [http://localhost:3200/](http://localhost:3200) on your browser, where you can monitor and query the incoming logs.
