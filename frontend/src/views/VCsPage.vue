@@ -9,10 +9,14 @@
 
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
-        <!-- Initialize the VCs from the wallet -->
-        <div style="display: none">
+        <!-- Run setup functions -->
+        <template style="display: none">
+          <!-- Initialize the VCs from the wallet -->
           {{ refreshVCs(wallet) }}
-        </div>
+
+          <!-- Make the object that keeps track of shown VCs -->
+          {{ initShowVCs() }}
+        </template>
 
         <!-- Card for the VCs sorted by DID -->
         <v-row class="w-100">
@@ -199,9 +203,9 @@
                       <v-btn
                         class="ma-2"
                         variant="outlined"
-                        @click="VCList.displayed = !VCList.displayed"
+                        @click="showVCs[VCList.did].displayed = !showVCs[VCList.did].displayed"
                       >
-                        <span v-if="VCList.displayed">Hide VCs</span>
+                        <span v-if="showVCs[VCList.did].displayed">Hide VCs</span>
                         <span v-else>Show VCs</span>
                       </v-btn>
                     </template>
@@ -209,7 +213,7 @@
                     <v-card-text class="bg-surface-light pt-4">
                       <v-card class="mb-4 mt-4" color="grey-lighten-1">
                         <template
-                          v-if="VCList.displayed"
+                          v-if="showVCs[VCList.did].displayed"
                           class="text-body-1 mb-n1"
                           style="white-space: pre-wrap; word-break: break-word; padding: 0 16px"
                         >
@@ -240,16 +244,19 @@
                                 <v-btn
                                   class="ma-2"
                                   variant="outlined"
-                                  @click="VC.displayed = !VC.displayed"
+                                  @click="
+                                    showVCs[VCList.did].creds[name] =
+                                      !showVCs[VCList.did].creds[name]
+                                  "
                                 >
-                                  <span v-if="VC.displayed">Hide VC</span>
+                                  <span v-if="showVCs[VCList.did].creds[name]">Hide VC</span>
                                   <span v-else>Show VC</span>
                                 </v-btn>
                               </v-card-actions>
 
                               <v-card class="mb-4 mt-4" color="grey-lighten-1">
                                 <pre
-                                  v-if="VC.displayed"
+                                  v-if="showVCs[VCList.did].creds[name]"
                                   class="text-body-1 font-weight-light mb-n1"
                                   style="
                                     white-space: pre-wrap;
@@ -257,7 +264,7 @@
                                     padding: 0 16px;
                                   "
                                 >
-                                  {{ VC.VC }}
+                                  {{ VC }}
                                 </pre>
                               </v-card>
                             </v-card>
@@ -291,6 +298,7 @@ export default {
   data() {
     return {
       VCs: [],
+      showVCs: null,
       verifyVCDialog: false,
       VCToVerify: "",
       issueVCDialog: false,
@@ -356,24 +364,30 @@ export default {
           ...wallet.getVCs(did),
         };
 
-        Object.keys(credentials).forEach((key) => {
-          const original = credentials[key];
-          credentials[key] = {
-            VC: original,
-            // Here we can add any variables relating to individual VCs
-            displayed: false,
-          };
-        });
-
         return {
           did,
           name: data.metadata?.name || "Unnamed DID",
           privateKey: data.keyPair.privateKey,
           credentials,
-          // Here we can add any variables relating to VC Lists
-          displayed: false,
         };
       });
+    },
+
+    initShowVCs() {
+      if (this.showVCs !== null) return;
+      console.log("init");
+      this.showVCs = {};
+      for (let VCList of this.VCs) {
+        const creds = {};
+        Object.entries(VCList.credentials).map(([name, vc]) => {
+          creds[name] = false;
+        });
+
+        this.showVCs[VCList.did] = {
+          displayed: false,
+          creds,
+        };
+      }
     },
 
     async verifyVC(VCText) {

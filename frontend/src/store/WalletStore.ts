@@ -89,7 +89,7 @@ export const useWalletStore = defineStore("wallet", {
     },
 
     getVCs(did: string) {
-      return this.dids[did].credentials;
+      return this.dids[did]?.credentials;
     },
 
     removeVC(did: string, name: string) {
