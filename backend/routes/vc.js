@@ -109,6 +109,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
 });
 
 router.post("/verifyTrustchain", async (req, res) => {
+  // TODO: In general add more checks to send to the user
   try {
     if (getGateway() == null) {
       await startGateway();
@@ -136,6 +137,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       if (!issuerDoc) return res.status(500).send("The DID does not exist");
 
       //get its public key
+      // TODO: Change this access, as it does not work
       const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
 
       if (!publicKey) return res.status(400).send("This DID does not have a public key");
