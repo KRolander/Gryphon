@@ -486,19 +486,7 @@ export default {
     refreshVCs(wallet) {
       if (!wallet || !wallet.dids) return;
       this.VCs = Object.entries(wallet.dids).map(([did, data]) => {
-        // const credentials = wallet.getVCs(did);
-        // Testing only, remove later
-        const credentials = {
-          ceva: {
-            a: 1,
-            b: 2,
-          },
-          altceva: {
-            a: 3,
-            b: 4,
-          },
-          ...wallet.getVCs(did),
-        };
+        const credentials = wallet.getVCs(did);
 
         return {
           did,
