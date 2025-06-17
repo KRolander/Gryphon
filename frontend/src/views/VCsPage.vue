@@ -43,6 +43,11 @@
                     <v-card title="Verify a VC">
                       <v-card-text>
                         <v-text-field label="VC To Verify" v-model="VCToVerify" required />
+
+                        <!-- Alert to show info to the user -->
+                        <v-alert v-if="verifyVCAlert" :color="verifyVCAlertColor">
+                          {{ verifyVCMessage }}
+                        </v-alert>
                       </v-card-text>
                       <v-card-actions>
                         <v-btn class="ma-2s" variant="outlined" @click="isActive.value = false">
@@ -300,6 +305,9 @@ export default {
       VCs: [],
       showVCs: null,
       verifyVCDialog: false,
+      verifyVCAlert: false,
+      verifyVCAlertColor: "info",
+      verifyVCMessage: "",
       VCToVerify: "",
       issueVCDialog: false,
       issueVCValid: false,
@@ -398,14 +406,21 @@ export default {
         await VCService.verify(VC);
         // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
+
+        // TODO: Add better checking for the result to display a good message
+        this.verifyVCAlert = true;
+        this.verifyVCAlertColor = "success";
+        this.verifyVCMessage = "Successful verification";
       } catch (err) {
         // TODO: Add better error communication to the user
-        console.log(err);
+        this.verifyVCAlert = true;
+        this.verifyVCAlertColor = "error";
+        this.verifyVCMessage = "Failed verification!!";
       }
     },
 
     async handleVCVerify() {
-      verifyVC(this.VCToVerify);
+      this.verifyVC(this.VCToVerify);
       this.VCToVerify = "";
     },
 
