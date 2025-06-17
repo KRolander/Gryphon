@@ -73,7 +73,7 @@
                       variant="outlined"
                       @click="issueVCDialog = true"
                     >
-                      Issue <v-icon icon="mdi-file-document-plus" end></v-icon>
+                      Issue <v-icon icon="mdi-file-document-plus" end />
                     </v-btn>
                   </template>
 
@@ -198,13 +198,71 @@
                     </v-card-subtitle>
 
                     <template v-slot:append>
-                      <v-btn
-                        class="ma-2"
-                        variant="outlined"
-                        @click="console.log('need to add a vc')"
-                      >
-                        Add <v-icon icon="mdi-plus-circle" end />
-                      </v-btn>
+                      <!-- Add VC Button and pop up -->
+                      <v-dialog v-model="addVCDialog" max-width="500">
+                        <!-- Activator button -->
+                        <template v-slot:activator="{ props: activatorProps }">
+                          <v-btn
+                            v-bind="activatorProps"
+                            variant="outlined"
+                            @click="
+                              addVCDid = VCList.did;
+                              addVCDialog = true;
+                            "
+                          >
+                            Add <v-icon icon="mdi-plus-circle" end></v-icon
+                          ></v-btn>
+                        </template>
+
+                        <!-- Dialog -->
+                        <template v-slot:default="{ isActive }">
+                          <v-card title="Add a VC">
+                            <v-card-text>
+                              <v-form
+                                v-model="addVCValid"
+                                @submit.prevent="(e) => handleAddVC(wallet)"
+                              >
+                                <v-text-field
+                                  v-model="addedVCName"
+                                  :counter="20"
+                                  :rules="nameRules"
+                                  label="Name"
+                                  required
+                                />
+                                <v-text-field
+                                  v-model="addedVCBody"
+                                  :rules="[(body) => !!body || 'Body is Required']"
+                                  label="VC To Add"
+                                  required
+                                />
+                              </v-form>
+                            </v-card-text>
+
+                            <v-card-actions>
+                              <v-btn
+                                variant="outlined"
+                                class="ma-2s"
+                                @click="isActive.value = false"
+                              >
+                                Cancel
+                                <v-icon icon="mdi-cancel" end />
+                              </v-btn>
+
+                              <v-spacer />
+
+                              <v-btn
+                                class="ma-2"
+                                variant="outlined"
+                                :disabled="!addVCValid"
+                                @click="handleAddVC(wallet)"
+                              >
+                                Add
+                                <v-icon icon="mdi-checkbox-marked-circle" end />
+                              </v-btn>
+                            </v-card-actions>
+                          </v-card>
+                        </template>
+                      </v-dialog>
                       <v-btn
                         class="ma-2"
                         variant="outlined"
@@ -239,10 +297,7 @@
                                 <v-dialog v-model="deleteVCDialog" max-width="500">
                                   <!-- Activator button -->
                                   <template v-slot:activator="{ props: deleteButton }">
-                                    <v-btn
-                                      v-bind="deleteButton"
-                                      variant="outlined"
-                                    >
+                                    <v-btn v-bind="deleteButton" variant="outlined">
                                       Delete VC
                                       <v-icon icon="mdi-file-document-remove-outline" end />
                                     </v-btn>
@@ -382,6 +437,11 @@ export default {
         },
       ],
       issuedVC: {},
+      addVCDialog: false,
+      addVCValid: false,
+      addedVCName: "",
+      addedVCBody: "",
+      addVCDid: "",
       deleteVCDialog: false,
     };
   },
@@ -538,10 +598,24 @@ export default {
       return Object.entries(this.VCs[ind].credentials).length === 0;
     },
 
+    handleAddVC(wallet, did) {
+      // Call the addVC method
+      const VC = JSON.parse(this.addedVCBody);
+      this.addVC(wallet, this.addVCDid, this.addedVCName, VC);
+
+      // Take care of visual aspects
+      this.addVCDialog = false;
+      this.addVCValid = false;
+      this.addedVCName = "";
+      this.addedVCBody = "";
+    },
+
     addVC(wallet, did, name, VC) {
       // TODO: Run verifyVC and check if the vc was issued to the did we are trying to add it to
       // Add the VC to the wallet
-      wallet.addVC(did, name);
+      console.log("adding to " + did);
+      console.log(VC);
+      wallet.addVC(did, name, VC);
 
       // Persist the wallet
       wallet.save();
