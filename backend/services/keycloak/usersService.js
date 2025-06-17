@@ -115,7 +115,7 @@ async function getUserData(userAccessToken, realmName) {
 
     // Check that the response status is 200 - OK
     if (getUserDataResponse.status !== 200) {
-      throw new Error(`User data fetch failed with status code: ${loginResponse.status}`);
+      throw new Error(`User data fetch failed with status code: ${getUserDataResponse.status}`);
     }
 
     // console.log('User Data:', getUserDataResponse.data);
