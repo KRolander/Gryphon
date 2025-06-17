@@ -375,7 +375,6 @@ export default {
 
     initShowVCs() {
       if (this.showVCs !== null) return;
-      console.log("init");
       this.showVCs = {};
       for (let VCList of this.VCs) {
         const creds = {};
@@ -399,7 +398,6 @@ export default {
         await VCService.verify(VC);
         // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
-        console.log(res);
       } catch (err) {
         // TODO: Add better error communication to the user
         console.log(err);
@@ -417,9 +415,8 @@ export default {
      * @param did The did of the issuer
      */
     getIssuableVCTypes(wallet, did) {
-      if (!did) did = wallet.activeDid;
-      if (did === "a") return ["a", "b"];
-      return ["c"];
+      // TODO: Integrate with the vc mapping
+      return ["test"];
     },
 
     resetIssueVCForm() {
@@ -433,7 +430,6 @@ export default {
     },
 
     async issueVC(wallet) {
-      console.log(this.issueVCFormData);
       if (!this.issueVCValid) return;
 
       // First, we make an unsigned VC
@@ -475,16 +471,10 @@ export default {
         signature
       ).build();
       this.issuedVC = VC;
-      console.log(VC);
 
       // Next, we update the wallet if the subject did is in the wallet
       if (wallet.dids[subject]) {
-        console.log("adding to wallet");
-        wallet.addVC(subject, this.issueVCFormData.name, VC);
-
-        // Persist the wallet
-        wallet.save();
-        this.refreshVCs(wallet);
+        this.addVC(wallet, did, name, VC);
       }
 
       // Visual changes
@@ -495,8 +485,6 @@ export default {
 
       // Close the dialog
       this.issueVCDialog = false;
-
-      console.log(wallet.dids);
     },
 
     emptyCredentials(wallet, ind) {
