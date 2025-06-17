@@ -333,7 +333,7 @@ router.post("/verifyTrustchain", async (req, res) => {
 
         const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
         if (!correctVC) {
-          const invalidMessage = `The VC is invalid, an organization up the trustchain didn't have the required permission ${currentDID}`;
+          const invalidMessage = `The VC is invalid, an organization up the trustchain didn't have the required permission ${issuerDID}`;
           logger.info({
             action: "POST /vc/verifyTrustchain",
             correlationId: correlationId,

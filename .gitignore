@@ -17,6 +17,9 @@ backend/.env
 #CLI node-modules
 frontendCLI/node_modules
 
+#Test coverage
+backend/coverage
+
 #Logger
 loki-data/
 logging/logs/
