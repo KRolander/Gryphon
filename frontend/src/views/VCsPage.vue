@@ -30,7 +30,7 @@
                   <!-- Activator button -->
                   <template v-slot:activator="{ props: verifyButton }">
                     <v-btn v-bind="verifyButton" variant="outlined" @click="verifyVCDialog = true">
-                      Verify VC <v-icon icon="mdi-checkbox-marked-circle" end />
+                      Verify <v-icon icon="mdi-checkbox-marked-circle" end />
                     </v-btn>
                   </template>
 
@@ -47,7 +47,7 @@
 
                         <v-spacer />
 
-                        <v-btn class="ma-2" variant="outlined" @click="verifyVC()">
+                        <v-btn class="ma-2" variant="outlined" @click="handleVCVerify()">
                           Verify <v-icon icon="mdi-checkbox-marked-circle" end />
                         </v-btn>
                       </v-card-actions>
@@ -63,7 +63,7 @@
                       variant="outlined"
                       @click="issueVCDialog = true"
                     >
-                      Issue VC <v-icon icon="mdi-file-document-plus" end></v-icon>
+                      Issue <v-icon icon="mdi-file-document-plus" end></v-icon>
                     </v-btn>
                   </template>
 
@@ -96,7 +96,7 @@
                           <v-text-field
                             label="Subject DID"
                             v-model="issueVCFormData.subject"
-                            :rules="[v => !!v || 'Subject is required']"
+                            :rules="didStructureRules"
                             required
                           />
 
@@ -107,14 +107,12 @@
                             required
                           />
 
-                          <v-text-field
-                            label="Verification Method (DID URL)"
-                            v-model="issueVCFormData.verificationMethod"
-                            required
-                          />
-
                           <div>
-                            <div v-for="(claim, index) in issueVCFormData.claims" :key="index" class="d-flex mb-2 gap-2">
+                            <div
+                              v-for="(claim, index) in issueVCFormData.claims"
+                              :key="index"
+                              class="d-flex mb-2 gap-2"
+                            >
                               <v-text-field
                                 label="Claim Key"
                                 v-model="claim.claim"
@@ -221,11 +219,11 @@
                               </template>
 
                               <template v-slot:append>
-                                <!-- Make this a delete button -->
+                                <!-- Delete VC Button -->
                                 <v-btn
                                   class="ma-2"
                                   variant="outlined"
-                                  @click="deleteVC()"
+                                  @click="deleteVC(wallet, VCList.did, 'ceva')"
                                 >
                                   Delete VC <v-icon icon="mdi-file-document-remove-outline" end />
                                 </v-btn>
@@ -338,10 +336,9 @@ export default {
     refreshVCs(wallet) {
       if (!wallet || !wallet.dids) return;
       this.VCs = Object.entries(wallet.dids).map(([did, data]) => {
-        // Testing only, remove later
         // const credentials = wallet.getVCs(did);
+        // Testing only, remove later
         const credentials = {
-          ...wallet.getVCs(did),
           ceva: {
             a: 1,
             b: 2,
@@ -350,6 +347,7 @@ export default {
             a: 3,
             b: 4,
           },
+          ...wallet.getVCs(did),
         };
 
         Object.keys(credentials).forEach((key) => {
@@ -372,15 +370,26 @@ export default {
       });
     },
 
-    async verifyVC() {
-      const VC = JSON.parse(this.VCToVerify);
+    async verifyVC(VCText) {
+      // TODO: Add encryption/decryption
+      // Parse the VC we were given
+      const VC = JSON.parse(VCText);
       try {
-        // await VCService.verify(VC);
+        // Check the structure of the VC
+        await VCService.verify(VC);
+        // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
         console.log(res);
       } catch (err) {
+        // TODO: Add better error communication to the user
         console.log(err);
       }
+    },
+
+    async handleVCVerify() {
+      verifyVC(this.VCToVerify);
+      this.VCToVerify = "";
+      // Add here the 
     },
 
     /**
@@ -437,7 +446,7 @@ export default {
       const VC = new VCBuilder(
         unsigned,
         creationDate,
-        this.issueVCFormData.verificationMethod,
+        issuer + "#keys-1", // The verification method is the first key of the issuer
         signature
       ).build();
       this.issuedVC = VC;
@@ -466,13 +475,26 @@ export default {
     },
 
     addVC(wallet, did, name, VC) {
-      // To be added
-      // wallet.addVC(did, name, VC);
+      // TODO: Run verifyVC and check if the vc was issued to the did we are trying to add it to
+      // Add the VC to the wallet
+      wallet.addVC(did, name);
+
+      // Persist the wallet
+      wallet.save();
+
+      // Refresh the VCs
+      this.refreshVCs(wallet);
     },
 
     deleteVC(wallet, did, name) {
-      // To be added
-      // wallet.removeVC(did, name);
+      // Remove the VC from the wallet
+      wallet.removeVC(did, name);
+
+      // Persist the wallet
+      wallet.save();
+
+      // Refresh the VCs
+      this.refreshVCs(wallet);
     },
   },
 };
