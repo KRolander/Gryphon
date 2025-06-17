@@ -56,7 +56,7 @@
 
                         <v-spacer />
 
-                        <v-btn class="ma-2" variant="outlined" @click="handleVCVerify()">
+                        <v-btn class="ma-2" variant="outlined" @click="handleVerifyVC()">
                           Verify <v-icon icon="mdi-checkbox-marked-circle" end />
                         </v-btn>
                       </v-card-actions>
@@ -235,14 +235,44 @@
                               </template>
 
                               <template v-slot:append>
-                                <!-- Delete VC Button -->
-                                <v-btn
-                                  class="ma-2"
-                                  variant="outlined"
-                                  @click="deleteVC(wallet, VCList.did, name)"
-                                >
-                                  Delete VC <v-icon icon="mdi-file-document-remove-outline" end />
-                                </v-btn>
+                                <!-- Delete VC Dialog -->
+                                <v-dialog v-model="deleteVCDialog" max-width="500">
+                                  <!-- Activator button -->
+                                  <template v-slot:activator="{ props: deleteButton }">
+                                    <v-btn
+                                      v-bind="deleteButton"
+                                      variant="outlined"
+                                    >
+                                      Delete VC
+                                      <v-icon icon="mdi-file-document-remove-outline" end />
+                                    </v-btn>
+                                  </template>
+
+                                  <!-- Dialog -->
+                                  <template v-slot:default="{ isActive }">
+                                    <v-card title="Are you sure you want to delete this VC?">
+                                      <v-card-actions>
+                                        <v-btn
+                                          class="ma-2s"
+                                          variant="outlined"
+                                          @click="isActive.value = false"
+                                        >
+                                          Cancel <v-icon icon="mdi-cancel" end />
+                                        </v-btn>
+
+                                        <v-spacer />
+
+                                        <v-btn
+                                          class="ma-2"
+                                          variant="outlined"
+                                          @click="handleDeleteVC(wallet, VCList.did, name)"
+                                        >
+                                          Confirm <v-icon icon="mdi-checkbox-marked-circle" end />
+                                        </v-btn>
+                                      </v-card-actions>
+                                    </v-card>
+                                  </template>
+                                </v-dialog>
                               </template>
 
                               <v-card-actions>
@@ -352,6 +382,7 @@ export default {
         },
       ],
       issuedVC: {},
+      deleteVCDialog: false,
     };
   },
   methods: {
@@ -419,7 +450,7 @@ export default {
       }
     },
 
-    async handleVCVerify() {
+    async handleVerifyVC() {
       this.verifyVC(this.VCToVerify);
       this.VCToVerify = "";
     },
@@ -485,14 +516,15 @@ export default {
         issuer + "#keys-1", // The verification method is the first key of the issuer
         signature
       ).build();
-      this.issuedVC = VC;
 
       // Next, we update the wallet if the subject did is in the wallet
       if (wallet.dids[subject]) {
-        this.addVC(wallet, did, name, VC);
+        this.addVC(wallet, subject, this.issueVCFormData.name, VC);
       }
 
       // Visual changes
+      // Show the VC
+      this.issuedVC = VC;
 
       // Reset the form
       this.resetIssueVCForm();
@@ -516,6 +548,11 @@ export default {
 
       // Refresh the VCs
       this.refreshVCs(wallet);
+    },
+
+    handleDeleteVC(wallet, did, name) {
+      this.deleteVC(wallet, did, name);
+      this.deleteVCDialog = false;
     },
 
     deleteVC(wallet, did, name) {
