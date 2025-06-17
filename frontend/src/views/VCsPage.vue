@@ -179,6 +179,42 @@
                     </v-card>
                   </template>
                 </v-dialog>
+
+                <!-- Popup to show the resulting Issued VC -->
+                <v-dialog v-model="issuedVCPopup" max-width="800">
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Your VC">
+                      <v-card class="mb-4 mt-4" color="grey-lighten-1">
+                        <v-card-text>
+                          <pre
+                            class="text-body-1 font-weight-light mb-n1"
+                            style="white-space: pre-wrap; word-break: break-word; padding: 0 16px"
+                          >
+                            {{ this.issuedVC }}
+                          </pre>
+                        </v-card-text>
+                      </v-card>
+
+                      <v-card-actions>
+                        <!-- Close button -->
+                        <v-btn variant="outlined" class="ma-2s" @click="isActive.value = false">
+                          Close <v-icon icon="mdi-close-thick" />
+                        </v-btn>
+
+                        <v-spacer />
+
+                        <!-- Add to clipboard button -->
+                        <v-btn
+                          variant="outlined"
+                          class="ma-2s"
+                          @click="this.handleAddToClipboard()"
+                        >
+                          Add to Clipboard <v-icon icon="mdi-clipboard" />
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
               </template>
 
               <!-- Card content -->
@@ -437,6 +473,7 @@ export default {
         },
       ],
       issuedVC: {},
+      issuedVCPopup: false,
       addVCDialog: false,
       addVCValid: false,
       addedVCName: "",
@@ -583,15 +620,27 @@ export default {
       }
 
       // Visual changes
-      // Show the VC
-      this.issuedVC = VC;
 
       // Reset the form
       this.resetIssueVCForm();
       this.issueVCValid = false;
 
-      // Close the dialog
+      // Show the VC
+      this.issuedVC = JSON.stringify(VC, null, 2);
+
+      // Close the Issue dialog
       this.issueVCDialog = false;
+
+      // Open the popup
+      this.issuedVCPopup = true;
+    },
+
+    async handleAddToClipboard() {
+      await this.addToClipboard(this.issuedVC);
+    },
+
+    async addToClipboard(text) {
+      await navigator.clipboard.writeText(text);
     },
 
     emptyCredentials(wallet, ind) {
