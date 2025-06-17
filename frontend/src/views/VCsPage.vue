@@ -380,9 +380,12 @@
                                 </v-btn>
                               </v-card-actions>
 
-                              <v-card class="mb-4 mt-4" color="grey-lighten-1">
+                              <v-card
+                                v-if="showVCs[VCList.did].creds[name]"
+                                class="mb-4 mt-4"
+                                color="grey-lighten-1"
+                              >
                                 <pre
-                                  v-if="showVCs[VCList.did].creds[name]"
                                   class="text-body-1 font-weight-light mb-n1"
                                   style="
                                     white-space: pre-wrap;
@@ -392,6 +395,17 @@
                                 >
                                   {{ VC }}
                                 </pre>
+                                <v-card-actions>
+                                  <v-spacer />
+                                  <!-- Add to Clipboard button -->
+                                  <v-btn
+                                    variant="outlined"
+                                    class="ma-2s"
+                                    @click="this.addToClipboard(JSON.stringify(VC, null, 2))"
+                                  >
+                                    Add to Clipboard <v-icon icon="mdi-clipboard" />
+                                  </v-btn>
+                                </v-card-actions>
                               </v-card>
                             </v-card>
                           </template>
@@ -623,7 +637,7 @@ export default {
       this.issuedVCPopup = true;
     },
 
-    async handleAddToClipboard() {
+    async handleAddToClipboardPopup() {
       await this.addToClipboard(this.issuedVC);
     },
 
