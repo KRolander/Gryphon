@@ -193,7 +193,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           return res
             .status(200)
             .send(
-              `The VC is invalid, an organization up the trustchain didn't have the required permission ${currentDID}`
+              `The VC is invalid, an organization up the trustchain didn't have the required permission ${issuerDID}`
             );
         currentVC = correctVC;
         currentDID = issuerDID;
