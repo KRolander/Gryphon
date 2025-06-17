@@ -54,6 +54,7 @@
                     </v-card>
                   </template>
                 </v-dialog>
+
                 <!-- Button to issue VCs -->
                 <v-dialog v-model="issueVCDialog" max-width="500">
                   <!-- Activator button -->
@@ -71,11 +72,7 @@
                   <template v-slot:default="{ isActive }">
                     <v-card title="Issue VC">
                       <v-card-text>
-                        <v-form
-                          id="issueForm"
-                          v-model="issueVCValid"
-                          @submit.prevent="(e) => issueVC(wallet)"
-                        >
+                        <v-form v-model="issueVCValid" @submit.prevent="(e) => issueVC(wallet)">
                           <v-text-field
                             label="VC Name"
                             v-model="issueVCFormData.name"
@@ -104,32 +101,42 @@
                             label="VC Type"
                             v-model="issueVCFormData.type"
                             :items="getIssuableVCTypes(wallet, this.issueVCFormData.issuer)"
+                            :rules="[(type) => !!type || 'Type is required']"
                             required
                           />
 
-                          <div>
-                            <div
-                              v-for="(claim, index) in issueVCFormData.claims"
-                              :key="index"
-                              class="d-flex mb-2 gap-2"
-                            >
-                              <v-text-field
-                                label="Claim Key"
-                                v-model="claim.claim"
-                                :rules="[v => !!v || 'Key required']"
-                              />
-                              <v-text-field
-                                label="Claim Value"
-                                v-model="claim.value"
-                                :rules="[v => !!v || 'Value required']"
-                              />
-                              <v-btn icon @click="removeClaim(index)">
-                                <v-icon>mdi-delete</v-icon>
-                              </v-btn>
-                            </div>
+                          <template v-for="(claim, index) in issueVCFormData.claims" :key="index">
+                            <v-row>
+                              <v-col cols="5">
+                                <v-text-field
+                                  v-model="claim.key"
+                                  label="Claim Key"
+                                  :rules="[(key) => !!key || 'Claim Key is required']"
+                                  required
+                                />
+                              </v-col>
+                              <v-col cols="5">
+                                <v-text-field
+                                  v-model="claim.val"
+                                  label="Claim Value"
+                                  :rules="[(val) => !!val || 'Claim Value is required']"
+                                  required
+                                />
+                              </v-col>
+                              <v-col cols="2" class="d-flex align-center">
+                                <v-btn icon @click="this.issueVCFormData.claims.splice(index, 1)">
+                                  <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                              </v-col>
+                            </v-row>
+                          </template>
 
-                            <v-btn @click="addClaim" color="primary" variant="tonal" class="mt-2">Add Claim</v-btn>
-                          </div>
+                          <v-btn
+                            variant="outlined"
+                            @click="this.issueVCFormData.claims.push({ key: '', val: '' })"
+                          >
+                            Add Claim
+                          </v-btn>
                         </v-form>
                       </v-card-text>
 
@@ -153,7 +160,7 @@
                         <v-btn
                           class="ma-2"
                           variant="outlined"
-                          :disable="!issueVCValid"
+                          :disabled="!issueVCValid"
                           @click="issueVC(wallet)"
                         >
                           Issue
@@ -223,7 +230,7 @@
                                 <v-btn
                                   class="ma-2"
                                   variant="outlined"
-                                  @click="deleteVC(wallet, VCList.did, 'ceva')"
+                                  @click="deleteVC(wallet, VCList.did, name)"
                                 >
                                   Delete VC <v-icon icon="mdi-file-document-remove-outline" end />
                                 </v-btn>
@@ -293,8 +300,7 @@ export default {
         type: "",
         issuer: null,
         subject: "",
-        claims: {},
-        verificationMethod: "",
+        claims: [],
       },
       nameRules: [
         (value) => {
@@ -311,7 +317,7 @@ export default {
           if (value?.length >= 2) return true;
 
           return "Name must be longer than 2 characters.";
-        }
+        },
       ],
       didStructureRules: [
         (value) => {
@@ -389,7 +395,6 @@ export default {
     async handleVCVerify() {
       verifyVC(this.VCToVerify);
       this.VCToVerify = "";
-      // Add here the 
     },
 
     /**
@@ -409,14 +414,12 @@ export default {
         type: "",
         issuer: null,
         subject: "",
-        claims: {},
-        verificationMethod: "",
+        claims: [],
       };
     },
 
     async issueVC(wallet) {
       console.log(this.issueVCFormData);
-      console.log(wallet.dids);
       if (!this.issueVCValid) return;
 
       // First, we make an unsigned VC
@@ -424,12 +427,20 @@ export default {
       const privateKey = this.issueVCFormData.issuer.privateKey;
       const subject = this.issueVCFormData.subject;
       const creationDate = new Date().toISOString;
+
+      // Parse the claims into an object
+      const claims = {};
+      this.issueVCFormData.claims.forEach(({ key, val }) => {
+        claims[key] = val;
+      });
+
+      // Create the Unsigned VC
       const unsigned = new UnsignedVCBuilder(
         ["VerifiableCredential", this.issueVCFormData.type],
         creationDate,
         issuer,
         subject,
-        this.issueVCFormData.claims
+        claims
       ).build();
 
       // Next, we sign the contents
@@ -462,12 +473,16 @@ export default {
         this.refreshVCs(wallet);
       }
 
+      // Visual changes
+
       // Reset the form
       this.resetIssueVCForm();
       this.issueVCValid = false;
 
       // Close the dialog
       this.issueVCDialog = false;
+
+      console.log(wallet.dids);
     },
 
     emptyCredentials(wallet, ind) {
