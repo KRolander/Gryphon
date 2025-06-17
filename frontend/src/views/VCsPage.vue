@@ -662,8 +662,6 @@ export default {
     addVC(wallet, did, name, VC) {
       // TODO: Run verifyVC and check if the vc was issued to the did we are trying to add it to
       // Add the VC to the wallet
-      console.log("adding to " + did);
-      console.log(VC);
       wallet.addVC(did, name, VC);
 
       // Persist the wallet
