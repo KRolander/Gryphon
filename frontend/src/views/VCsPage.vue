@@ -207,7 +207,7 @@
                         <v-btn
                           variant="outlined"
                           class="ma-2s"
-                          @click="this.handleAddToClipboard()"
+                          @click="this.handleAddToClipboardPopup()"
                         >
                           Add to Clipboard <v-icon icon="mdi-clipboard" />
                         </v-btn>
