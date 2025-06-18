@@ -26,7 +26,8 @@ describe("Username field properties", () => {
    * This test checks if the username field is rendered correctly with the hardcoded attributes.
    */
   it("Renders the username hardcoded attributes correctly", async () => {
-    /* ------------- RETRIEVE HTML ELEMENTS ------------- */
+    /* ------------- INIT ------------- */
+    // Retrieve the HTML elements necessary for testing
     const wrapper = mount(SignupForm, {
       global: {
         plugins: [vuetify],
@@ -49,8 +50,11 @@ describe("Username field properties", () => {
    * This test checks if v-model is updating the username correctly.
    */
   it("Executes v-model correctly", async () => {
+    /* ------------- INIT ------------- */
+    // Create the spy
     const updateUsernameSpy = vi.fn();
 
+    // Retrieve the HTML elements necessary for testing
     const wrapper = mount(SignupForm, {
       global: {
         plugins: [vuetify],
@@ -60,9 +64,14 @@ describe("Username field properties", () => {
         "onUpdate:username": updateUsernameSpy,
       },
     });
+    const usernameTextField = wrapper.findComponent({ ref: "usernameField" });
 
-    const usernameTextField = wrapper.findComponent({ name: "VTextField" });
+    /* ------------- CREATE TESTS ------------- */
+
+    // Update the value of the field
     await usernameTextField.setValue("updated_username");
+
+    // Check if the spy was updated with the new value
     expect(updateUsernameSpy).toHaveBeenCalledWith("updated_username");
   });
 });
@@ -74,6 +83,7 @@ describe("Email field properties", () => {
    * This test checks if the email field is rendered correctly with the hardcoded attributes.
    */
   it("Renders the email hardcoded attributes correctly", async () => {
+    /* ------------- INIT ------------- */
     // Retrieve the HTML elements necessary for testing
     const wrapper = mount(SignupForm, {
       global: {
@@ -91,6 +101,34 @@ describe("Email field properties", () => {
     // v-text-field
     expect(emailTextField.props("label")).toBe("E-mail");
     expect(emailTextField.props("type")).toBe("email");
+  });
+
+  /**
+   * This test checks if v-model is updating the username correctly.
+   */
+  it("Executes v-model correctly", async () => {
+    // Create the spy
+    const updateEmailSpy = vi.fn();
+
+    // Retrieve the HTML elements necessary for testing
+    const wrapper = mount(SignupForm, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        email: "",
+        "onUpdate:email": updateEmailSpy,
+      },
+    });
+    const emailTextField = wrapper.findComponent({ ref: "emailField" });
+
+    /* ------------- CREATE TESTS ------------- */
+
+    // Update the value of the field
+    await emailTextField.setValue("test@test.com");
+
+    // Check if the spy was updated with the new value
+    expect(updateEmailSpy).toHaveBeenCalledWith("test@test.com");
   });
 });
 

@@ -36,7 +36,8 @@
                 class="mb-4 mt-4"
                 label="E-mail"
                 type="email"
-                v-model="email"
+                :model-value="modelValueEmail"
+                @update:model-value="(val) => (modelValueEmail = val)"
                 :rules="emailRules"
                 :error="emailHasCustomError"
                 :error-messages="emailHasCustomError ? emailCustomErrorMessage : ''"
@@ -108,8 +109,12 @@ export default {
       type: String,
       default: undefined, // If this prop is defined, it means that this runs in a testing env
     },
+    email: {
+      type: String,
+      default: undefined,
+    },
   },
-  emits: ["update:username"],
+  emits: ["update:username", "update:email"],
   data() {
     return {
       valid: false,
@@ -119,8 +124,7 @@ export default {
       internalUsername: "",
 
       /* -------- */
-
-      email: "",
+      internalEmail: "",
       emailHasCustomError: false,
       emailCustomErrorMessage: "",
 
@@ -184,12 +188,41 @@ export default {
         }
       },
     },
+
+    /* --------------------- EMAIL --------------------- */
+    modelValueEmail: {
+      /**
+       * Defines the behaviour of the computer property when its value is requested.
+       * If the email prop is defined, it means that this runs in a testing env
+       * If the email prop is not defined, it means that this runs in the browser
+       * and the internalEmail is used to store the value.
+       * @returns {string} The chosen email value
+       */
+      get() {
+        return this.email !== undefined ? this.email : this.internalEmail;
+      },
+
+      /**
+       * Defines the behaviour of the computer property when its value is set.
+       * If the email prop is defined, it means that this runs in a testing env
+       * If the email prop is not defined, it means that this runs in the browser
+       * and the internalEmail is used to store the value.
+       */
+      set(val) {
+        if (this.email !== undefined) {
+          this.$emit("update:email", val);
+        } else {
+          this.internalEmail = val;
+        }
+      },
+    },
   },
   methods: {
     async signup() {
       console.log(this.internalUsername);
-
+      console.log(this.internalEmail);
       return;
+
       // Ensire that the form is valid upoon submission
       if (this.valid) {
         // Disable the signup button
@@ -197,8 +230,8 @@ export default {
 
         // Send signup request to be backend service
         const res = await AuthService.signup({
-          username: this.username,
-          email: this.email,
+          username: this.internalUsername,
+          email: this.internalEmail,
           password: this.password,
         });
 
