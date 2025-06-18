@@ -46,8 +46,8 @@
                             required
                           ></v-text-field>
                           <v-text-field
-                              v-model="newDIDService"
-                              label="Service (Optional)"
+                            v-model="newDIDService"
+                            label="Service (Optional)"
                           ></v-text-field>
                         </v-form>
                       </v-card-text>
@@ -63,9 +63,13 @@
                         <v-btn class="ma-2" variant="outlined" @click="createDID(wallet)">
                           <span v-if="!loading">
                             Create
-                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                            <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
                           </span>
-                          <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+                          <v-progress-circular
+                            v-else
+                            color="primary"
+                            indeterminate
+                          ></v-progress-circular>
                         </v-btn>
                       </v-card-actions>
                     </v-card>
@@ -123,10 +127,14 @@
                               @click="deleteDID(DIDToDelete, wallet)"
                             >
                               <span v-if="!loading">
-                              Yes
-                              <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                                Yes
+                                <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
                               </span>
-                              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+                              <v-progress-circular
+                                v-else
+                                color="primary"
+                                indeterminate
+                              ></v-progress-circular>
                             </v-btn>
                           </v-card-actions>
                         </v-card>
@@ -240,7 +248,7 @@ export default {
       // Dialog state
       dialogOpen: false,
       deleteDIDDialog: false,
-      loading:false,
+      loading: false,
 
       DIDToDelete: null,
       editDIDDocDialog: false,
@@ -293,7 +301,7 @@ export default {
         const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
         const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
-        this.loading=true;
+        this.loading = true;
         // 1. Send to backend
 
         const PEMPublicKey = await this.formatPEM(publicKey);
@@ -307,7 +315,7 @@ export default {
             publicKey: publicKeyBase64,
             privateKey: privateKeyBase64,
           },
-          this.newDIDname,
+          this.newDIDname
         );
 
         // 3. Persist the wallet
@@ -318,7 +326,7 @@ export default {
 
         // 5. Reset the form
         this.newDIDname = "";
-        this.newDIDService="";
+        this.newDIDService = "";
         this.valid = false;
         this.loading = false;
 
@@ -362,7 +370,7 @@ export default {
     },
 
     async deleteDID(DID, wallet) {
-      this.loading=true;
+      this.loading = true;
       try {
         await DIDService.deleteDID(DID);
       } catch (error) {
@@ -387,7 +395,7 @@ export default {
       this.refreshDIDs(wallet);
       this.deleteDIDDialog = false;
       this.DIDToDelete = null;
-      this.loading=false;
+      this.loading = false;
     },
 
     async modifyController(DID, operation) {

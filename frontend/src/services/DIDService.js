@@ -1,8 +1,8 @@
 import Api from "./Api";
 
 export default {
-  createDID(publicKey,service) {
-    return Api().post("did/create", { publicKey,service});
+  createDID(publicKey, service) {
+    return Api().post("did/create", { publicKey, service });
   },
 
   getDIDDoc(DID) {
