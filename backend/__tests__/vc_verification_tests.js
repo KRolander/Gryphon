@@ -77,7 +77,7 @@ const privateKeyUni = privateKey;
   },
 }));
 
-/**---------Create the key pair for a malicious user--------- */
+/**---------Create the key pair for a malicious user (Maroi)--------- */
 ({ publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
   namedCurve: "P-256",
   publicKeyEncoding: {
@@ -99,11 +99,11 @@ const privateKeyRoot = privateKey;
 const studentDID = "did:hlf:student";
 const uniDID = "did:hlf:university";
 const rootDID = "did:hlf:root";
-const malDID = "did:hlf:maroi";
+const marDID = "did:hlf:maroi";
 
 const uniURL = "http://localhost:3000/registry/university";
 const rootURL = "http://localhost:3000/registry/MOE";
-const marURL = "just me";
+const marURL = "just me"; 
 
 /**---------Create the DID Document of the student--------- */
 const docBuilderStudent = new DIDDocumentBuilder(studentDID, studentDID, publicKeyStudent, null);
@@ -116,13 +116,13 @@ const docBuilderUni = new DIDDocumentBuilder(uniDID, uniDID, publicKeyUni, uniUR
 const docBuilderRoot = new DIDDocumentBuilder(rootDID, rootDID, publicKeyRoot, rootURL);
 
 /**---------Create the DID Document of the Maroi--------- */
-const docBuilderMaroi = new DIDDocumentBuilder(malDID, malDID, publicKeyMar, marURL);
+const docBuilderMaroi = new DIDDocumentBuilder(marDID, marDID, publicKeyMar, marURL);
 
 const studentDoc = docBuilderStudent.build();
 const keylessStudentDoc = keylessdocBuilderStudent.build();
 const uniDoc = docBuilderUni.build();
 const rootDoc = docBuilderRoot.build();
-const malDoc = docBuilderMaroi.build();
+const marDoc = docBuilderMaroi.build();
 
 describe("POST /vc/verifyTrustchain", () => {
   afterEach(() => {
@@ -569,7 +569,7 @@ describe("POST /vc/verifyTrustchain", () => {
       if (arg === studentDID) return studentDoc;
       if (arg === uniDID) return uniDoc;
       if (arg === rootDID) return rootDoc;
-      if (arg === malDID) return malDoc;
+      if (arg === marDID) return marDoc;
       return "unknown";
     });
 
@@ -599,7 +599,7 @@ describe("POST /vc/verifyTrustchain", () => {
     const studentuVCBuilder = new UnsignedVCBuilder(
       ["VerifiableCredential", "BachelorDegree"],
       "date",
-      malDID,
+      marDID,
       studentDID,
       studentVCClaims
     );
@@ -668,13 +668,13 @@ describe("POST /vc/verifyTrustchain", () => {
     saveRegistryFromMap(regRoot, "../registries/MOE.json");
 
     /**---------Add the stolen VC to Maroi's public registry--------- */
-    let malReg = new Map();
-    malReg.set(malDID, [unisVC]);
+    let marReg = new Map();
+    marReg.set(marDID, [unisVC]);
 
     fetchRegistry.mockImplementation((url) => {
       if (url == uniURL) return loadRegistryAsMap("../registries/university.json");
       if (url == rootURL) return loadRegistryAsMap("../registries/MOE.json");
-      if (url == marURL) return malReg;
+      if (url == marURL) return marReg;
       return url;
     });
 
