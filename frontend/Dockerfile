@@ -6,6 +6,9 @@ RUN npm install
 
 COPY frontend .
 
-EXPOSE 5173
+WORKDIR /app
+COPY utils ./utils
 
+EXPOSE 5173
+WORKDIR /app/frontend
 CMD ["npm", "run", "dev", "--", "--host"]

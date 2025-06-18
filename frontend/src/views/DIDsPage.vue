@@ -290,8 +290,8 @@ export default {
         wallet.addDid(
           res.data,
           {
-            publicKeyBase64,
-            privateKeyBase64,
+            publicKey: publicKeyBase64,
+            privateKey: privateKeyBase64,
           },
           this.newDIDname
         );

@@ -203,6 +203,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
 });
 
 router.post("/verifyTrustchain", async (req, res) => {
+  // TODO: In general add more checks to send to the user
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
@@ -257,6 +258,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       }
 
       //get its public key
+      // TODO: Change this access, as it does not work
       const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
 
       if (!publicKey) {
