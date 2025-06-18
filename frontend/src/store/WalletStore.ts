@@ -27,7 +27,7 @@ export const useWalletStore = defineStore("wallet", {
       string,
       {
         keyPair: { publicKey: string; privateKey: string };
-        metadata: { name: string; createdAt: string; tags?: string[] };
+        metadata: { name: string; createdAt: string; tags?: string[];};
         credentials: Record<string, VerifiableCredential>;
       }
     >,
@@ -50,10 +50,11 @@ export const useWalletStore = defineStore("wallet", {
     addDid(did: string, keyPair: { publicKey: string; privateKey: string }, name: string) {
       this.dids[did] = {
         keyPair,
-        metadata: { createdAt: new Date().toISOString(), name: name },
+        metadata: { createdAt: new Date().toISOString(), name: name},
         credentials: {},
       };
       this.activeDid = did;
+
     },
 
     /**

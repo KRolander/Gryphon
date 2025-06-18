@@ -40,7 +40,7 @@ router.post("/create", async (req, res, next) => {
       await startGateway();
     }
 
-    const { publicKey } = req.body;
+    const { publicKey:publicKey,service:service } = req.body;
     if (!publicKey) {
       const message = "Public key is required";
       logger.warn({
@@ -51,7 +51,14 @@ router.post("/create", async (req, res, next) => {
       return res.status(400).send(message);
     }
     const DID = await createDID();
-    const docBuilder = new DIDDocumentBuilder(DID, DID, publicKey);
+    let docBuilder;
+    if (service){
+      docBuilder = new DIDDocumentBuilder(DID, DID, publicKey,service);
+    }
+    else{
+      docBuilder= new DIDDocumentBuilder(DID, DID, publicKey);
+    }
+
     const doc = docBuilder.build();
 
     const resultBytes = await storeDID(getContract(DIDchannelName, DIDchaincodeName), DID, doc);
