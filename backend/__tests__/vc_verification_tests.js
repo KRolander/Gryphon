@@ -103,7 +103,7 @@ const marDID = "did:hlf:maroi";
 
 const uniURL = "http://localhost:3000/registry/university";
 const rootURL = "http://localhost:3000/registry/MOE";
-const marURL = "just me"; 
+const marURL = "just me";
 
 /**---------Create the DID Document of the student--------- */
 const docBuilderStudent = new DIDDocumentBuilder(studentDID, studentDID, publicKeyStudent, null);
