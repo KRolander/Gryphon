@@ -20,7 +20,7 @@
             <v-form v-model="valid" @submit.prevent="signup">
               <!-- USERNAME FIELD -->
               <v-text-field
-                id="signupUsernamneField"
+                ref="usernameField"
                 class="mb-4 mt-4"
                 label="Username"
                 :model-value="modelValueUsername"
@@ -32,6 +32,7 @@
 
               <!-- EMAIL FIELD -->
               <v-text-field
+                ref="emailField"
                 class="mb-4 mt-4"
                 label="E-mail"
                 type="email"

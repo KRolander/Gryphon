@@ -19,24 +19,35 @@ describe("Page text", () => {
   });
 });
 
+/* ======================= USERNAME FIELD ======================= */
+/* ============================================================== */
 describe("Username field properties", () => {
-  it("Renders the username hardcoded fields correctly", async () => {
-    // Define the fields used for testing
+  /**
+   * This test checks if the username field is rendered correctly with the hardcoded attributes.
+   */
+  it("Renders the username hardcoded attributes correctly", async () => {
+    /* ------------- RETRIEVE HTML ELEMENTS ------------- */
     const wrapper = mount(SignupForm, {
       global: {
         plugins: [vuetify],
       },
     });
-    const usernameTextField = wrapper.findComponent({ name: "VTextField" });
-    const inputField = wrapper.find("input#signupUsernamneField");
+    const usernameTextField = wrapper.findComponent({ ref: "usernameField" });
+    const inputField = usernameTextField.find("input");
 
-    /* --------------- Test the hardcoded attributes --------------- */
+    /* ------------- CREATE TESTS ------------- */
+    // input field
     expect(inputField.exists()).toBe(true);
+    expect(inputField.attributes("required")).toBeDefined();
+
+    // v-text-field
     expect(usernameTextField.props("label")).toBe("Username");
     expect(usernameTextField.props("counter")).toBe(20);
-    expect(inputField.attributes("required")).toBeDefined();
   });
 
+  /**
+   * This test checks if v-model is updating the username correctly.
+   */
   it("Executes v-model correctly", async () => {
     const updateUsernameSpy = vi.fn();
 
@@ -55,3 +66,36 @@ describe("Username field properties", () => {
     expect(updateUsernameSpy).toHaveBeenCalledWith("updated_username");
   });
 });
+
+/* ======================= EMAIL FIELD ======================= */
+/* =========================================================== */
+describe("Email field properties", () => {
+  /**
+   * This test checks if the email field is rendered correctly with the hardcoded attributes.
+   */
+  it("Renders the email hardcoded attributes correctly", async () => {
+    // Retrieve the HTML elements necessary for testing
+    const wrapper = mount(SignupForm, {
+      global: {
+        plugins: [vuetify],
+      },
+    });
+    const emailTextField = wrapper.findComponent({ ref: "emailField" });
+    const inputField = emailTextField.find("input");
+
+    /* ------------- CREATE TESTS ------------- */
+    // input field
+    expect(inputField.exists()).toBe(true);
+    expect(inputField.attributes("required")).toBeDefined();
+
+    // v-text-field
+    expect(emailTextField.props("label")).toBe("E-mail");
+    expect(emailTextField.props("type")).toBe("email");
+  });
+});
+
+/* ======================= PASSWORD FIELD ======================= */
+/* ============================================================== */
+
+/* ======================= CONFIRM PASSWORD FIELD ======================= */
+/* ====================================================================== */
