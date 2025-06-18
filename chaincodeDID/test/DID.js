@@ -14,7 +14,7 @@ chai.use(chaiAsPromised);
 
 import { Context } from "fabric-contract-api";
 import { ChaincodeStub  } from "fabric-shim";
-import DIDContract from "../build/chaincodeDID/src/DID.js";
+import DIDContract from "../build/src/DID.js";
 // import DIDDocument from "../types/DIDDocument.js";
 import { beforeEach, afterEach, describe, it } from "node:test";
 import stringify from "json-stringify-deterministic";
@@ -212,13 +212,13 @@ describe("test DID chaincode", () => {
                 id: didKey,
                 valid: true
             }
-            
+
             didDoc = stringify(sortKeysRecursive(didDoc));
 
             await contract.storeDID(ctx, didKey, didDoc);
 
             await contract.deleteDID(ctx, didKey);
-            
+
             const exists = await contract.DIDExists(ctx, didKey);
 
             expect(exists).to.be.false;
