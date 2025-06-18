@@ -11,7 +11,7 @@ interface Service {
     serviceEndpoint: string;
 }
 
-interface DIDDocument {
+export interface DIDDocument {
     "@context": string;
     id: string;
     controllers: string[] | string;
@@ -61,3 +61,4 @@ export default class DIDDocumentBuilder {
         };
     }
 }
+
