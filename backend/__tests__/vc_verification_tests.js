@@ -64,7 +64,6 @@ const privateKeyStudent = privateKey;
 const publicKeyUni = publicKey;
 const privateKeyUni = privateKey;
 
-
 /**---------Create the key pair for the root--------- */
 ({ publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
   namedCurve: "P-256",
@@ -672,7 +671,6 @@ describe("POST /vc/verifyTrustchain", () => {
     let malReg = new Map();
     malReg.set(malDID, [unisVC]);
 
-
     fetchRegistry.mockImplementation((url) => {
       if (url == uniURL) return loadRegistryAsMap("../registries/university.json");
       if (url == rootURL) return loadRegistryAsMap("../registries/MOE.json");
@@ -689,7 +687,9 @@ describe("POST /vc/verifyTrustchain", () => {
     const app = require("../app");
     const response = await request(app).post("/vc/verifyTrustchain").send(studentsVC).expect(200);
 
-    expect(response.text).toBe("There was a problem up the trustchain. It is possible that a third party took unauthorized control of another VC");
+    expect(response.text).toBe(
+      "There was a problem up the trustchain. It is possible that a third party took unauthorized control of another VC"
+    );
   });
 
   it("should return 400 because no VC was provided", async () => {
@@ -698,5 +698,4 @@ describe("POST /vc/verifyTrustchain", () => {
 
     expect(response.text).toBe("VC required");
   });
-
 });

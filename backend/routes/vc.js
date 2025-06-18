@@ -343,7 +343,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           });
           return res.status(200).send(invalidMessage);
         }
-        
+
         if (correctVC.credentialSubject.id !== issuerDID) {
           const invalidMessage = `There was a problem up the trustchain. It is possible that a third party took unauthorized control of another VC`;
           logger.info({
@@ -353,7 +353,7 @@ router.post("/verifyTrustchain", async (req, res) => {
           });
           return res.status(200).send(invalidMessage);
         }
-        
+
         currentVC = correctVC;
         currentDID = issuerDID;
       }
