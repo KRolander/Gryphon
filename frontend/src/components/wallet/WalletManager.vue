@@ -87,10 +87,10 @@
 </template>
 
 <script>
-import { useWalletStore } from "@/store/WalletStore.ts";
+import { useWalletStore } from "@/store/WalletStore";
 import { mapStores } from "pinia";
-import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto.js";
-import { useUserStore } from "@/store/userStore.js";
+import { deriveKey, storeSessionKey, loadSessionKey } from "@/utils/crypto";
+import { useUserStore } from "@/store/userStore";
 import { watch } from "vue";
 
 /**
