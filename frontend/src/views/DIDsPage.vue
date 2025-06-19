@@ -206,17 +206,35 @@
                                       <v-btn
                                           class="ma-2 mt-n4"
                                           variant="outlined"
-
+                                          @click="() => {
+                                            this.serviceEndpoint='';
+                                            modifyController(DID.did,'modifyService')
+                                          }"
                                       >
-                                        Remove service
-                                        <v-icon icon="mdi-minus" end></v-icon>
+                                        <span v-if="!loading">
+                                          Remove service
+                                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                                        </span>
+                                        <v-progress-circular
+                                            v-else
+                                            color="primary"
+                                            indeterminate
+                                        ></v-progress-circular>
                                       </v-btn>
                                       <v-btn
                                           class="ma-2 mt-n4"
                                           variant="outlined"
+                                          @click="modifyController(DID.did,'modifyService')"
                                       >
-                                        Modify service
-                                        <v-icon icon="mdi-swap-horizontal" end></v-icon>
+                                        <span v-if="!loading">
+                                          Modify service
+                                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                                        </span>
+                                        <v-progress-circular
+                                            v-else
+                                            color="primary"
+                                            indeterminate
+                                        ></v-progress-circular>
                                       </v-btn>
                                     </div>
                                   </v-form>
@@ -424,19 +442,32 @@ export default {
 
     async modifyController(DID, operation) {
       try {
-        await DIDService.modifyController(DID, operation, this.newControllerName);
-        this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
-        this.newControllerName = "";
+        this.loading=true;
+        if (operation==="addController"){
+          await DIDService.modifyValue(DID, operation, this.newControllerName);
+          this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
+          this.newControllerName = "";
+        }
+        if(operation==="modifyService"){
+          await DIDService.modifyValue(DID, operation, this.serviceEndpoint);
+          this.editControllerMessage = `Successfully modified to service: ${this.serviceEndpoint}`;
+        }
         const res = await DIDService.getDIDDoc(DID);
         this.didDoc[DID] = res.data;
         this.editControllerAlert = true;
         this.alertColor = "success";
+        this.loading=false;
         setTimeout(() => {
           this.resetAlerts();
         }, 3000);
       } catch (err) {
         this.editControllerAlert = true;
-        this.editControllerMessage = "There was a problem when adding the controller. Try again.";
+        if (operation==="addController"){
+          this.editControllerMessage = "There was a problem when adding the controller. Try again.";
+        }
+        else if (operation==="modifyService"){
+          this.editControllerMessage = "There was a problem when modifying this service. Try again.";
+        }
         this.alertColor = "error";
         setTimeout(() => {
           this.resetAlerts();
