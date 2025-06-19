@@ -93,7 +93,7 @@ Go to `Clients`, select `admin-cli` and `Roles`. Add the following roles:
 - admin
 - master_admin
 
-Finally, add a User with username `admin` and password `admin`. Assign the role of `master_admin` to this user.
+Finally, add a User with the same username and password that you defined in the `.env` file. Assign the role of `master_admin` to this user. Make sure you also add an email (and mark it as verified) for this user. 
 
 After doing this, the authentication system should run flawlessly.
 
