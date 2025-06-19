@@ -8,6 +8,47 @@
       </div>
     </div>
 
+    <v-dialog v-model="foreignDIDDialog" max-width="500">
+      <template v-slot:activator="{props:activatorProps}">
+        <v-btn v-bind="activatorProps" @click="foreignDIDDialog=true">
+          Show foreign DID Doc</v-btn>
+      </template>
+
+      <template v-slot:default="{isActive}">
+        <v-card title="Show foreign Document">
+          <v-card-text>
+            <v-text-field
+                v-model="foreignDID"
+                label="Enter DID"
+                :rules="didStructureRules"
+                required
+            >
+            </v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn variant="outlined" class="ma-2s" @click="isActive.value = false">
+              Cancel
+              <v-icon icon="mdi-cancel" end></v-icon>
+            </v-btn>
+
+            <v-spacer></v-spacer>
+
+            <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(foreignDID)" >
+              <span v-if="!loading">
+                Show document
+                <v-icon icon="mdi-file-document-outline" end></v-icon>
+              </span>
+              <v-progress-circular
+                  v-else
+                  color="primary"
+                  indeterminate
+              ></v-progress-circular>
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </v-dialog>
+
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
         <div style="display: none">
@@ -293,6 +334,7 @@ export default {
 
       DIDToDelete: null,
       editDIDDocDialog: false,
+      foreignDIDDialog: false,
       editControllerAlert: false,
       editControllerMessage: "",
       alertColor: "info",
@@ -301,6 +343,7 @@ export default {
       newControllerName: "",
       newDIDService: "",
       serviceEndpoint: "",
+      foreignDID:"",
       showHideToggle: {},
       didDoc: {},
       didList: true,
