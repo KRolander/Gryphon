@@ -59,7 +59,9 @@
     </v-container>
 
     <!-- Add button that takes you to keycloak -->
-    <v-btn cols="4" class="d-flex align-center" @click="goToKeycloak">To Keycloak</v-btn>
+    <v-btn v-if="userStore.isMasterAdmin" cols="4" class="d-flex align-center" @click="goToKeycloak"
+      >To Keycloak</v-btn
+    >
   </v-container>
 </template>
 
