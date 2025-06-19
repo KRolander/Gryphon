@@ -74,10 +74,114 @@
             <v-icon icon="mdi-cancel" end></v-icon>
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn v-if="permission" variant="outlined" class="ma-2s" >
-            Edit document
-            <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
-          </v-btn>
+
+          <!-- Edit foreign DID -->
+          <v-dialog v-model="editDIDDocDialog" max-width="500">
+            <template v-slot:activator="{ props: editForeignButton }">
+              <v-btn
+                  v-bind="editForeignButton"
+                  v-if="permission"
+                  variant="outlined"
+                  @click= "() => {
+                          editDIDDocDialog = true;
+                          serviceEndpoint = getServiceEndpoint(foreignDID);
+                          }"
+              >
+                Edit document
+                <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
+              </v-btn>
+            </template>
+            <template v-slot:default="{ isActive }">
+              <v-card title="Document edit">
+                <v-card-text >
+                  Edit controller
+                  <v-form v-model="valid">
+                    <v-text-field
+                        v-model="newControllerName"
+                        label="Controller DID"
+                        required
+                        :rules="didStructureRules"
+                    ></v-text-field>
+                    <div class="d-flex justify-end">
+                      <v-btn
+                          class="ma-2 mt-n4"
+                          variant="outlined"
+                          :disabled="!valid"
+                          @click="modifyController(foreignDID,'addController')">
+                        Add
+                        <v-icon icon="mdi-plus-circle" end></v-icon>
+                      </v-btn>
+                    </div>
+                    <v-alert
+                        v-if="editControllerAlert"
+                        :color = "alertColor"
+                    >
+                      {{editControllerMessage}}
+                    </v-alert>
+                    <v-text-field
+                        v-model="serviceEndpoint"
+                        label="Edit service endpoint"
+                    ></v-text-field>
+                    <div class="d-flex justify-space-between">
+                      <v-btn
+                          class="ma-2 mt-n4"
+                          variant="outlined"
+                          @click="() => {
+                          this.serviceEndpoint='';
+                          modifyController(foreignDID,'modifyService')
+                          }"
+                      >
+                        <span v-if="!loading">
+                          Remove service
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </span>
+                        <v-progress-circular
+                            v-else
+                            color="primary"
+                            indeterminate
+                        ></v-progress-circular>
+                      </v-btn>
+                      <v-btn
+                          class="ma-2 mt-n4"
+                          variant="outlined"
+                          @click="modifyController(foreignDID,'modifyService')"
+                      >
+                        <span v-if="!loading">
+                          Modify service
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </span>
+                        <v-progress-circular
+                            v-else
+                            color="primary"
+                            indeterminate
+                        ></v-progress-circular>
+                      </v-btn>
+                    </div>
+                  </v-form>
+                </v-card-text>
+
+
+                <v-card-actions>
+                  <v-btn
+                      class="ma-2s"
+                      variant="outlined"
+                      @click="() => {isActive.value = false; newControllerName=''}"
+                  >
+                    Cancel
+                    <v-icon icon="mdi-cancel" end></v-icon>
+                  </v-btn>
+
+                  <v-spacer></v-spacer>
+
+                  <v-btn class="ma-2" variant="outlined" @click="isActive.value = false">
+                    Done
+                    <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </template>
+          </v-dialog>
+
         </v-card-actions>
       </v-card>
     </v-dialog>
