@@ -36,7 +36,10 @@
 
             <v-spacer></v-spacer>
 
-            <v-btn class="ma-2" variant="outlined" @click="getDIDDocument(foreignDID)" >
+            <v-btn class="ma-2" variant="outlined" @click="async () =>
+            {await getDIDDocument(foreignDID);
+              verifyController();
+            }" >
               <span v-if="!loading">
                 Show document
                 <v-icon icon="mdi-file-document-outline" end></v-icon>
@@ -62,12 +65,16 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-btn variant="outlined" class="ma-2s" @click="foreignDocDialog = false">
+          <v-btn variant="outlined" class="ma-2s" @click="() => {
+            foreignDocDialog = false;
+            foreignDOC='';
+            permission=false;
+          }">
             Cancel
             <v-icon icon="mdi-cancel" end></v-icon>
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn variant="outlined" class="ma-2s" >
+          <v-btn v-if="permission" variant="outlined" class="ma-2s" >
             Edit document
             <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
           </v-btn>
@@ -368,6 +375,7 @@ export default {
       alertColor: "info",
 
       valid: false,
+      permission:false,
       newDIDname: "",
       newControllerName: "",
       newDIDService: "",
@@ -487,7 +495,6 @@ export default {
       else {
         const res = await DIDService.getDIDDoc(this.foreignDID);
         this.foreignDOC = res.data;
-        console.log(this.foreignDOC);
         this.foreignDocDialog=true;
       }
 
@@ -562,6 +569,20 @@ export default {
         return didDoc.service[0].serviceEndpoint;
       }
       return "";
+    },
+
+    verifyController(){
+      let myControllers = this.DIDs.map(x=>x.did);
+      let controllers = this.foreignDOC.controllers;
+      if (typeof controllers === "string"){
+        controllers = [controllers];
+      }
+      for (let did of myControllers){
+        if (controllers.includes(did)){
+          this.permission=true;
+          return;
+        }
+      }
     },
 
     resetAlerts() {
