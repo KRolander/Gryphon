@@ -26,7 +26,10 @@
             </v-text-field>
           </v-card-text>
           <v-card-actions>
-            <v-btn variant="outlined" class="ma-2s" @click="isActive.value = false">
+            <v-btn variant="outlined" class="ma-2s" @click="() => {
+              isActive.value = false;
+              foreignDID='';
+            }">
               Cancel
               <v-icon icon="mdi-cancel" end></v-icon>
             </v-btn>
@@ -47,6 +50,29 @@
           </v-card-actions>
         </v-card>
       </template>
+    </v-dialog>
+
+    <v-dialog v-model="foreignDocDialog" max-width="700">
+      <v-card title="This is the document:" color="grey-lighten-1">
+        <v-card-text>
+          <pre v-if="foreignDOC"
+               class="text-body-1 font-weight-light mb-n1"
+               style="white-space: pre-wrap; word-break: break-word; padding: 0 16px"
+          >{{ JSON.stringify(foreignDOC, null, 2) }}</pre>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-btn variant="outlined" class="ma-2s" @click="foreignDocDialog = false">
+            Cancel
+            <v-icon icon="mdi-cancel" end></v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn variant="outlined" class="ma-2s" >
+            Edit document
+            <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
+          </v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
 
     <WalletManager v-slot="{ wallet, ready }">
@@ -335,15 +361,19 @@ export default {
       DIDToDelete: null,
       editDIDDocDialog: false,
       foreignDIDDialog: false,
+      foreignDocDialog: false,
+
       editControllerAlert: false,
       editControllerMessage: "",
       alertColor: "info",
+
       valid: false,
       newDIDname: "",
       newControllerName: "",
       newDIDService: "",
       serviceEndpoint: "",
       foreignDID:"",
+      foreignDOC:"",
       showHideToggle: {},
       didDoc: {},
       didList: true,
@@ -442,16 +472,25 @@ export default {
     },
 
     async getDIDDocument(DID) {
-      if (this.showHideToggle[DID]) {
-        this.showHideToggle[DID] = false;
-        this.didDoc[DID] = null;
-        return;
+      if (!this.foreignDID){
+        if (this.showHideToggle[DID]) {
+          this.showHideToggle[DID] = false;
+          this.didDoc[DID] = null;
+          return;
+        }
+        // 1. Send to backend
+        const res = await DIDService.getDIDDoc(DID);
+        this.showHideToggle[DID] = true;
+        this.didDoc[DID] = res.data;
+        console.log(res.data);
       }
-      // 1. Send to backend
-      const res = await DIDService.getDIDDoc(DID);
-      this.showHideToggle[DID] = true;
-      this.didDoc[DID] = res.data;
-      console.log(res.data);
+      else {
+        const res = await DIDService.getDIDDoc(this.foreignDID);
+        this.foreignDOC = res.data;
+        console.log(this.foreignDOC);
+        this.foreignDocDialog=true;
+      }
+
     },
 
     async deleteDID(DID, wallet) {
