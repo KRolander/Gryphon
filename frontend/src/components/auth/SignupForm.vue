@@ -100,7 +100,7 @@
 // Auth
 import AuthService from "@/services/AuthService";
 import { mapStores } from "pinia";
-import { useUserStore } from "@/store/userStore.js";
+import { useUserStore } from "@/store/userStore";
 
 /* ======================= CONFIG ======================= */
 export default {

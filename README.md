@@ -1,4 +1,4 @@
-# Identity Management System Using Hyperledger Fabric
+# Digital Identity Management System Using Hyperledger Fabric
 
 ## Fabric setup
 
@@ -6,52 +6,29 @@ To install the necessary prerequisites, go to [Prerequisites](https://hyperledge
 
 ### Running the example network
 
-First you need to install the binaries and the docker images necessary for running the network.
-To install binaries and docker images, run:
+To get the Fabric network running, ensure that Docker (or Docker desktop) is running and NOT in "Resource saver mode".
+Then simply run this command from the root directory:
 
 ```bash
-cd network/example
-./install-fabric.sh --fabric-version 2.5.13 docker binary
-```
-
-After installing the binaries, to start the network, run
-
-```bash
-cd fabric-samples/test-network
-./network.sh up
-```
-
-## Chaincode setup
-
-To deploy chaincode (smart contracts), we need to have Channels in our network, so that we can deploy it on all the peers of a given channel.
-
-To create and join a channel after the network is created, run the following command
-
-```bash
-./network.sh createChannel -c mychannel
-```
-
-Otherwise, you can shut down your current network with
-
-```bash
-./network.sh down
-```
-
-And bring up a new fabric network with one channel with the command
-
-```bash
-./network.sh up createChannel -c mychannel
-```
-
-If the channel creation was successful, you will read `Channel 'mychannel' joined` in your terminal.
-
-Now we can deploy the chaincode to the peers of the channel `mychannel` with the command
-
-```bash
-./network.sh deployCC -c mychannel -ccn tscc -ccp ../../../../chaincode/ -ccl typescript
+./scripts/setup.sh
 ```
 
 This script will execute the following operations, in this order:
+1. Install the required Fabric binaries and docker images, necessary to run the network.
+2. Stop any previous Fabric network currently running, then start the network.
+3. Create a channel `didchannel`, and join with the peers. For a more in-depth explanation about what this and the next step entails, check out the [official documentation](https://hyperledger-fabric.readthedocs.io/en/release-2.5/create_channel/create_channel_test_net.html).
+4. Create a channel `vcchannel`, and join with the peers.
+5. Deploy the chaincode from the directory `chaincodeDID`, on the peers of channel `didchannel`. More details about this step can be found in the [following section](#chaincode-deployment)
+6. Deploy the chaincode from the directory `chaincodeVC`, on the peers of channel `vcchannel`.
+
+If the setup was successful, you will read on your terminal: `The chaincode has been successfully installed on the peers.`
+
+### Chaincode deployment
+
+To execute transactions on the blockchain, the peers of the network need to have chaincode, or smart contracts, installed.
+These *contracts*, define how operations are executed on the channel, and they are the only way to interact with the data stored on the blockchain.
+
+These are the operations carried out, to deploy the chaincode on the peers, by the previously mentioned script `setup.sh`:
 
 1. Install the dependencies on the chaincode directory (with `npm install`)
 2. Compile Typescript code into Javascript (with `npm run build`)
@@ -60,31 +37,39 @@ This script will execute the following operations, in this order:
 5. Seek approval from peers
 6. Check if the amount of approvals satisfies the policy of the channel
 7. Commit chaincode to the channel
-8. Check if the commit was successful
 
-## Auth Setup (Temporary)
+During Step 4, a Docker container is dynamically created and ran in the network for each peer that installed the chaincode.
+These containers, named `dev-peer...` are the actual Fabric agents, responsible for executing the chaincode installed on them, whenever their corresponding peer receives a request from the backend.
 
-### Start local Keycloak server
+In our case, if the execution was successful, there should be 4 `dev-peer` Docker containers running, 2 with the `chaincodeDID` installed and 2 with the `chaincodeVC`.
 
-First of all, make sure that the Docker engine is running
+## Application Setup
 
-After you made sure that the service is running, run the following command:
+If the Fabric network setup was successful and, the network is running, we can now run the main components of our application:
+1. Keycloak server, which manages authentication
+2. Frontend Web application
+3. Backend APIs and Gateway to Fabric network
 
+These 3 components have been Dockerized and can be run together, using the following `Docker compose` command from the root directory:
 ```bash
-docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:26.2.5 start-dev
+docker-compose up -d
 ```
 
-### Navigate to the admin panel
+If the Keycloak server was pulled and executed for the first time, follow the steps described in the [next section](#keycloak-setup), before starting to use the application.
 
-At the point of writing this, there is no code that will dinamically create a realm or client for this application. Thus, you need to create a new realm called `users`. This is case sensitive, so MAKE SURE you write the name in all lowercase.
+Now you should be able to open and start using our Web app by navigating to [http://localhost:5173/](http://localhost:5173) on your browser.
+
+### Keycloak Setup
+
+At the point of writing this, there is no code that will dynamically create a realm or client for this application. Thus, you need to create a new realm called `users`. This is case sensitive, so MAKE SURE you write the name in all lowercase.
 
 Now, in order to do this, you must first navigate to:
 
 ```
-localhost:8080
+localhost:9090
 ```
 
-Here, you will have to login to the admin account. As you can see from the `docker` command mentioned above, the username and password are the same, namely `admin`.
+Here, you will have to log in to the admin account. Unless specified otherwise, the username and password are the same, namely `admin`.
 
 Now, you will see a menu on the left side of the screen. Navigate to `Manage realms`
 
@@ -96,4 +81,18 @@ Now, go to Realm Settings, then User profile and delete the `firstname` and `las
 
 After doing this, the authentication system should run flawlessly.
 
-PS: Don't close the terminal where you started the Keycloak server because...it will stop the Keycloak server.
+## Logging Setup
+
+To enable logging and monitoring of the application, you can run our monitoring suite, made up of:
+1. [Grafana](https://grafana.com/), a composable observability platform, provides a centralized dashboard to monitor logs.
+2. [Loki](https://grafana.com/oss/loki/), a highly-scalable log aggregation system from the Grafana developers, provides storage for the logs
+3. [Alloy](https://grafana.com/docs/alloy/latest/), a log collector from the Grafana developers, fetches and processes local logs and sends them to Loki. 
+
+These tools can be run together by using the following `Docker compose` command from the root directory:
+
+```bash
+cd logging
+docker-compose up -d
+```
+
+Now, the Grafana dashboard can be accessed by navigating to [http://localhost:3200/](http://localhost:3200) on your browser, where you can monitor and query the incoming logs.

@@ -8,7 +8,7 @@ import globals from "globals";
 
 export default defineConfig([
   {
-    ignores: ["vite.config.js", "dist", "node_modules", ".vite", ".vscode"],
+    ignores: ["vite.config.ts", "dist", "node_modules", ".vite", ".vscode"],
   },
   {
     files: ["**/*.ts", "**/*.js"],

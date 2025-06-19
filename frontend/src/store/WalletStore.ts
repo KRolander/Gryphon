@@ -8,6 +8,7 @@ import {
   extractSalt,
   SALT_LENGTH,
 } from "@/utils/crypto";
+import { VerifiableCredential } from "@/../../utils/VC";
 
 /**
  * Defines the structure of the wallet to be stored and the available methods.
@@ -27,7 +28,7 @@ export const useWalletStore = defineStore("wallet", {
       {
         keyPair: { publicKey: string; privateKey: string };
         metadata: { name: string; createdAt: string; tags?: string[] };
-        credentials: any[];
+        credentials: Record<string, VerifiableCredential>;
       }
     >,
     // activeDid can be used as the DID for issuing/presenting credentials
@@ -50,19 +51,9 @@ export const useWalletStore = defineStore("wallet", {
       this.dids[did] = {
         keyPair,
         metadata: { createdAt: new Date().toISOString(), name: name },
-        credentials: [],
+        credentials: {},
       };
       this.activeDid = did;
-    },
-
-    /**
-     * Adds a new Verifiable Credential (VC), to the given `did`
-     *
-     * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
-     * @param {JSON} credential - The VC issued to the `did`
-     */
-    addCredential(did: string, credential: any) {
-      this.dids[did]?.credentials.push(credential);
     },
 
     /**
@@ -84,6 +75,26 @@ export const useWalletStore = defineStore("wallet", {
     removeDid(did: string) {
       delete this.dids[did];
       if (this.activeDid === did) this.activeDid = Object.keys(this.dids)[0] || null;
+    },
+
+    /**
+     * Adds a new Verifiable Credential (VC), to the given `did`
+     *
+     * @param {string} did - The did that receives the VC, follows the format "**did:hlf:<uniqueId>**"
+     * @param {JSON} credential - The VC issued to the `did`
+     */
+    addVC(did: string, name: string, credential: VerifiableCredential) {
+      if (!this.dids[did].credentials) this.dids[did].credentials = {};
+      this.dids[did].credentials[name] = credential;
+    },
+
+    getVCs(did: string) {
+      return this.dids[did]?.credentials;
+    },
+
+    removeVC(did: string, name: string) {
+      if (!this.dids[did].credentials) return;
+      delete this.dids[did].credentials[name];
     },
 
     /**
