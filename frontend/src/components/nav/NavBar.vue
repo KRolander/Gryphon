@@ -5,7 +5,11 @@
     >
 
     <template v-slot:append>
-      <v-btn v-if="userStore.isAdmin" text @click="navigateTo({ path: '/admin' })">
+      <v-btn
+        v-if="userStore.isAdmin || userStore.isMasterAdmin"
+        text
+        @click="navigateTo({ path: '/admin' })"
+      >
         Admin settings
       </v-btn>
       <v-btn text @click="navigateTo({ path: '/dids' })">DID's</v-btn>

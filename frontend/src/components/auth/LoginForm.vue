@@ -51,19 +51,7 @@
                 @click="login"
                 :disabled="loading"
               >
-                <span v-if="!loading">Login as user</span>
-                <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
-              </v-btn>
-
-              <v-btn
-                color="primary"
-                size="large"
-                variant="outlined"
-                class="font-weight-bold"
-                @click="login"
-                :disabled="loading"
-              >
-                <span v-if="!loading">Login as admin</span>
+                <span v-if="!loading">Login</span>
                 <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
               </v-btn>
             </div>

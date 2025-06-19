@@ -8,7 +8,7 @@
       </div>
     </div>
     <!-- Root TAO fields -to add an @click for rules of setting TAO -->
-    <v-container>
+    <v-container v-if="userStore.isMasterAdmin">
       <v-row class="w-100 border rounded">
         <v-col cols="8">
           <v-text-field
@@ -57,6 +57,9 @@
         </v-alert>
       </v-row>
     </v-container>
+
+    <!-- Add button that takes you to keycloak -->
+    <v-btn cols="4" class="d-flex align-center" @click="goToKeycloak">To Keycloak</v-btn>
   </v-container>
 </template>
 
@@ -65,6 +68,10 @@
 //import {useUserStore} from "@/store/userStore.js";
 //import AuthService from "@/services/AuthService.js";
 import VCService from "@/services/VCService.js";
+
+// Store
+import { useUserStore } from "@/store/userStore";
+import { mapStores } from "pinia";
 
 export default {
   name: "AdminSettings",
@@ -123,8 +130,13 @@ export default {
       this.alertMessage = "";
       this.alertColor = "info";
     },
+    goToKeycloak() {
+      window.location.href = "http://localhost:9090";
+    },
   },
-
+  computed: {
+    ...mapStores(useUserStore),
+  },
   mounted() {
     console.log("AdminPage mounted!");
   },

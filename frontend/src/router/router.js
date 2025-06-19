@@ -82,7 +82,7 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   console.log(userStore.isAdmin);
 
-  if (to.meta.requiresAdminAuth && !userStore.isAdmin) {
+  if (to.meta.requiresAdminAuth && !userStore.isAdmin && !userStore.isMasterAdmin) {
     next({ name: "home" });
   } else {
     next();

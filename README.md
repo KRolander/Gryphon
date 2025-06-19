@@ -82,11 +82,18 @@ When the dialogue pops up, all you need to do is enter the `realm name` which is
 
 Now, go to Realm Settings, then User profile and delete the `firstname` and `lastname` attributes.
 
-Finally, go to `Client Scopes` and search for `roles`. Then, select `Mappers` and `client-roles`. Then, three important things:
+Next, go to `Client Scopes` and search for `roles`. Then, select `Mappers` and `client-roles`. Then, three important things:
 
 - Client ID: admin-cli
 - Add to ID token: On
 - Add to userinfo: On
+
+Go to `Clients`, select `admin-cli` and `Roles`. Add the following roles:
+
+- admin
+- master_admin
+
+Finally, add a User with username `admin` and password `admin`. Assign the role of `master_admin` to this user.
 
 After doing this, the authentication system should run flawlessly.
 
