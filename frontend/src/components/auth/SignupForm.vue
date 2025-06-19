@@ -70,6 +70,7 @@
           <v-card-actions class="d-flex flex-column justify-center">
             <!-- <v-spacer></v-spacer> -->
             <v-btn
+              ref="signupButton"
               color="primary"
               size="large"
               variant="outlined"
@@ -114,7 +115,7 @@ export default {
       default: undefined,
     },
   },
-  emits: ["update:username", "update:email"],
+  emits: ["update:username", "update:email", "validate:email"],
   data() {
     return {
       valid: false,
@@ -221,7 +222,9 @@ export default {
     async signup() {
       console.log(this.internalUsername);
       console.log(this.internalEmail);
-      return;
+
+      // Emit email validation
+      this.$emit("validate:email", await this.$refs.emailField.validate());
 
       // Ensire that the form is valid upoon submission
       if (this.valid) {

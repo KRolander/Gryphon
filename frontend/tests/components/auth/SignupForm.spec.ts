@@ -124,12 +124,36 @@ describe("Email field properties", () => {
 
     /* ------------- CREATE TESTS ------------- */
 
-    // Update the value of the field
+    // Update the value of the fieldca n
     await emailTextField.setValue("test@test.com");
 
     // Check if the spy was updated with the new value
     expect(updateEmailSpy).toHaveBeenCalledWith("test@test.com");
   });
+
+  // TODO: FINISH IMPLEMENTING
+  // it("Follows established validation rules", async () => {
+  //   // Create spy
+  //   const validateEmailSpy = vi.fn();
+
+  //   // Retrieve the HTML elements necessary for testing
+  //   const wrapper = mount(SignupForm, {
+  //     global: {
+  //       plugins: [vuetify],
+  //     },
+  //     props: {
+  //       "onValidate:email": validateEmailSpy,
+  //     },
+  //   });
+
+  //   const emailTextField = wrapper.findComponent({ ref: "emailField" });
+  //   await emailTextField.setValue("test@test.com");
+
+  //   // Simulate submit
+  //   await wrapper.findComponent({ ref: "signupButton" }).trigger("click");
+
+  //   expect(validateEmailSpy).toBeCalledWith(true);
+  // });
 });
 
 /* ======================= PASSWORD FIELD ======================= */
