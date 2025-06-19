@@ -87,8 +87,11 @@ async function loginUser(userData, realmName, correlationId = "unknown") {
     username: userData.username,
     password: userData.password,
     grant_type: "password",
-    scope: "openid",
+    scope: "openid profile roles",
   };
+
+  console.log(body.scope);
+
   const headers = {
     "Content-Type": "application/x-www-form-urlencoded",
   };

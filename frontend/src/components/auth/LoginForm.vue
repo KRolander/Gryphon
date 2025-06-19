@@ -136,22 +136,25 @@ export default {
           return;
         }
 
+        // Check if the user has the admin rolr or not
+        const roles = res.data.user.resource_access
+          ? res.data.user.resource_access["admin-cli"].roles
+          : null;
+
         // Store the token inside the local storage
         localStorage.setItem("access_token", res.data.access_token);
-
         // Store the user data in the Pinia store
         await this.userStore.setUser({
           id: res.data.user.sub,
           username: res.data.user.preferred_username,
           email: res.data.user.email,
+          roles: roles,
         });
-
-        console.log(this.userStore.getUser);
 
         // Redirect to the home page
         //TODO redirect based on wether admin or not
         //if (admin){
-        this.$router.push({ name: "adminPage" });
+        this.$router.push({ name: "admin" });
         // }
         //this.$router.push({ name: "home" });
       } else {

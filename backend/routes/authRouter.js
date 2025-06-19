@@ -97,6 +97,7 @@ authRouter.post("/login", async (req, res) => {
       message: `User ${req.body.username} successfully logged in`,
     });
 
+    console.log(userData);
     res.status(200).send({ access_token: userAccessToken, user: userData });
   } catch (error) {
     logger.error({

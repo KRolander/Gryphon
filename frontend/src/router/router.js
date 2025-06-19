@@ -14,6 +14,9 @@ import SignupPage from "../components/auth/SignupForm.vue";
 import LoginPage from "../components/auth/LoginForm.vue";
 import RecoverPasswordPage from "../components/auth/ForgotPasswordForm.vue";
 
+// Store
+import { useUserStore } from "@/store/userStore";
+
 /* ========================= CONFIG ========================= */
 /* ---------------------- ROUTER ---------------------- */
 const routes = [
@@ -24,10 +27,10 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    name: "AdminSettings",
+    name: "admin",
     path: "/admin",
     component: AdminSettings,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresAdminAuth: true },
   },
   {
     name: "DIDs",
@@ -74,6 +77,18 @@ const history = createWebHistory();
 const router = createRouter({ history, routes });
 
 /* ---------------------- GUARDS ---------------------- */
+// admin guard
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  console.log(userStore.isAdmin);
+
+  if (to.meta.requiresAdminAuth && !userStore.isAdmin) {
+    next({ name: "home" });
+  } else {
+    next();
+  }
+});
+// auth guard
 router.beforeEach((to, from, next) => {
   console.log(to);
   let isAuthenticated = false; // Replace with actual authentication check
@@ -96,4 +111,5 @@ router.beforeEach((to, from, next) => {
     next(); // Proceed to the route
   }
 });
+
 export default router;

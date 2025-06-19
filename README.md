@@ -14,6 +14,7 @@ Then simply run this command from the root directory:
 ```
 
 This script will execute the following operations, in this order:
+
 1. Install the required Fabric binaries and docker images, necessary to run the network.
 2. Stop any previous Fabric network currently running, then start the network.
 3. Create a channel `didchannel`, and join with the peers. For a more in-depth explanation about what this and the next step entails, check out the [official documentation](https://hyperledger-fabric.readthedocs.io/en/release-2.5/create_channel/create_channel_test_net.html).
@@ -26,7 +27,7 @@ If the setup was successful, you will read on your terminal: `The chaincode has 
 ### Chaincode deployment
 
 To execute transactions on the blockchain, the peers of the network need to have chaincode, or smart contracts, installed.
-These *contracts*, define how operations are executed on the channel, and they are the only way to interact with the data stored on the blockchain.
+These _contracts_, define how operations are executed on the channel, and they are the only way to interact with the data stored on the blockchain.
 
 These are the operations carried out, to deploy the chaincode on the peers, by the previously mentioned script `setup.sh`:
 
@@ -46,11 +47,13 @@ In our case, if the execution was successful, there should be 4 `dev-peer` Docke
 ## Application Setup
 
 If the Fabric network setup was successful and, the network is running, we can now run the main components of our application:
+
 1. Keycloak server, which manages authentication
 2. Frontend Web application
 3. Backend APIs and Gateway to Fabric network
 
 These 3 components have been Dockerized and can be run together, using the following `Docker compose` command from the root directory:
+
 ```bash
 docker-compose up -d
 ```
@@ -79,14 +82,21 @@ When the dialogue pops up, all you need to do is enter the `realm name` which is
 
 Now, go to Realm Settings, then User profile and delete the `firstname` and `lastname` attributes.
 
+Finally, go to `Client Scopes` and search for `roles`. Then, select `Mappers` and `client-roles`. Then, three important things:
+
+- Client ID: admin-cli
+- Add to ID token: On
+- Add to userinfo: On
+
 After doing this, the authentication system should run flawlessly.
 
 ## Logging Setup
 
 To enable logging and monitoring of the application, you can run our monitoring suite, made up of:
+
 1. [Grafana](https://grafana.com/), a composable observability platform, provides a centralized dashboard to monitor logs.
 2. [Loki](https://grafana.com/oss/loki/), a highly-scalable log aggregation system from the Grafana developers, provides storage for the logs
-3. [Alloy](https://grafana.com/docs/alloy/latest/), a log collector from the Grafana developers, fetches and processes local logs and sends them to Loki. 
+3. [Alloy](https://grafana.com/docs/alloy/latest/), a log collector from the Grafana developers, fetches and processes local logs and sends them to Loki.
 
 These tools can be run together by using the following `Docker compose` command from the root directory:
 
