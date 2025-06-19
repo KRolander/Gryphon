@@ -25,5 +25,4 @@ export default {
     }
     return Api().patch(`did/updateDIDDoc/addController/${DID}`, { operation, newController });
   },
-
 };

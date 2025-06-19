@@ -141,7 +141,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       return res.status(400).send(message);
     }
     if (operation === "addController") {
-      if (!newController){
+      if (!newController) {
         const message = "Invalid request";
         logger.warn({
           action: "PATCH did/updateDIDDoc/addController",
@@ -191,14 +191,12 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       });
       console.log(successMessage);
       res.status(200).send("Controller added successfully");
-
-
-    } else if(operation==="modifyService") {
+    } else if (operation === "modifyService") {
       let doc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), targetDID);
-      if (!newController){
+      if (!newController) {
         console.log(doc);
         console.log("DOC before");
-        delete doc.service[0].serviceEndpoint
+        delete doc.service[0].serviceEndpoint;
         console.log(doc);
         const successMessage = `Endpoint deleted successfully for DID ${targetDID}`;
         logger.info({
@@ -209,8 +207,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
         console.log(successMessage);
         await addDIDController(getContract(DIDchannelName, DIDchaincodeName), targetDID, doc);
         return res.status(200).send("Endpoint deleted successfully");
-      }
-      else if (doc.service[0].serviceEndpoint === newController) {
+      } else if (doc.service[0].serviceEndpoint === newController) {
         const errorMessage = "Duplicate endpoint";
         logger.warn({
           action: "PATCH did/updateDIDDoc/addController",
@@ -231,9 +228,7 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       });
       console.log(successMessage);
       res.status(200).send("Endpoint modified successfully");
-
-    }
-    else {
+    } else {
       const errorMessage = "Not yet implemented or operation not allowed";
       logger.warn({
         action: "PATCH did/updateDIDDoc/addController",
@@ -253,7 +248,6 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
     res.status(500).send("Error querying DID from blockchain");
   }
 });
-
 
 router.delete("/deleteDID/", async (req, res) => {
   return res.status(400).send("DID is required");
