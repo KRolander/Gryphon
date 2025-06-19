@@ -162,7 +162,10 @@
                               v-bind="editButton"
                               class="position-absolute bottom-0 right-0 ma-2"
                               variant="outlined"
-                              @click="editDIDDocDialog = true"
+                              @click= "() => {
+                          editDIDDocDialog = true;
+                          serviceEndpoint = getServiceEndpoint(didDoc[DID.did]);
+                          }"
                           >
                           Edit document
                             <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
@@ -195,8 +198,28 @@
                                       >
                                           {{editControllerMessage}}
                                       </v-alert>
-                                  </v-form>
+                                    <v-text-field
+                                        v-model="serviceEndpoint"
+                                        label="Edit service endpoint"
+                                    ></v-text-field>
+                                    <div class="d-flex justify-space-between">
+                                      <v-btn
+                                          class="ma-2 mt-n4"
+                                          variant="outlined"
 
+                                      >
+                                        Remove service
+                                        <v-icon icon="mdi-minus" end></v-icon>
+                                      </v-btn>
+                                      <v-btn
+                                          class="ma-2 mt-n4"
+                                          variant="outlined"
+                                      >
+                                        Modify service
+                                        <v-icon icon="mdi-swap-horizontal" end></v-icon>
+                                      </v-btn>
+                                    </div>
+                                  </v-form>
                                 </v-card-text>
 
 
@@ -259,6 +282,7 @@ export default {
       newDIDname: "",
       newControllerName: "",
       newDIDService: "",
+      serviceEndpoint: "",
       showHideToggle: {},
       didDoc: {},
       didList: true,
@@ -418,6 +442,13 @@ export default {
           this.resetAlerts();
         }, 3000);
       }
+    },
+
+    getServiceEndpoint(didDoc){
+      if (didDoc.service[0].serviceEndpoint){
+        return didDoc.service[0].serviceEndpoint;
+      }
+      return "";
     },
 
     resetAlerts() {
