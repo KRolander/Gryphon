@@ -164,3 +164,38 @@ export function extractSalt(encrypted: string): Uint8Array {
   const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
   return encryptedBytes.slice(0, SALT_LENGTH);
 }
+
+async function importKey(key: string): Promise<CryptoKey> {
+  const keyBuffer = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
+  return await crypto.subtle.importKey(
+    "pkcs8",
+    keyBuffer,
+    {
+      name: "ECDSA",
+      namedCurve: "P-256",
+    },
+    false,
+    ["sign"]
+  );
+}
+
+export async function sign(payload: string, privKey: string): Promise<string> {
+  // Import the key
+  const key = await importKey(privKey);
+
+  // Encode the payload
+  const dataBuffer = encoder.encode(payload);
+
+  // Sign the data using ECDSA + SHA-256
+  const signatureBuffer = await crypto.subtle.sign(
+    {
+      name: "ECDSA",
+      hash: { name: "SHA-256" },
+    },
+    key,
+    dataBuffer
+  );
+
+  // Convert to base64
+  return btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+}

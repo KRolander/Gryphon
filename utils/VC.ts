@@ -31,7 +31,7 @@ function buildProof(date: string, verificationMethod: string, signature: string)
 /**
  * The signed VC
  */
-interface VerifiableCredential {
+export interface VerifiableCredential {
   "@context": "https://www.w3.org/2018/credentials/v1";
   type: string[]; // must include VerifiableCredential
   issuer: string;  // the DID of the issuer
@@ -43,7 +43,7 @@ interface VerifiableCredential {
 /**
  * Unsigned version of the VC
  */
-interface UnsignedVC {
+export interface UnsignedVC {
   "@context": "https://www.w3.org/2018/credentials/v1";
   type: string[]; // must include VerifiableCredential
   issuer: string;  // the DID of the issuer
@@ -90,12 +90,12 @@ export class VCBuilder {
   private credentialSubject: CredentialSubject;
   private proof: Proof;
 
-  constructor(unsignedVC: UnsignedVC, signatureCreationDate: string, verificationMethd: string, signature: string) {
+  constructor(unsignedVC: UnsignedVC, signatureCreationDate: string, verificationMethod: string, signature: string) {
     this.issuer = unsignedVC.issuer;
     this.vcType = unsignedVC.type;
     this.issuanceDate = unsignedVC.issuanceDate;
     this.credentialSubject = unsignedVC.credentialSubject;
-    this.proof = buildProof(signatureCreationDate, verificationMethd, signature);
+    this.proof = buildProof(signatureCreationDate, verificationMethod, signature);
   }
 
   build(): VerifiableCredential {

@@ -48,6 +48,6 @@ const { startGateway, getNetwork } = require("./gateway");
 })();
 
 // start server
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Gateway setup`);
 });
