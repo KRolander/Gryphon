@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.js,.vue",
     "lint:fix": "eslint . --ext .ts,.js,.vue --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "npx vitest"
   },
   "dependencies": {
     "@fontsource/roboto": "5.2.5",
