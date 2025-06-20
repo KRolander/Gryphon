@@ -20,9 +20,11 @@
             <v-form v-model="valid" @submit.prevent="signup">
               <!-- USERNAME FIELD -->
               <v-text-field
+                ref="usernameField"
                 class="mb-4 mt-4"
                 label="Username"
-                v-model="username"
+                :model-value="modelValueUsername"
+                @update:model-value="(val) => (modelValueUsername = val)"
                 :rules="usernameRules"
                 :counter="20"
                 required
@@ -30,10 +32,12 @@
 
               <!-- EMAIL FIELD -->
               <v-text-field
+                ref="emailField"
                 class="mb-4 mt-4"
                 label="E-mail"
                 type="email"
-                v-model="email"
+                :model-value="modelValueEmail"
+                @update:model-value="(val) => (modelValueEmail = val)"
                 :rules="emailRules"
                 :error="emailHasCustomError"
                 :error-messages="emailHasCustomError ? emailCustomErrorMessage : ''"
@@ -66,6 +70,7 @@
           <v-card-actions class="d-flex flex-column justify-center">
             <!-- <v-spacer></v-spacer> -->
             <v-btn
+              ref="signupButton"
               color="primary"
               size="large"
               variant="outlined"
@@ -100,14 +105,27 @@ import { useUserStore } from "@/store/userStore";
 /* ======================= CONFIG ======================= */
 export default {
   name: "SignupForm",
+  props: {
+    username: {
+      type: String,
+      default: undefined, // If this prop is defined, it means that this runs in a testing env
+    },
+    email: {
+      type: String,
+      default: undefined,
+    },
+  },
+  emits: ["update:username", "update:email", "validate:email"],
   data() {
     return {
       valid: false,
       loading: false,
       /* --------------------- FIELD VALUES --------------------- */
-      username: "",
+      /* USERNAME */
+      internalUsername: "",
 
-      email: "",
+      /* -------- */
+      internalEmail: "",
       emailHasCustomError: false,
       emailCustomErrorMessage: "",
 
@@ -115,7 +133,6 @@ export default {
       confirmPassword: "",
 
       /* --------------------- RULES --------------------- */
-
       usernameRules: [
         (v) => !!v || "Username is required",
         (v) => (v && v.length >= 3) || "Username must be at least 3 characters",
@@ -144,9 +161,71 @@ export default {
   },
   computed: {
     ...mapStores(useUserStore),
+
+    /* --------------------- USERNAME --------------------- */
+    modelValueUsername: {
+      /**
+       * Defines the behaviour of the computer property when its value is requested.
+       * If the username prop is defined, it means that this runs in a testing env
+       * If the username prop is not defined, it means that this runs in the browser
+       * and the internalUsername is used to store the value.
+       * @returns {string} The chosen username value
+       */
+      get() {
+        return this.username !== undefined ? this.username : this.internalUsername;
+      },
+
+      /**
+       * Defines the behaviour of the computer property when its value is set.
+       * If the username prop is defined, it means that this runs in a testing env
+       * If the username prop is not defined, it means that this runs in the browser
+       * and the internalUsername is used to store the value.
+       */
+      set(val) {
+        if (this.username !== undefined) {
+          this.$emit("update:username", val);
+        } else {
+          this.internalUsername = val;
+        }
+      },
+    },
+
+    /* --------------------- EMAIL --------------------- */
+    modelValueEmail: {
+      /**
+       * Defines the behaviour of the computer property when its value is requested.
+       * If the email prop is defined, it means that this runs in a testing env
+       * If the email prop is not defined, it means that this runs in the browser
+       * and the internalEmail is used to store the value.
+       * @returns {string} The chosen email value
+       */
+      get() {
+        return this.email !== undefined ? this.email : this.internalEmail;
+      },
+
+      /**
+       * Defines the behaviour of the computer property when its value is set.
+       * If the email prop is defined, it means that this runs in a testing env
+       * If the email prop is not defined, it means that this runs in the browser
+       * and the internalEmail is used to store the value.
+       */
+      set(val) {
+        if (this.email !== undefined) {
+          this.$emit("update:email", val);
+        } else {
+          this.internalEmail = val;
+        }
+      },
+    },
   },
   methods: {
     async signup() {
+      console.log(this.internalUsername);
+      console.log(this.internalEmail);
+
+      // Emit email validation
+      this.$emit("validate:email", await this.$refs.emailField.validate());
+
       // Ensire that the form is valid upoon submission
       if (this.valid) {
         // Disable the signup button
@@ -154,8 +233,8 @@ export default {
 
         // Send signup request to be backend service
         const res = await AuthService.signup({
-          username: this.username,
-          email: this.email,
+          username: this.internalUsername,
+          email: this.internalEmail,
           password: this.password,
         });
 
