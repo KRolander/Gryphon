@@ -42,17 +42,19 @@
           <!-- ==================== ACTIONS ==================== -->
           <v-card-actions class="d-flex flex-column justify-center">
             <!-- <v-spacer></v-spacer> -->
-            <v-btn
-              color="primary"
-              size="large"
-              variant="outlined"
-              class="font-weight-bold"
-              @click="login"
-              :disabled="loading"
-            >
-              <span v-if="!loading">Login</span>
-              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
-            </v-btn>
+            <div class="d-flex justify-center ga-8">
+              <v-btn
+                color="primary"
+                size="large"
+                variant="outlined"
+                class="font-weight-bold"
+                @click="login"
+                :disabled="loading"
+              >
+                <span v-if="!loading">Login</span>
+                <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+              </v-btn>
+            </div>
 
             <span class="font-weight-light"
               >Don't have an account yet? Signup
@@ -102,6 +104,7 @@ export default {
   },
   methods: {
     async login() {
+      //TODO to modify so it recognizes admin maybe from the jwt
       if (this.valid) {
         // Send request to the backend
         this.loading = true;
@@ -121,20 +124,27 @@ export default {
           return;
         }
 
+        // Check if the user has the admin rolr or not
+        const roles = res.data.user.resource_access
+          ? res.data.user.resource_access["admin-cli"].roles
+          : null;
+
         // Store the token inside the local storage
         localStorage.setItem("access_token", res.data.access_token);
-
         // Store the user data in the Pinia store
         await this.userStore.setUser({
           id: res.data.user.sub,
           username: res.data.user.preferred_username,
           email: res.data.user.email,
+          roles: roles,
         });
 
-        console.log(this.userStore.getUser);
-
         // Redirect to the home page
-        this.$router.push({ name: "home" });
+        //TODO redirect based on wether admin or not
+        //if (admin){
+        this.$router.push({ name: "admin" });
+        // }
+        //this.$router.push({ name: "home" });
       } else {
         console.log("Form is invalid");
       }

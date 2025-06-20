@@ -158,7 +158,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
     if (getGateway() == null) {
       await startGateway();
     }
-    const { mappingKey, mappingValue } = req.params;
+    const { key: mappingKey, value: mappingValue } = req.params;
     if (!mappingKey) {
       logger.warn({
         action: "POST /vc/createMapping",

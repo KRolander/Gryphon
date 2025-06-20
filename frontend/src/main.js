@@ -29,3 +29,5 @@ app.use(router);
 
 // Mount app
 app.mount("#app");
+
+export { pinia };

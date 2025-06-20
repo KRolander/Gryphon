@@ -6,12 +6,16 @@ import { createWebHistory, createRouter } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import DIDsPage from "../views/DIDsPage.vue";
 import VCsPage from "../views/VCsPage.vue";
+import AdminSettings from "../views/AdminPage.vue";
 
 // Auth
 import AuthPage from "../views/AuthPage.vue";
 import SignupPage from "../components/auth/SignupForm.vue";
 import LoginPage from "../components/auth/LoginForm.vue";
 import RecoverPasswordPage from "../components/auth/ForgotPasswordForm.vue";
+
+// Store
+import { useUserStore } from "@/store/userStore";
 
 /* ========================= CONFIG ========================= */
 /* ---------------------- ROUTER ---------------------- */
@@ -21,6 +25,12 @@ const routes = [
     path: "/",
     component: HomePage,
     meta: { requiresAuth: true },
+  },
+  {
+    name: "admin",
+    path: "/admin",
+    component: AdminSettings,
+    meta: { requiresAuth: true, requiresAdminAuth: true },
   },
   {
     name: "DIDs",
@@ -67,6 +77,18 @@ const history = createWebHistory();
 const router = createRouter({ history, routes });
 
 /* ---------------------- GUARDS ---------------------- */
+// admin guard
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  console.log(userStore.isAdmin);
+
+  if (to.meta.requiresAdminAuth && !userStore.isAdmin && !userStore.isMasterAdmin) {
+    next({ name: "home" });
+  } else {
+    next();
+  }
+});
+// auth guard
 router.beforeEach((to, from, next) => {
   console.log(to);
   let isAuthenticated = false; // Replace with actual authentication check
@@ -89,4 +111,5 @@ router.beforeEach((to, from, next) => {
     next(); // Proceed to the route
   }
 });
+
 export default router;
