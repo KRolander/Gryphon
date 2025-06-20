@@ -20,6 +20,10 @@ export const useUserStore = defineStore("user", {
     getUser: (state): User => state.user,
     getUsername: (state): string => state.user.username,
     getEmail: (state): string => state.user.email,
+    isAdmin: (state): boolean =>
+      state.user && state.user.roles && state.user.roles.includes("admin"),
+    isMasterAdmin: (state): boolean =>
+      state.user && state.user.roles && state.user.roles.includes("master_admin"),
   },
   actions: {
     /**

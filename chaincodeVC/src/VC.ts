@@ -31,18 +31,19 @@ export default class VC extends Contract{
         ctx: Context,
         mapKey: string,
         mapValue: string,
-    ): Promise<void> {
-
+    ): Promise<Buffer> {
         const mappingExists = await this.mapExists(ctx, mapKey);
 
         if (mappingExists) {
-            throw new Error(`The mapping for VC type ${mappingExists} already exists`);
+            throw new Error(`The mapping for VC type ${mapKey} already exists`);
         }
 
         await ctx.stub.putState(
             mapKey,
             Buffer.from(mapValue),
         );
+
+        return Buffer.from(JSON.stringify(`The mapping with key ${mapKey} and value ${mapValue} stored successfully`));
     }
 
 }

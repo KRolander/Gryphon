@@ -23,3 +23,6 @@ backend/coverage
 #Logger
 loki-data/
 logging/logs/
+
+#Keycloak credentials
+.env
