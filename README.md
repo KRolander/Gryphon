@@ -50,7 +50,13 @@ If the Fabric network setup was successful and, the network is running, we can n
 2. Frontend Web application
 3. Backend APIs and Gateway to Fabric network
 
-These 3 components have been Dockerized and can be run together, using the following `Docker compose` command from the root directory:
+Before running this commands, it's important to provide a `.env` file in the root directory (the same that contains the file `docker-compose.yml`) with the credentials of the Keycloak administrator in the following format:
+````text
+KC_BOOTSTRAP_ADMIN_USERNAME=admin
+KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+````
+
+With this file in the root directory, we can now run the 3 components of our application, using the following `Docker compose` command from the root directory:
 ```bash
 docker-compose up -d
 ```
