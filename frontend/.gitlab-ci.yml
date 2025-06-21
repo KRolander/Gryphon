@@ -1,6 +1,5 @@
 image: node:20
 
-
 stages:
   - lint
 

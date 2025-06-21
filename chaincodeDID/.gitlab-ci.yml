@@ -1,6 +1,5 @@
 image: node:20
 
-# Changed to see the pipeline only runs when needed
 .common_rules:
   rules:
     - changes:
