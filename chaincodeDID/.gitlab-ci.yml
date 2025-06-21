@@ -8,6 +8,7 @@ stages:
 did_lint:
   stage: lint
   script:
+    - cd chaincodeDID
     - npm ci
     - npm run lint
   artifacts:
@@ -17,6 +18,7 @@ did_lint:
 did_build:
   stage: build
   script:
+    - cd chaincodeDID
     - npm run build
   needs: ["did_lint"]
   dependencies:
@@ -28,6 +30,7 @@ did_build:
 did_test:
   stage: test
   script:
+    - cd chaincodeDID
     - npm run test
   needs: ["did_lint", "did_build"]
   dependencies:

@@ -6,5 +6,6 @@ stages:
 frontend_lint:
   stage: lint
   script:
+    - cd frontend
     - npm ci
     - npm run lint

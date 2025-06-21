@@ -8,6 +8,7 @@ stages:
 vc_lint:
   stage: lint
   script:
+    - cd chaincodeVC
     - npm ci
     - npm run lint
   artifacts:
@@ -17,6 +18,7 @@ vc_lint:
 vc_build:
   stage: build
   script:
+    - cd chaincodeVC
     - npm run build
   needs: ["vc_lint"]
   dependencies:
@@ -28,6 +30,7 @@ vc_build:
 vc_test:
   stage: test
   script:
+    - cd chaincodeVC
     - npm run test
   needs: ["vc_lint", "vc_build"]
   dependencies:
