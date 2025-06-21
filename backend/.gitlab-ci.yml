@@ -33,4 +33,5 @@ backend-test:
   dependencies:
     - backend-lint
   artifacts:
-    - backend/coverage/
+    paths:
+      - backend/coverage/
