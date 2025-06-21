@@ -1,34 +1,35 @@
 image: node:20
 
-# stages:
-#   - test
-
-# test:
-#   stage: test
-#   script:
-#     - cd backend
-#     - npm ci
-#     - npm run lint
-#     - npm test
-#     - cd ../chaincodeDID
-#     - npm ci
-#     - npm run lint
-#     - npm run build
-#     - npm run test
-#     - cd ../chaincodeVC
-#     - npm ci
-#     - npm run lint
-#     - npm run build
-#     - cd ../frontend
-#     - npm ci
-#     - npm run lint
 stages:
   - lint
   - build
   - test
 
-include:
-  - local: backend/.gitlab-ci.yml
-  - local: chaincodeDID/.gitlab-ci.yml
-  - local: chaincodeVC/.gitlab-ci.yml
-  - local: frontend/.gitlab-ci.yml
+did_lint:
+  stage: lint
+  script:
+    - npm ci
+    - npm run lint
+  artifacts:
+    paths: 
+        - chaincodeDID/node_modules
+
+did_build:
+  stage: build
+  script:
+    - npm run build
+  needs: ["did_lint"]
+  dependencies:
+    - did_lint
+  artifacts:
+    paths: 
+        - chaincodeDID/build
+
+did_test:
+  stage: test
+  script:
+    - npm run test
+  needs: ["did_lint", "did_build"]
+  dependencies:
+    - did_lint
+    - did_build
