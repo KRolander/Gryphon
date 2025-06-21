@@ -102,7 +102,7 @@
                 @click="
                   () => {
                     editDIDDocDialog = true;
-                    serviceEndpoint = getServiceEndpoint(foreignDID);
+                    serviceEndpoint = getServiceEndpoint(foreignDOC);
                   }
                 "
               >
@@ -383,14 +383,23 @@
                                         :rules="didStructureRules"
                                     ></v-text-field>
                                     <div class="d-flex justify-end">
-                                      <v-btn
-                                          class="ma-2 mt-n4"
-                                          variant="outlined"
-                                          :disabled="!valid"
-                                          @click="modifyController(DID.did,'addController')">
-                                        Add
-                                        <v-icon icon="mdi-plus-circle" end></v-icon>
-                                      </v-btn>
+
+                                        <v-btn
+                                            class="ma-2 mt-n4"
+                                            variant="outlined"
+                                            :disabled="!valid"
+                                            @click="modifyController(DID.did,'addController')">
+                                          <span v-if="!loadingController">
+                                          Add
+                                          <v-icon icon="mdi-plus-circle" end></v-icon>
+                                          </span>
+                                          <v-progress-circular
+                                              v-else
+                                              color="primary"
+                                              indeterminate
+                                          ></v-progress-circular>
+                                        </v-btn>
+
                                     </div>
                                       <v-alert
                                           v-if="editControllerAlert"
@@ -490,6 +499,7 @@ export default {
       dialogOpen: false,
       deleteDIDDialog: false,
       loading: false,
+      loadingController: false,
 
       DIDToDelete: null,
       editDIDDocDialog: false,
@@ -655,13 +665,15 @@ export default {
 
     async modifyController(DID, operation) {
       try {
-        this.loading = true;
+
         if (operation === "addController") {
+          this.loadingController = true;
           await DIDService.modifyValue(DID, operation, this.newControllerName);
           this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
           this.newControllerName = "";
         }
         if (operation === "modifyService") {
+          this.loading = true;
           await DIDService.modifyValue(DID, operation, this.serviceEndpoint);
           this.editControllerMessage = `Successfully modified to service: ${this.serviceEndpoint}`;
         }
@@ -670,6 +682,7 @@ export default {
         this.editControllerAlert = true;
         this.alertColor = "success";
         this.loading = false;
+        this.loadingController = false;
         setTimeout(() => {
           this.resetAlerts();
         }, 3000);
