@@ -1,15 +1,15 @@
 image: node:20
 
+stages:
+  - lint
+  - build
+  - test
+
 .vc_rules:
   rules:
     - changes:
         - chaincodeVC/**
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-
-stages:
-  - lint
-  - build
-  - test
 
 vc_lint:
   extends: .vc_rules

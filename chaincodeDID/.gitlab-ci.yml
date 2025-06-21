@@ -1,15 +1,15 @@
 image: node:20
 
+stages:
+  - lint
+  - build
+  - test
+
 .did_rules:
   rules:
     - changes:
         - chaincodeDID/**
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-
-stages:
-  - lint
-  - build
-  - test
 
 did_lint: 
   extends: .did_rules

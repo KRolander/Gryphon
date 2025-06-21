@@ -3,7 +3,6 @@ image: node:20
 stages:
   - lint
 
-# Testing
 frontend_lint:
   rules:
     - changes:
