@@ -13,13 +13,10 @@ backend-lint:
 
 backend-test:
   stage: test
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
   script:
     - cd backend
-    - npm run test
+    - npm test
   needs: ["backend-lint"]
   dependencies:
     - backend-lint
-  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)%/'
-  artifacts:
-    paths:
-      - backend/coverage/
