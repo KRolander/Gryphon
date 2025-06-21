@@ -1,7 +1,7 @@
 image: node:20
 
 # Changed to see the pipeline only runs when needed
-default:
+.common_rules:
   rules:
     - changes:
         - chaincodeDID/**
@@ -12,7 +12,8 @@ stages:
   - build
   - test
 
-did_lint:
+did_lint: 
+  extends: .common_rules
   stage: lint
   script:
     - cd chaincodeDID
@@ -23,6 +24,7 @@ did_lint:
         - chaincodeDID/node_modules
 
 did_build:
+  extends: .common_rules
   stage: build
   script:
     - cd chaincodeDID
@@ -35,6 +37,7 @@ did_build:
         - chaincodeDID/build
 
 did_test:
+  extends: .common_rules
   stage: test
   script:
     - cd chaincodeDID

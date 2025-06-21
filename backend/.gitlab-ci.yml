@@ -1,13 +1,14 @@
 image: node:20
 
 # Change to see if the pipeline runs when needed
-default:
+.common_rules:
   rules:
     - changes:
         - backend/**
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 backend-lint:
+  extends: .common_rules
   stage: lint
   script:
     - cd backend
@@ -19,6 +20,7 @@ backend-lint:
     expire_in: 30 minutes
 
 backend-test:
+  extends: .common_rules
   stage: test
   coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
   script:

@@ -1,6 +1,6 @@
 image: node:20
 
-default:
+.common_rules:
   rules:
     - changes:
         - chaincodeVC/**
@@ -12,6 +12,7 @@ stages:
   - test
 
 vc_lint:
+  extends: .common_rules
   stage: lint
   script:
     - cd chaincodeVC
@@ -22,6 +23,7 @@ vc_lint:
         - chaincodeVC/node_modules/
 
 vc_build:
+  extends: .common_rules
   stage: build
   script:
     - cd chaincodeVC
@@ -34,6 +36,7 @@ vc_build:
         - chaincodeVC/build/
 
 vc_test:
+  extends: .common_rules
   stage: test
   script:
     - cd chaincodeVC
