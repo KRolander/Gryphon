@@ -1,6 +1,6 @@
 image: node:20
 
-.common_rules:
+.did_rules:
   rules:
     - changes:
         - chaincodeDID/**
@@ -12,7 +12,7 @@ stages:
   - test
 
 did_lint: 
-  extends: .common_rules
+  extends: .did_rules
   stage: lint
   script:
     - cd chaincodeDID
@@ -23,7 +23,7 @@ did_lint:
         - chaincodeDID/node_modules
 
 did_build:
-  extends: .common_rules
+  extends: .did_rules
   stage: build
   script:
     - cd chaincodeDID
@@ -36,7 +36,7 @@ did_build:
         - chaincodeDID/build
 
 did_test:
-  extends: .common_rules
+  extends: .did_rules
   stage: test
   script:
     - cd chaincodeDID
