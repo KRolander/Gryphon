@@ -1,0 +1,19 @@
+backend-lint:
+  stage: lint
+  script:
+    - cd backend
+    - npm ci
+    - npm run lint
+  artifacts:
+    paths:
+      - backend/node_modules/
+    expire_in: 30 minutes
+
+backend-test:
+  stage: test
+  script:
+    - cd backend
+    - npm run test
+  needs: ["backend-lint"]
+  dependencies:
+    - backend-lint

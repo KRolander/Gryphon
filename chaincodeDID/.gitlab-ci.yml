@@ -29,6 +29,6 @@ stages:
 
 include:
   - local: backend/.gitlab-ci.yml
-  # - local: chaincodeDID/.gitlab-ci.yml
-  # - local: chaincodeVC/.gitlab-ci.yml
-  # - local: frontend/.gitlab-ci.yml
+  - local: chaincodeDID/.gitlab-ci.yml
+  - local: chaincodeVC/.gitlab-ci.yml
+  - local: frontend/.gitlab-ci.yml
