@@ -665,7 +665,6 @@ export default {
 
     async modifyController(DID, operation) {
       try {
-
         if (operation === "addController") {
           this.loadingController = true;
           await DIDService.modifyValue(DID, operation, this.newControllerName);
