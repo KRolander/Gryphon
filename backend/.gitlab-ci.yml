@@ -17,3 +17,7 @@ backend-test:
   needs: ["backend-lint"]
   dependencies:
     - backend-lint
+  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)%/'
+  artifacts:
+    paths:
+      - coverage/
