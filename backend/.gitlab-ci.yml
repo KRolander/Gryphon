@@ -32,3 +32,5 @@ backend-test:
   needs: ["backend-lint"]
   dependencies:
     - backend-lint
+  artifacts:
+    - backend/coverage/
