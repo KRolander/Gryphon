@@ -18,6 +18,8 @@ services:
       - "3000:3000"
     environment:
       - LOG_PATH=/var/log/myapp/backend
+      - KC_BOOTSTRAP_ADMIN_USERNAME
+      - KC_BOOTSTRAP_ADMIN_PASSWORD
     volumes:
       - ./logging/logs/backend:/var/log/myapp/backend:rw
     networks:
