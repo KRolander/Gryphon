@@ -1,5 +1,6 @@
 image: node:20
 
+# Change to see if the pipeline runs when needed
 .common_rules:
   rules:
     - changes:
