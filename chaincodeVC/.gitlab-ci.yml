@@ -1,11 +1,18 @@
 image: node:20
 
+.common_rules:
+  rules:
+    - changes:
+        - chaincodeVC/**
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
 stages:
   - lint
   - build
   - test
 
 vc_lint:
+  extends: .common_rules
   stage: lint
   script:
     - cd chaincodeVC
@@ -16,6 +23,7 @@ vc_lint:
         - chaincodeVC/node_modules/
 
 vc_build:
+  extends: .common_rules
   stage: build
   script:
     - cd chaincodeVC
@@ -28,6 +36,7 @@ vc_build:
         - chaincodeVC/build/
 
 vc_test:
+  extends: .common_rules
   stage: test
   script:
     - cd chaincodeVC
