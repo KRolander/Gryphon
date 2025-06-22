@@ -6,8 +6,6 @@ const fs = require("fs");
 const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
 const { VCBuilder, UnsignedVCBuilder } = require("../../utils/VC");
 const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
-const { createSign } = require("crypto");
-const crypto = require("crypto");
 const canonicalize = require("canonicalize");
 
 jest.mock("../gateway", () => ({
@@ -31,71 +29,29 @@ jest.mock("../utility/VCUtils", () => {
   };
 });
 
-const { fetchRegistry, isRoot } = require("../utility/VCUtils");
+const {
+  fetchRegistry,
+  isRoot,
+  universityTestPath,
+  moeTestPath,
+  generateKeys,
+  sign,
+} = require("../utility/VCUtils");
 
 /**---------Create the key pair for the student--------- */
-let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
-  namedCurve: "P-256",
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-});
+let publicKey, privateKey;
 
-const publicKeyStudent = publicKey;
-const privateKeyStudent = privateKey;
+let publicKeyStudent;
+let privateKeyStudent;
 
-/**---------Create the key pair for the university--------- */
-({ publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
-  namedCurve: "P-256",
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-}));
+let publicKeyUni;
+let privateKeyUni;
 
-const publicKeyUni = publicKey;
-const privateKeyUni = privateKey;
+let publicKeyMar;
+let privateKeyMar;
 
-/**---------Create the key pair for the root--------- */
-({ publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
-  namedCurve: "P-256",
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-}));
-
-/**---------Create the key pair for a malicious user (Maroi)--------- */
-({ publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
-  namedCurve: "P-256",
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-}));
-
-const publicKeyMar = publicKey;
-const privateKeyMar = privateKey;
-
-const publicKeyRoot = publicKey;
-const privateKeyRoot = privateKey;
+let publicKeyRoot;
+let privateKeyRoot;
 
 const studentDID = "did:hlf:student";
 const uniDID = "did:hlf:university";
@@ -106,30 +62,67 @@ const uniURL = "http://localhost:3000/registry/university";
 const rootURL = "http://localhost:3000/registry/MOE";
 const marURL = "just me";
 
-/**---------Create the DID Document of the student--------- */
-const docBuilderStudent = new DIDDocumentBuilder(studentDID, studentDID, publicKeyStudent, null);
-const keylessdocBuilderStudent = new DIDDocumentBuilder(studentDID, studentDID, null, null);
-
-/**---------Create the DID Document of the university--------- */
-const docBuilderUni = new DIDDocumentBuilder(uniDID, uniDID, publicKeyUni, uniURL);
-
-/**---------Create the DID Document of the root--------- */
-const docBuilderRoot = new DIDDocumentBuilder(rootDID, rootDID, publicKeyRoot, rootURL);
-
-/**---------Create the DID Document of the Maroi--------- */
-const docBuilderMaroi = new DIDDocumentBuilder(marDID, marDID, publicKeyMar, marURL);
-
-const studentDoc = docBuilderStudent.build();
-const keylessStudentDoc = keylessdocBuilderStudent.build();
-const uniDoc = docBuilderUni.build();
-const rootDoc = docBuilderRoot.build();
-const marDoc = docBuilderMaroi.build();
+let studentDoc;
+let keylessStudentDoc;
+let uniDoc;
+let rootDoc;
+let marDoc;
 
 describe("POST /vc/verifyTrustchain", () => {
+  beforeAll(async () => {
+    /**---------Create the key pair for the student--------- */
+    ({ publicKey, privateKey } = await generateKeys());
+
+    publicKeyStudent = publicKey;
+    privateKeyStudent = privateKey;
+
+    /**---------Create the key pair for the university--------- */
+    ({ publicKey, privateKey } = await generateKeys());
+
+    publicKeyUni = publicKey;
+    privateKeyUni = privateKey;
+
+    /**---------Create the key pair for a malicious user (Maroi)--------- */
+    ({ publicKey, privateKey } = await generateKeys());
+
+    publicKeyMar = publicKey;
+    privateKeyMar = privateKey;
+
+    /**---------Create the key pair for the root--------- */
+    ({ publicKey, privateKey } = await generateKeys());
+
+    publicKeyRoot = publicKey;
+    privateKeyRoot = privateKey;
+
+    /**---------Create the DID Document of the student--------- */
+    const docBuilderStudent = new DIDDocumentBuilder(
+      studentDID,
+      studentDID,
+      publicKeyStudent,
+      null
+    );
+    const keylessdocBuilderStudent = new DIDDocumentBuilder(studentDID, studentDID, null, null);
+
+    /**---------Create the DID Document of the university--------- */
+    const docBuilderUni = new DIDDocumentBuilder(uniDID, uniDID, publicKeyUni, uniURL);
+
+    /**---------Create the DID Document of the root--------- */
+    const docBuilderRoot = new DIDDocumentBuilder(rootDID, rootDID, publicKeyRoot, rootURL);
+
+    /**---------Create the DID Document of the Maroi--------- */
+    const docBuilderMaroi = new DIDDocumentBuilder(marDID, marDID, publicKeyMar, marURL);
+
+    studentDoc = docBuilderStudent.build();
+    keylessStudentDoc = keylessdocBuilderStudent.build();
+    uniDoc = docBuilderUni.build();
+    rootDoc = docBuilderRoot.build();
+    marDoc = docBuilderMaroi.build();
+  });
+
   afterEach(() => {
     const fs = require("fs");
-    fs.writeFileSync("../registries/MOE_test.json", JSON.stringify({}));
-    fs.writeFileSync("../registries/university_test.json", JSON.stringify({}));
+    fs.writeFileSync("./registries/MOE_test.json", JSON.stringify({}));
+    fs.writeFileSync("./registries/university_test.json", JSON.stringify({}));
   });
 
   it("should return 200 and a valid message", async () => {
@@ -174,10 +167,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the studentVC signature--------- */
     const canonStudent = canonicalize(studentuVC);
-    const signer1 = createSign("SHA256");
-    signer1.update(canonStudent);
-    signer1.end();
-    const signatureStudentVC = signer1.sign(privateKeyUni, "base64");
+    const signatureStudentVC = await sign(canonStudent, privateKeyUni);
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
@@ -195,10 +185,8 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonUniversity = canonicalize(uniuVC);
-    const signer2 = createSign("SHA256");
-    signer2.update(canonUniversity);
-    signer2.end();
-    const signatureUniVC = signer2.sign(privateKeyRoot, "base64");
+    const signatureUniVC = await sign(canonUniversity, privateKeyRoot);
+    console.log(signatureUniVC);
     const unisVCBuilder = new VCBuilder(uniuVC, "date1", "someURL", signatureUniVC);
 
     //console.log(signatureUniVC);
@@ -216,27 +204,26 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonRoot = canonicalize(rootuVC);
-    const signer3 = createSign("SHA256");
-    signer3.update(canonRoot);
-    signer3.end();
-    const signatureRootVC = signer3.sign(privateKeyRoot, "base64");
+    const signatureRootVC = await sign(canonRoot, privateKeyRoot);
     const rootsVCBuilder = new VCBuilder(rootuVC, "date1", "someURL", signatureRootVC);
 
     const rootsVC = rootsVCBuilder.build();
 
     /**---------Add the university VC to its public registry--------- */
-    let regUni = loadRegistryAsMap("../registries/university_test.json");
+    let regUni = loadRegistryAsMap(universityTestPath);
     addVC(regUni, unisVC);
-    saveRegistryFromMap(regUni, "../registries/university_test.json");
+    saveRegistryFromMap(regUni, universityTestPath);
 
     /**---------Add the root VC to its public registry--------- */
-    let regRoot = loadRegistryAsMap("../registries/MOE_test.json");
+    let regRoot = loadRegistryAsMap(moeTestPath);
     addVC(regRoot, rootsVC);
-    saveRegistryFromMap(regRoot, "../registries/MOE_test.json");
+    saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL) return JSON.parse(fs.readFileSync("../registries/university_test.json", 'utf-8'));
-      if (url == rootURL) return JSON.parse(fs.readFileSync("../registries/MOE_test.json", 'utf-8'));
+      if (url == uniURL)
+        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL)
+        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
@@ -283,10 +270,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the studentVC signature--------- */
     const canonStudent = canonicalize(studentuVC);
-    const signer1 = createSign("SHA256");
-    signer1.update(canonStudent);
-    signer1.end();
-    const signatureStudentVC = signer1.sign(privateKeyUni, "base64");
+    const signatureStudentVC = await sign(canonStudent, privateKeyUni);
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
@@ -347,10 +331,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the studentVC signature--------- */
     const canonStudent = canonicalize(studentuVC);
-    const signer1 = createSign("SHA256");
-    signer1.update(canonStudent);
-    signer1.end();
-    const signatureStudentVC = signer1.sign(privateKeyUni, "base64");
+    const signatureStudentVC = await sign(canonStudent, privateKeyUni);
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
@@ -383,10 +364,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonUniversity = canonicalize(uniuVC);
-    const signer2 = createSign("SHA256");
-    signer2.update(canonUniversity);
-    signer2.end();
-    const signatureUniVC = signer2.sign(privateKeyRoot, "base64");
+    const signatureUniVC = await sign(canonUniversity, privateKeyRoot);
     const unisVCBuilder = new VCBuilder(uniuVC, "date1", "someURL", signatureUniVC);
 
     //console.log(signatureUniVC);
@@ -404,27 +382,26 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonRoot = canonicalize(rootuVC);
-    const signer3 = createSign("SHA256");
-    signer3.update(canonRoot);
-    signer3.end();
-    const signatureRootVC = signer3.sign(privateKeyRoot, "base64");
+    const signatureRootVC = await sign(canonRoot, privateKeyRoot);
     const rootsVCBuilder = new VCBuilder(rootuVC, "date1", "someURL", signatureRootVC);
 
     const rootsVC = rootsVCBuilder.build();
 
     /**---------Add the university VC to its public registry--------- */
-    let regUni = loadRegistryAsMap("../registries/university_test.json");
+    let regUni = loadRegistryAsMap(universityTestPath);
     addVC(regUni, unisVC);
-    saveRegistryFromMap(regUni, "../registries/university_test.json");
+    saveRegistryFromMap(regUni, universityTestPath);
 
     /**---------Add the root VC to its public registry--------- */
-    let regRoot = loadRegistryAsMap("../registries/MOE_test.json");
+    let regRoot = loadRegistryAsMap(moeTestPath);
     addVC(regRoot, rootsVC);
-    saveRegistryFromMap(regRoot, "../registries/MOE_test.json");
+    saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL) return JSON.parse(fs.readFileSync("../registries/university_test.json", 'utf-8'));
-      if (url == rootURL) return JSON.parse(fs.readFileSync("../registries/MOE_test.json", 'utf-8'));
+      if (url == uniURL)
+        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL)
+        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
@@ -487,10 +464,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the studentVC signature--------- */
     const canonStudent = canonicalize(studentuVC);
-    const signer1 = createSign("SHA256");
-    signer1.update(canonStudent);
-    signer1.end();
-    const signatureStudentVC = signer1.sign(privateKeyUni, "base64");
+    const signatureStudentVC = await sign(canonStudent, privateKeyUni);
     const studentsVCBuilder = new VCBuilder(studentuVC, "date1", "someURL", signatureStudentVC);
     const studentsVC = studentsVCBuilder.build();
 
@@ -506,10 +480,7 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonUniversity = canonicalize(uniuVC);
-    const signer2 = createSign("SHA256");
-    signer2.update(canonUniversity);
-    signer2.end();
-    const signatureUniVC = signer2.sign(privateKeyRoot, "base64");
+    const signatureUniVC = await sign(canonUniversity, privateKeyRoot);
     const unisVCBuilder = new VCBuilder(uniuVC, "date1", "someURL", signatureUniVC);
 
     //console.log(signatureUniVC);
@@ -527,27 +498,26 @@ describe("POST /vc/verifyTrustchain", () => {
 
     /**---------Create the universityVC signature--------- */
     const canonRoot = canonicalize(rootuVC);
-    const signer3 = createSign("SHA256");
-    signer3.update(canonRoot);
-    signer3.end();
-    const signatureRootVC = signer3.sign(privateKeyRoot, "base64");
+    const signatureRootVC = await sign(canonRoot, privateKeyRoot);
     const rootsVCBuilder = new VCBuilder(rootuVC, "date1", "someURL", signatureRootVC);
 
     const rootsVC = rootsVCBuilder.build();
 
     /**---------Add the university VC to its public registry--------- */
-    let regUni = loadRegistryAsMap("../registries/university_test.json");
+    let regUni = loadRegistryAsMap(universityTestPath);
     addVC(regUni, unisVC);
-    saveRegistryFromMap(regUni, "../registries/university_test.json");
+    saveRegistryFromMap(regUni, universityTestPath);
 
     /**---------Add the root VC to its public registry--------- */
-    let regRoot = loadRegistryAsMap("../registries/MOE_test.json");
+    let regRoot = loadRegistryAsMap(moeTestPath);
     addVC(regRoot, rootsVC);
-    saveRegistryFromMap(regRoot, "../registries/MOE_test.json");
+    saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL) return JSON.parse(fs.readFileSync("../registries/university_test.json", 'utf-8'));
-      if (url == rootURL) return JSON.parse(fs.readFileSync("../registries/MOE_test.json", 'utf-8'));
+      if (url == uniURL)
+        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL)
+        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
@@ -659,14 +629,14 @@ describe("POST /vc/verifyTrustchain", () => {
   //   const rootsVC = rootsVCBuilder.build();
 
   //   /**---------Add the university VC to its public registry--------- */
-  //   let regUni = loadRegistryAsMap("../registries/university_test.json");
+  //   let regUni = loadRegistryAsMap(universityTestPath);
   //   addVC(regUni, unisVC);
-  //   saveRegistryFromMap(regUni, "../registries/university_test.json");
+  //   saveRegistryFromMap(regUni, universityTestPath);
 
   //   /**---------Add the root VC to its public registry--------- */
-  //   let regRoot = loadRegistryAsMap("../registries/MOE_test.json");
+  //   let regRoot = loadRegistryAsMap(moeTestPath);
   //   addVC(regRoot, rootsVC);
-  //   saveRegistryFromMap(regRoot, "../registries/MOE_test.json");
+  //   saveRegistryFromMap(regRoot, moeTestPath);
 
   //   /**---------Add the stolen VC to Maroi's public registry--------- */
   //   let marMap = new Map();
@@ -676,8 +646,8 @@ describe("POST /vc/verifyTrustchain", () => {
   // const marReg = JSON.stringify(obj);
 
   //   fetchRegistry.mockImplementation((url) => {
-  //     if (url == uniURL) return loadRegistryAsMap("../registries/university_test.json");
-  //     if (url == rootURL) return loadRegistryAsMap("../registries/MOE_test.json");
+  //     if (url == uniURL) return loadRegistryAsMap(universityTestPath);
+  //     if (url == rootURL) return loadRegistryAsMap(moeTestPath);
   //     if (url == marURL) return marReg;
   //     return url;
   //   });

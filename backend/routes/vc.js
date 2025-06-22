@@ -71,7 +71,7 @@ router.post("/verify", async (req, res) => {
     }
 
     // get issuer DID Document
-    const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+    const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
     if (!issuerDoc) {
       logger.warn({
         action: "POST /vc/verify",
