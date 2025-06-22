@@ -3,6 +3,9 @@ const { subtle } = globalThis.crypto;
 const canonicalize = require("canonicalize");
 const express = require("express");
 const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
+const fs = require("fs");
+const path = require("path");
+
 const {
   startGateway,
   getGateway,
@@ -11,6 +14,7 @@ const {
   getMapValue,
   storeMapping,
   storeDID,
+  addDIDController,
 } = require("../gateway");
 const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
@@ -201,6 +205,68 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
     });
     // console.log(error);
     res.status(500).send(errorMessage); // Send an error message to the client
+  }
+});
+
+router.patch("/setRootTAO/:newRoot", async (req, res) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
+  try {
+    if (getGateway() == null) {
+      await startGateway();
+    }
+
+    const targetRoot = req.params.newRoot;
+
+    try {
+      await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), targetRoot);
+    } catch (err) {
+      const errorMessage = `There is no DID ${targetRoot}`;
+      logger.warn({
+        action: "PATCH vc/setRootTAO/:newRoot",
+        correlationId: correlationId,
+        message: errorMessage,
+      });
+      console.error(errorMessage);
+      return res.status(400).send("No DID");
+    }
+
+    const pathToConfig = path.join(__dirname, "../config/config.json");
+
+    const rootInConfig = fs.readFileSync(pathToConfig, "utf8");
+    try {
+      const JSONRoot = JSON.parse(rootInConfig);
+      if (JSONRoot.rootTAO.did === targetRoot) {
+        const warnMessage = "The provided DID is already a root";
+        logger.warn({
+          action: "PATCH vc/setRootTAO/:newRoot",
+          correlationId: correlationId,
+          message: warnMessage,
+        });
+        return res.status(400).send(warnMessage);
+      }
+    } catch (err) {}
+
+    const dataToStore = { rootTAO: { did: targetRoot } };
+    fs.writeFileSync(pathToConfig, JSON.stringify(dataToStore, null, 2), "utf8");
+
+    const successMessage = `Root ${targetRoot} modified successfully!`;
+    console.log(successMessage);
+    logger.info({
+      action: "PATCH /vc/setRootTAO/:newRoot",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
+    res.status(200).send(successMessage);
+  } catch (error) {
+    const errorMessage = "Error adding the new root";
+    logger.error({
+      action: "PATCH /vc/setRootTAO/:newRoot",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send(errorMessage);
   }
 });
 
