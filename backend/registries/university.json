@@ -1,0 +1,24 @@
+{
+  "did:hlf:BQ4iAJSCuszR2CkbmpsKbz": [
+    {
+      "@context": "https://www.w3.org/2018/credentials/v1",
+      "type": [
+        "VerifiableCredential",
+        "B"
+      ],
+      "issuer": "did:hlf:5piW1zaDFWUCKUkG2N5kx1",
+      "issuanceDate": "2025-06-22T17:58:58.087Z",
+      "credentialSubject": {
+        "id": "did:hlf:BQ4iAJSCuszR2CkbmpsKbz",
+        "canIssue": "C"
+      },
+      "proof": {
+        "type": "EcdsaSecp256r1VerificationKey2019",
+        "created": "2025-06-22T17:58:58.087Z",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:hlf:5piW1zaDFWUCKUkG2N5kx1#keys-1",
+        "signatureValue": "V5TLpOGvZv+zt+zmcnNLnn2Vlp5qYMqQgCWYSgg7WF76d3tltucrZXS2SHIms57EzPoRVwe89Q8PApS4puXa9w=="
+      }
+    }
+  ]
+}

@@ -540,6 +540,7 @@ export default {
       try {
         // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
+        console.log(res);
 
         // TODO: Add better checking for the result to display a good message
         this.verifyVCAlert = true;
