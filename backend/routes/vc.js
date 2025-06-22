@@ -1,5 +1,5 @@
 /*----------IMOPRTS----------*/
-const { createVerify } = require("crypto");
+const { subtle } = globalThis.crypto;
 const canonicalize = require("canonicalize");
 const express = require("express");
 const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
@@ -258,7 +258,6 @@ router.post("/verifyTrustchain", async (req, res) => {
       }
 
       //get its public key
-      // TODO: Change this access, as it does not work
       const publicKey = issuerDoc.verificationMethod[0].publicKey;
 
       if (!publicKey) {
@@ -273,10 +272,8 @@ router.post("/verifyTrustchain", async (req, res) => {
       // run the validate method
       const validity = await validateVC(currentVC, publicKey);
 
-      //const validity = true;
-      //console.log(currentVC);
       if (!validity) {
-        if (currentDID == userDID) {
+        if (currentDID === userDID) {
           const invalidMessage = `The VC is invalid, as it was not signed by the issuer. ${currentDID}`;
           logger.info({
             action: "POST /vc/verifyTrustchain",
@@ -321,8 +318,8 @@ router.post("/verifyTrustchain", async (req, res) => {
         //console.log(map);
 
         let temp = "";
-        if (currentVC.type.length == 2) {
-          if (currentVC.type[0] == "VerifiableCredential") temp = currentVC.type[1];
+        if (currentVC.type.length === 2) {
+          if (currentVC.type[0] === "VerifiableCredential") temp = currentVC.type[1];
           else temp = currentVC.type[0];
         } else {
           const errorMessage = "A VC requires 2 types to be valid";
@@ -385,6 +382,45 @@ router.post("/verifyTrustchain", async (req, res) => {
   }
 });
 
+// Import ECDSA public key in SPKI format (base64)
+async function importPublicKey(base64Key) {
+  const keyBuffer = Uint8Array.from(atob(base64Key), (c) => c.charCodeAt(0));
+  return subtle.importKey(
+    "spki",
+    keyBuffer,
+    {
+      name: "ECDSA",
+      namedCurve: "P-256",
+    },
+    true,
+    ["verify"]
+  );
+}
+
+// Verify signature using crypto.subtle
+async function verifyVC(payload, base64Signature, base64PublicKey) {
+  // Import public key
+  const publicKey = await importPublicKey(base64PublicKey);
+
+  // Encode payload to Uint8Array
+  const encoder = new TextEncoder();
+  const data = encoder.encode(payload);
+
+  // Convert base64 signature to ArrayBuffer
+  const signature = Uint8Array.from(atob(base64Signature), (c) => c.charCodeAt(0));
+
+  // Verify the signature
+  return subtle.verify(
+    {
+      name: "ECDSA",
+      hash: { name: "SHA-256" },
+    },
+    publicKey,
+    signature,
+    data
+  );
+}
+
 /**
  * This function is only meant to verify the signature
  * of to make sure that it is valid. Later, the issuer will
@@ -415,11 +451,13 @@ async function validateVC(vc, publicKey, correlationId = "unknown") {
     });
     throw new Error(errorMessage);
   }
-  const verifier = createVerify("SHA256"); // hash the string representing the unsigned VC
-  verifier.update(canon);
-  verifier.end();
+  // const verifier = createVerify("SHA256"); // hash the string representing the unsigned VC
+  // verifier.update(canon);
+  // verifier.end();
 
-  const isValid = verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
+  // const isValid = verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
+
+  const isValid = verifyVC(canon, proof.signatureValue, publicKey); // verify that the signature is correct
 
   if (isValid) {
     logger.info({
