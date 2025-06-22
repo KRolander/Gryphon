@@ -569,12 +569,12 @@ export default {
       // Find all the issuable VCs from all held VCs
       for (const name in creds) {
         const curr = creds[name];
-        const issuableType = curr.credentialSubject.canIssue;
-
-        // Check if the VC has a field named canIssue
-        if (issuableType) {
-          issuableVCs.push(issuableType);
-        }
+        Object.entries(curr.credentialSubject).map(([key, val]) => {
+          // Check if the VC has a field containing canIssue
+          if (key.includes("canIssue")) {
+            issuableVCs.push(val);
+          }
+        });
       }
       return issuableVCs;
     },
