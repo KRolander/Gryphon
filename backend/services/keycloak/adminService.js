@@ -19,8 +19,8 @@ async function getAdminToken() {
   const endpoint = "/realms/master/protocol/openid-connect/token";
   const body = {
     client_id: "admin-cli",
-    username: process.env.ADMIN_USERNAME || "admin",
-    password: process.env.ADMIN_PASSWORD || "admin",
+    username: process.env.KC_BOOTSTRAP_ADMIN_USERNAME || "admin",
+    password: process.env.KC_BOOTSTRAP_ADMIN_PASSWORD || "admin",
     grant_type: "password",
   };
   const headers = {
