@@ -1,0 +1,37 @@
+image: node:20
+
+stages:
+  - lint
+  - test
+
+.backend_rules:
+  rules:
+    - changes:
+        - backend/**
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+backend-lint:
+  extends: .backend_rules
+  stage: lint
+  script:
+    - cd backend
+    - npm ci
+    - npm run lint
+  artifacts:
+    paths:
+      - backend/node_modules/
+    expire_in: 30 minutes
+
+backend-test:
+  extends: .backend_rules
+  stage: test
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+  script:
+    - cd backend
+    - npm test
+  needs: ["backend-lint"]
+  dependencies:
+    - backend-lint
+  artifacts:
+    paths:
+      - backend/coverage/
