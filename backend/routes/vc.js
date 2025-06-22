@@ -2,6 +2,8 @@
 const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 
 const {
   startGateway,
@@ -10,7 +12,7 @@ const {
   getDIDDoc,
   getMapValue,
   storeMapping,
-  storeDID,
+  storeDID, addDIDController,
 } = require("../gateway");
 const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
@@ -36,9 +38,9 @@ router.post("/verify", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
-    if (getGateway() == null) {
-      await startGateway();
-    }
+      if (getGateway() == null) {
+        await startGateway();
+      }
 
     const VC = req.body;
 
@@ -199,6 +201,56 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
     });
     console.log(error);
     res.status(500).send(errorMessage); // Send an error message to the client
+  }
+});
+
+router.patch("/setRootTAO/:newRoot", async (req, res) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
+  try {
+
+    if (getGateway() == null) {
+      await startGateway();
+    }
+
+    const targetRoot = req.params.newRoot;
+
+    try {
+      await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), targetRoot);
+    } catch (err) {
+      const errorMessage = `There is no DID ${targetRoot}`;
+      logger.warn({
+        action: "PATCH vc/setRootTAO/:newRoot",
+        correlationId: correlationId,
+        message: errorMessage,
+      });
+      console.error(errorMessage);
+      return res.status(400).send("No DID");
+    }
+
+    const pathToConfig = path.join(__dirname, "../config/config.json");
+
+    const dataToStore = { rootTAO: { did: targetRoot } };
+    fs.writeFileSync(pathToConfig, JSON.stringify(dataToStore,null,2), "utf8");
+
+    const successMessage = `Root ${targetRoot} modified successfully!`;
+    console.log(successMessage);
+    logger.info({
+      action: "PATCH /vc/setRootTAO/:newRoot",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
+    res.status(200).send(successMessage);
+
+  } catch (error) {
+    const errorMessage = "Error adding the new root";
+    logger.warn({
+      action: "PATCH /vc/setRootTAO/:newRoot",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send(errorMessage);
   }
 });
 

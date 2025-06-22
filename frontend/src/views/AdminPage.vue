@@ -19,7 +19,7 @@
           ></v-text-field>
         </v-col>
         <v-col cols="4">
-          <v-btn class="ma-2" variant="outlined">
+          <v-btn class="ma-2" variant="outlined" @click="setRootTAO(newRootTao)">
             Add
             <v-icon icon="mdi-plus-circle" end></v-icon>
           </v-btn>
@@ -127,6 +127,26 @@ export default {
         }, 5000);
       }
     },
+
+    async setRootTAO(newRoot) {
+      try {
+        await VCService.setRootTAO(newRoot);
+        this.alertMessage = `Successfully added root ${newRoot}`;
+        this.alert = true;
+        this.alertColor = "success";
+        setTimeout(() => {
+          this.resetAlerts();
+        }, 5000);
+      } catch (error) {
+        this.alertMessage = "There was an error, try again!";
+        this.alert = true;
+        this.alertColor = "error";
+        setTimeout(() => {
+          this.resetAlerts();
+        }, 5000);
+      }
+    },
+
     resetAlerts() {
       this.alert = false;
       this.alertMessage = "";
