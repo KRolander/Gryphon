@@ -532,8 +532,6 @@ export default {
       // Parse the VC we were given
       const VC = JSON.parse(VCText);
       try {
-        // Check the structure of the VC
-        //await VCService.verify(VC);
         // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
 
@@ -595,7 +593,7 @@ export default {
       const issuer = this.issueVCFormData.issuer.did; // issuer is an object from the VCs array
       const privateKey = this.issueVCFormData.issuer.privateKey;
       const subject = this.issueVCFormData.subject;
-      const creationDate = new Date().toISOString;
+      const creationDate = new Date().toISOString();
 
       // Parse the claims into an object
       const claims = {};
