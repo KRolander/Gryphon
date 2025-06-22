@@ -430,6 +430,7 @@ import VCService from "@/services/VCService.js";
 import { VCBuilder, UnsignedVCBuilder } from "@/../../utils/VC.ts";
 import canonicalize from "canonicalize";
 import { sign } from "@/utils/crypto";
+import { getCurrentInstance } from "vuetify/lib/util";
 
 /* ----------------------- CONFIG ----------------------- */
 export default {
@@ -560,8 +561,22 @@ export default {
      * @param did The did of the issuer
      */
     getIssuableVCTypes(wallet, did) {
-      // TODO: Integrate with the vc mapping
-      return ["test"];
+      // Getting the VCs from the wallet
+      const creds = wallet.getVCs(did);
+
+      const issuableVCs = [];
+
+      // Find all the issuable VCs from all held VCs
+      for (const name in creds) {
+        const curr = creds[name];
+        const issuableType = curr.credentialSubject.canIssue;
+
+        // Check if the VC has a field named canIssue
+        if (issuableType) {
+          issuableVCs.push(issuableType);
+        }
+      }
+      return issuableVCs;
     },
 
     resetIssueVCForm() {
