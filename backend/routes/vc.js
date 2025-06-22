@@ -230,6 +230,23 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
 
     const pathToConfig = path.join(__dirname, "../config/config.json");
 
+    const rootInConfig = fs.readFileSync(pathToConfig, "utf8");
+    try{
+
+      const JSONRoot = JSON.parse(rootInConfig);
+      if (JSONRoot.rootTAO.did === targetRoot) {
+        const warnMessage = "The provided DID is already a root";
+        logger.warn({
+          action: "PATCH vc/setRootTAO/:newRoot",
+          correlationId: correlationId,
+          message: warnMessage,
+        });
+        return res.status(400).send(warnMessage);
+      }
+    } catch (err) {
+    }
+
+
     const dataToStore = { rootTAO: { did: targetRoot } };
     fs.writeFileSync(pathToConfig, JSON.stringify(dataToStore,null,2), "utf8");
 
@@ -245,7 +262,7 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
 
   } catch (error) {
     const errorMessage = "Error adding the new root";
-    logger.warn({
+    logger.error({
       action: "PATCH /vc/setRootTAO/:newRoot",
       correlationId: correlationId,
       message: errorMessage,
