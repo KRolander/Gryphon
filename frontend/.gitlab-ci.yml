@@ -1,0 +1,15 @@
+image: node:20
+
+stages:
+  - lint
+
+frontend_lint:
+  rules:
+    - changes:
+        - frontend/**
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  stage: lint
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint

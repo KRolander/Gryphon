@@ -97,6 +97,7 @@
                             item-title="name"
                             return-object
                             required
+                            @update:modelValue="(issuer) => onIssuerChanged(issuer, wallet)"
                           />
 
                           <v-text-field
@@ -109,7 +110,7 @@
                           <v-select
                             label="VC Type"
                             v-model="issueVCFormData.type"
-                            :items="getIssuableVCTypes(wallet, this.issueVCFormData.issuer)"
+                            :items="issuableTypes"
                             :rules="[(type) => !!type || 'Type is required']"
                             required
                           />
@@ -446,6 +447,7 @@ export default {
       VCToVerify: "",
       issueVCDialog: false,
       issueVCValid: false,
+      issuableTypes: [],
       issueVCFormData: {
         name: "",
         type: "",
@@ -497,6 +499,10 @@ export default {
     };
   },
   methods: {
+    onIssuerChanged(issuer, wallet) {
+      this.issuableTypes = this.getIssuableVCTypes(wallet, issuer);
+      this.issueVCFormData.type = null;
+    },
     refreshVCs(wallet) {
       if (!wallet || !wallet.dids) return;
       this.VCs = Object.entries(wallet.dids).map(([did, data]) => {
@@ -561,9 +567,9 @@ export default {
      */
     getIssuableVCTypes(wallet, did) {
       // Getting the VCs from the wallet
-      const creds = wallet.getVCs(did);
+      const creds = wallet.getVCs(did.did);
 
-      const issuableVCs = [];
+      const issuableVCs = ["root"];
 
       // Find all the issuable VCs from all held VCs
       for (const name in creds) {
