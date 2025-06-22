@@ -2,7 +2,7 @@
 const { createVerify } = require("crypto");
 const canonicalize = require("canonicalize");
 const express = require("express");
-
+const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
 const {
   startGateway,
   getGateway,
@@ -247,7 +247,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       }
 
       // get issuer DID Document
-      const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+      const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
       if (!issuerDoc) {
         logger.warn({
           action: "POST /vc/verifyTrustchain",
@@ -273,6 +273,7 @@ router.post("/verifyTrustchain", async (req, res) => {
       // run the validate method
       const validity = await validateVC(currentVC, publicKey);
 
+      //const validity = true;
       //console.log(currentVC);
       if (!validity) {
         if (currentDID == userDID) {
@@ -297,9 +298,10 @@ router.post("/verifyTrustchain", async (req, res) => {
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
 
-        const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+        const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
         const serviceArray = issuerDoc.service || [];
         const repoEndpoint = serviceArray.find((serv) => serv.id.endsWith("#vcs"));
+        //console.log(repoEndpoint);
         if (!repoEndpoint) {
           const errorMessage = "Issuer DID document does not contain a valid registry service";
           logger.error({
@@ -311,6 +313,12 @@ router.post("/verifyTrustchain", async (req, res) => {
         }
         const endpoint = repoEndpoint.serviceEndpoint;
         const registry = await fetchRegistry(endpoint, correlationId);
+
+        //console.log(registry);
+
+        const map = new Map(Object.entries(registry));
+
+        //console.log(map);
 
         let temp = "";
         if (currentVC.type.length == 2) {
@@ -331,7 +339,8 @@ router.post("/verifyTrustchain", async (req, res) => {
           vcType
         );
 
-        const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
+        const issuerVCs = map.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
+        //console.log(issuerVCs);
 
         const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
         if (!correctVC) {

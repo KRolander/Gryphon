@@ -533,7 +533,7 @@ export default {
       const VC = JSON.parse(VCText);
       try {
         // Check the structure of the VC
-        await VCService.verify(VC);
+        //await VCService.verify(VC);
         // Check that the VC is valid according to the trust chain
         const res = await VCService.verifyTrustchain(VC);
 

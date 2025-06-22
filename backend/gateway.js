@@ -136,7 +136,7 @@ async function getMapValue(contract, mapKey) {
 
 async function storeMapping(contract, mapKey, mapValue) {
   const response = await contract.submitTransaction("storeMapping", mapKey, mapValue);
-  return parseResponse(response);
+  return utf8Decoder.decode(response);
 }
 
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE
