@@ -82,7 +82,7 @@ router.post("/verify", async (req, res) => {
     }
 
     //get its public key
-    const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+    const publicKey = issuerDoc.verificationMethod[0].publicKey;
     if (!publicKey) {
       logger.warn({
         action: "POST /vc/verify",
@@ -259,7 +259,7 @@ router.post("/verifyTrustchain", async (req, res) => {
 
       //get its public key
       // TODO: Change this access, as it does not work
-      const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+      const publicKey = issuerDoc.verificationMethod[0].publicKey;
 
       if (!publicKey) {
         logger.warn({

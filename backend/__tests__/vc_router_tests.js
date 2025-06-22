@@ -67,7 +67,7 @@ describe("POST /vc/verify", () => {
     const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
 
     //if(!pkId)
-    const pk = method.publicKeyPem;
+    const pk = method.publicKey;
     //const result = await vcValidationModule.validateVC(sVC, pk);
     //console.log(result);
 
