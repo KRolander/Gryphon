@@ -1,0 +1,47 @@
+image: node:20
+
+stages:
+  - lint
+  - build
+  - test
+
+.did_rules:
+  rules:
+    - changes:
+        - chaincodeDID/**
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+did_lint: 
+  extends: .did_rules
+  stage: lint
+  script:
+    - cd chaincodeDID
+    - npm ci
+    - npm run lint
+  artifacts:
+    paths: 
+        - chaincodeDID/node_modules
+
+did_build:
+  extends: .did_rules
+  stage: build
+  script:
+    - cd chaincodeDID
+    - npm run build
+  needs: ["did_lint"]
+  dependencies:
+    - did_lint
+  artifacts:
+    paths: 
+        - chaincodeDID/build
+
+did_test:
+  extends: .did_rules
+  stage: test
+  script:
+    - cd chaincodeDID
+    - npm run test
+  needs: ["did_lint", "did_build"]
+  dependencies:
+    - did_lint
+    - did_build

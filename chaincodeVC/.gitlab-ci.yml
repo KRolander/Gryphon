@@ -1,0 +1,47 @@
+image: node:20
+
+stages:
+  - lint
+  - build
+  - test
+
+.vc_rules:
+  rules:
+    - changes:
+        - chaincodeVC/**
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+vc_lint:
+  extends: .vc_rules
+  stage: lint
+  script:
+    - cd chaincodeVC
+    - npm ci
+    - npm run lint
+  artifacts:
+    paths: 
+        - chaincodeVC/node_modules/
+
+vc_build:
+  extends: .vc_rules
+  stage: build
+  script:
+    - cd chaincodeVC
+    - npm run build
+  needs: ["vc_lint"]
+  dependencies:
+    - vc_lint
+  artifacts:
+    paths: 
+        - chaincodeVC/build/
+
+vc_test:
+  extends: .vc_rules
+  stage: test
+  script:
+    - cd chaincodeVC
+    - npm run test
+  needs: ["vc_lint", "vc_build"]
+  dependencies:
+    - vc_lint
+    - vc_build
