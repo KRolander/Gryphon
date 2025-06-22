@@ -12,7 +12,8 @@ const {
   getDIDDoc,
   getMapValue,
   storeMapping,
-  storeDID, addDIDController,
+  storeDID,
+  addDIDController,
 } = require("../gateway");
 const { envOrDefault } = require("../utility/gatewayUtilities");
 const axios = require("axios");
@@ -38,9 +39,9 @@ router.post("/verify", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
-      if (getGateway() == null) {
-        await startGateway();
-      }
+    if (getGateway() == null) {
+      await startGateway();
+    }
 
     const VC = req.body;
 
@@ -208,7 +209,6 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
-
     if (getGateway() == null) {
       await startGateway();
     }
@@ -231,8 +231,7 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
     const pathToConfig = path.join(__dirname, "../config/config.json");
 
     const rootInConfig = fs.readFileSync(pathToConfig, "utf8");
-    try{
-
+    try {
       const JSONRoot = JSON.parse(rootInConfig);
       if (JSONRoot.rootTAO.did === targetRoot) {
         const warnMessage = "The provided DID is already a root";
@@ -243,12 +242,10 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
         });
         return res.status(400).send(warnMessage);
       }
-    } catch (err) {
-    }
-
+    } catch (err) {}
 
     const dataToStore = { rootTAO: { did: targetRoot } };
-    fs.writeFileSync(pathToConfig, JSON.stringify(dataToStore,null,2), "utf8");
+    fs.writeFileSync(pathToConfig, JSON.stringify(dataToStore, null, 2), "utf8");
 
     const successMessage = `Root ${targetRoot} modified successfully!`;
     console.log(successMessage);
@@ -259,7 +256,6 @@ router.patch("/setRootTAO/:newRoot", async (req, res) => {
     });
 
     res.status(200).send(successMessage);
-
   } catch (error) {
     const errorMessage = "Error adding the new root";
     logger.error({

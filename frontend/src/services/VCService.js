@@ -1,5 +1,5 @@
 import Api from "./Api";
-import {createRouterMatcher as Promise} from "vue-router";
+import { createRouterMatcher as Promise } from "vue-router";
 
 export default {
   createMapping(mappingKey, mappingValue) {
