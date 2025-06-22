@@ -430,7 +430,6 @@ import VCService from "@/services/VCService.js";
 import { VCBuilder, UnsignedVCBuilder } from "@/../../utils/VC.ts";
 import canonicalize from "canonicalize";
 import { sign } from "@/utils/crypto";
-import { getCurrentInstance } from "vuetify/lib/util";
 
 /* ----------------------- CONFIG ----------------------- */
 export default {
