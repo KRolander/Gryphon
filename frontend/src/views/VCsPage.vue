@@ -560,8 +560,22 @@ export default {
      * @param did The did of the issuer
      */
     getIssuableVCTypes(wallet, did) {
-      // TODO: Integrate with the vc mapping
-      return ["test"];
+      // Getting the VCs from the wallet
+      const creds = wallet.getVCs(did);
+
+      const issuableVCs = [];
+
+      // Find all the issuable VCs from all held VCs
+      for (const name in creds) {
+        const curr = creds[name];
+        Object.entries(curr.credentialSubject).map(([key, val]) => {
+          // Check if the VC has a field containing canIssue
+          if (key.includes("canIssue")) {
+            issuableVCs.push(val);
+          }
+        });
+      }
+      return issuableVCs;
     },
 
     resetIssueVCForm() {
