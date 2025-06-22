@@ -220,10 +220,8 @@ describe("POST /vc/verifyTrustchain", () => {
     saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL)
-        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
-      if (url == rootURL)
-        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
+      if (url == uniURL) return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL) return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
@@ -398,10 +396,8 @@ describe("POST /vc/verifyTrustchain", () => {
     saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL)
-        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
-      if (url == rootURL)
-        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
+      if (url == uniURL) return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL) return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
@@ -514,10 +510,8 @@ describe("POST /vc/verifyTrustchain", () => {
     saveRegistryFromMap(regRoot, moeTestPath);
 
     fetchRegistry.mockImplementation((url) => {
-      if (url == uniURL)
-        return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
-      if (url == rootURL)
-        return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
+      if (url == uniURL) return JSON.parse(fs.readFileSync(universityTestPath, "utf-8"));
+      if (url == rootURL) return JSON.parse(fs.readFileSync(moeTestPath, "utf-8"));
       return url;
     });
 
