@@ -19,7 +19,7 @@ export default {
     return Api().delete(`did/deleteDID/${DID}`);
   },
 
-  modifyController(DID, operation, newController) {
+  modifyValue(DID, operation, newController) {
     if (!DID) {
       return Api().patch(`did/updateDIDDoc/addController/`, { operation, newController });
     }

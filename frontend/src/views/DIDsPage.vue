@@ -8,6 +8,206 @@
       </div>
     </div>
 
+    <v-dialog v-model="foreignDIDDialog" max-width="500">
+      <template v-slot:activator="{ props: activatorProps }">
+        <v-btn v-bind="activatorProps" @click="foreignDIDDialog = true">
+          Show foreign DID Doc</v-btn
+        >
+      </template>
+
+      <template v-slot:default="{ isActive }">
+        <v-card title="Show foreign Document">
+          <v-card-text>
+            <v-text-field
+              v-model="foreignDID"
+              label="Enter DID"
+              :rules="didStructureRules"
+              required
+            >
+            </v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+              variant="outlined"
+              class="ma-2s"
+              @click="
+                () => {
+                  isActive.value = false;
+                  foreignDID = '';
+                }
+              "
+            >
+              Cancel
+              <v-icon icon="mdi-cancel" end></v-icon>
+            </v-btn>
+
+            <v-spacer></v-spacer>
+
+            <v-btn
+              class="ma-2"
+              variant="outlined"
+              @click="
+                async () => {
+                  await getDIDDocument(foreignDID);
+                  verifyController();
+                }
+              "
+            >
+              <span v-if="!loading">
+                Show document
+                <v-icon icon="mdi-file-document-outline" end></v-icon>
+              </span>
+              <v-progress-circular v-else color="primary" indeterminate></v-progress-circular>
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </v-dialog>
+
+    <v-dialog v-model="foreignDocDialog" max-width="700">
+      <v-card title="This is the document:" color="grey-lighten-1">
+        <v-card-text>
+          <pre
+            v-if="foreignDOC"
+            class="text-body-1 font-weight-light mb-n1"
+            style="white-space: pre-wrap; word-break: break-word; padding: 0 16px"
+            >{{ JSON.stringify(foreignDOC, null, 2) }}</pre
+          >
+        </v-card-text>
+
+        <v-card-actions>
+          <v-btn
+            variant="outlined"
+            class="ma-2s"
+            @click="
+              () => {
+                foreignDocDialog = false;
+                foreignDOC = '';
+                permission = false;
+              }
+            "
+          >
+            Cancel
+            <v-icon icon="mdi-cancel" end></v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+
+          <!-- Edit foreign DID -->
+          <v-dialog v-model="editDIDDocDialog" max-width="500">
+            <template v-slot:activator="{ props: editForeignButton }">
+              <v-btn
+                v-bind="editForeignButton"
+                v-if="permission"
+                variant="outlined"
+                @click="
+                  () => {
+                    editDIDDocDialog = true;
+                    serviceEndpoint = getServiceEndpoint(foreignDOC);
+                  }
+                "
+              >
+                Edit document
+                <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
+              </v-btn>
+            </template>
+            <template v-slot:default="{ isActive }">
+              <v-card title="Document edit">
+                <v-card-text>
+                  Edit controller
+                  <v-form v-model="valid">
+                    <v-text-field
+                      v-model="newControllerName"
+                      label="Controller DID"
+                      required
+                      :rules="didStructureRules"
+                    ></v-text-field>
+                    <div class="d-flex justify-end">
+                      <v-btn
+                        class="ma-2 mt-n4"
+                        variant="outlined"
+                        :disabled="!valid"
+                        @click="modifyController(foreignDID, 'addController')"
+                      >
+                        Add
+                        <v-icon icon="mdi-plus-circle" end></v-icon>
+                      </v-btn>
+                    </div>
+                    <v-alert v-if="editControllerAlert" :color="alertColor">
+                      {{ editControllerMessage }}
+                    </v-alert>
+                    <v-text-field
+                      v-model="serviceEndpoint"
+                      label="Edit service endpoint"
+                    ></v-text-field>
+                    <div class="d-flex justify-space-between">
+                      <v-btn
+                        class="ma-2 mt-n4"
+                        variant="outlined"
+                        @click="
+                          () => {
+                            this.serviceEndpoint = '';
+                            modifyController(foreignDID, 'modifyService');
+                          }
+                        "
+                      >
+                        <span v-if="!loading">
+                          Remove service
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </span>
+                        <v-progress-circular
+                          v-else
+                          color="primary"
+                          indeterminate
+                        ></v-progress-circular>
+                      </v-btn>
+                      <v-btn
+                        class="ma-2 mt-n4"
+                        variant="outlined"
+                        @click="modifyController(foreignDID, 'modifyService')"
+                      >
+                        <span v-if="!loading">
+                          Modify service
+                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                        </span>
+                        <v-progress-circular
+                          v-else
+                          color="primary"
+                          indeterminate
+                        ></v-progress-circular>
+                      </v-btn>
+                    </div>
+                  </v-form>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-btn
+                    class="ma-2s"
+                    variant="outlined"
+                    @click="
+                      () => {
+                        isActive.value = false;
+                        newControllerName = '';
+                      }
+                    "
+                  >
+                    Cancel
+                    <v-icon icon="mdi-cancel" end></v-icon>
+                  </v-btn>
+
+                  <v-spacer></v-spacer>
+
+                  <v-btn class="ma-2" variant="outlined" @click="isActive.value = false">
+                    Done
+                    <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </template>
+          </v-dialog>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <WalletManager v-slot="{ wallet, ready }">
       <template v-if="ready">
         <div style="display: none">
@@ -162,7 +362,10 @@
                               v-bind="editButton"
                               class="position-absolute bottom-0 right-0 ma-2"
                               variant="outlined"
-                              @click="editDIDDocDialog = true"
+                              @click= "() => {
+                          editDIDDocDialog = true;
+                          serviceEndpoint = getServiceEndpoint(didDoc[DID.did]);
+                          }"
                           >
                           Edit document
                             <v-icon icon="mdi-file-document-edit-outline" end></v-icon>
@@ -180,14 +383,23 @@
                                         :rules="didStructureRules"
                                     ></v-text-field>
                                     <div class="d-flex justify-end">
-                                      <v-btn
-                                          class="ma-2 mt-n4"
-                                          variant="outlined"
-                                          :disabled="!valid"
-                                          @click="modifyController(DID.did,'addController')">
-                                        Add
-                                        <v-icon icon="mdi-plus-circle" end></v-icon>
-                                      </v-btn>
+
+                                        <v-btn
+                                            class="ma-2 mt-n4"
+                                            variant="outlined"
+                                            :disabled="!valid"
+                                            @click="modifyController(DID.did,'addController')">
+                                          <span v-if="!loadingController">
+                                          Add
+                                          <v-icon icon="mdi-plus-circle" end></v-icon>
+                                          </span>
+                                          <v-progress-circular
+                                              v-else
+                                              color="primary"
+                                              indeterminate
+                                          ></v-progress-circular>
+                                        </v-btn>
+
                                     </div>
                                       <v-alert
                                           v-if="editControllerAlert"
@@ -195,8 +407,46 @@
                                       >
                                           {{editControllerMessage}}
                                       </v-alert>
+                                    <v-text-field
+                                        v-model="serviceEndpoint"
+                                        label="Edit service endpoint"
+                                    ></v-text-field>
+                                    <div class="d-flex justify-space-between">
+                                      <v-btn
+                                          class="ma-2 mt-n4"
+                                          variant="outlined"
+                                          @click="() => {
+                                            this.serviceEndpoint='';
+                                            modifyController(DID.did,'modifyService')
+                                          }"
+                                      >
+                                        <span v-if="!loading">
+                                          Remove service
+                                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                                        </span>
+                                        <v-progress-circular
+                                            v-else
+                                            color="primary"
+                                            indeterminate
+                                        ></v-progress-circular>
+                                      </v-btn>
+                                      <v-btn
+                                          class="ma-2 mt-n4"
+                                          variant="outlined"
+                                          @click="modifyController(DID.did,'modifyService')"
+                                      >
+                                        <span v-if="!loading">
+                                          Modify service
+                                          <v-icon icon="mdi-checkbox-marked-circle" end></v-icon>
+                                        </span>
+                                        <v-progress-circular
+                                            v-else
+                                            color="primary"
+                                            indeterminate
+                                        ></v-progress-circular>
+                                      </v-btn>
+                                    </div>
                                   </v-form>
-
                                 </v-card-text>
 
 
@@ -249,16 +499,25 @@ export default {
       dialogOpen: false,
       deleteDIDDialog: false,
       loading: false,
+      loadingController: false,
 
       DIDToDelete: null,
       editDIDDocDialog: false,
+      foreignDIDDialog: false,
+      foreignDocDialog: false,
+
       editControllerAlert: false,
       editControllerMessage: "",
       alertColor: "info",
+
       valid: false,
+      permission: false,
       newDIDname: "",
       newControllerName: "",
       newDIDService: "",
+      serviceEndpoint: "",
+      foreignDID: "",
+      foreignDOC: "",
       showHideToggle: {},
       didDoc: {},
       didList: true,
@@ -357,16 +616,22 @@ export default {
     },
 
     async getDIDDocument(DID) {
-      if (this.showHideToggle[DID]) {
-        this.showHideToggle[DID] = false;
-        this.didDoc[DID] = null;
-        return;
+      if (!this.foreignDID) {
+        if (this.showHideToggle[DID]) {
+          this.showHideToggle[DID] = false;
+          this.didDoc[DID] = null;
+          return;
+        }
+        // 1. Send to backend
+        const res = await DIDService.getDIDDoc(DID);
+        this.showHideToggle[DID] = true;
+        this.didDoc[DID] = res.data;
+        console.log(res.data);
+      } else {
+        const res = await DIDService.getDIDDoc(this.foreignDID);
+        this.foreignDOC = res.data;
+        this.foreignDocDialog = true;
       }
-      // 1. Send to backend
-      const res = await DIDService.getDIDDoc(DID);
-      this.showHideToggle[DID] = true;
-      this.didDoc[DID] = res.data;
-      console.log(res.data);
     },
 
     async deleteDID(DID, wallet) {
@@ -400,23 +665,59 @@ export default {
 
     async modifyController(DID, operation) {
       try {
-        await DIDService.modifyController(DID, operation, this.newControllerName);
-        this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
-        this.newControllerName = "";
+        if (operation === "addController") {
+          this.loadingController = true;
+          await DIDService.modifyValue(DID, operation, this.newControllerName);
+          this.editControllerMessage = `Successfully added controller: ${this.newControllerName}`;
+          this.newControllerName = "";
+        }
+        if (operation === "modifyService") {
+          this.loading = true;
+          await DIDService.modifyValue(DID, operation, this.serviceEndpoint);
+          this.editControllerMessage = `Successfully modified to service: ${this.serviceEndpoint}`;
+        }
         const res = await DIDService.getDIDDoc(DID);
         this.didDoc[DID] = res.data;
         this.editControllerAlert = true;
         this.alertColor = "success";
+        this.loading = false;
+        this.loadingController = false;
         setTimeout(() => {
           this.resetAlerts();
         }, 3000);
       } catch (err) {
         this.editControllerAlert = true;
-        this.editControllerMessage = "There was a problem when adding the controller. Try again.";
+        if (operation === "addController") {
+          this.editControllerMessage = "There was a problem when adding the controller. Try again.";
+        } else if (operation === "modifyService") {
+          this.editControllerMessage =
+            "There was a problem when modifying this service. Try again.";
+        }
         this.alertColor = "error";
         setTimeout(() => {
           this.resetAlerts();
         }, 3000);
+      }
+    },
+
+    getServiceEndpoint(didDoc) {
+      if (didDoc.service[0].serviceEndpoint) {
+        return didDoc.service[0].serviceEndpoint;
+      }
+      return "";
+    },
+
+    verifyController() {
+      let myControllers = this.DIDs.map((x) => x.did);
+      let controllers = this.foreignDOC.controllers;
+      if (typeof controllers === "string") {
+        controllers = [controllers];
+      }
+      for (let did of myControllers) {
+        if (controllers.includes(did)) {
+          this.permission = true;
+          return;
+        }
       }
     },
 
