@@ -4,9 +4,8 @@ const vcValidationModule = require("../routes/vc");
 const { startGateway, getGateway, getDIDDoc, getContract } = require("../gateway");
 const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.js");
 const { VCBuilder, UnsignedVCBuilder } = require("../../utils/VC");
-const { createSign } = require("crypto");
-const crypto = require("crypto");
 const canonicalize = require("canonicalize");
+const { sign, generateKeys } = require("../utility/VCUtils.js");
 
 jest.mock("../gateway", () => ({
   startGateway: jest.fn(),
@@ -17,27 +16,23 @@ jest.mock("../gateway", () => ({
   getDIDDoc: jest.fn(), // define, but override later
 }));
 
-/**---------Create the key pair for the test--------- */
-const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
-  namedCurve: "P-256",
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-});
+let publicKey, privateKey;
 const issuerDID = "did:hlf:issuer";
-/**---------Create the DID Document of the issuer--------- */
-const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey, null);
-const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null, null);
-//this will be the doc of the issuer
-const doc = docBuilder.build();
-const keylessDoc = noKeyBuilder.build();
+let doc, keylessDoc;
 
 describe("POST /vc/verify", () => {
+  beforeAll(async () => {
+    /**---------Create the key pair for the test--------- */
+    ({ publicKey, privateKey } = await generateKeys());
+    const issuerDID = "did:hlf:issuer";
+    /**---------Create the DID Document of the issuer--------- */
+    const docBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, publicKey, null);
+    const noKeyBuilder = new DIDDocumentBuilder(issuerDID, issuerDID, null, null);
+    //this will be the doc of the issuer
+    doc = docBuilder.build();
+    keylessDoc = noKeyBuilder.build();
+  });
+
   it("should return 200 and a valid message", async () => {
     getDIDDoc.mockReturnValue(doc);
 
@@ -54,10 +49,7 @@ describe("POST /vc/verify", () => {
 
     /**---------Create the signature--------- */
     const canon = canonicalize(uVC);
-    const signer = createSign("SHA256");
-    signer.update(canon);
-    signer.end();
-    const signature = signer.sign(privateKey, "base64");
+    const signature = await sign(canon, privateKey);
 
     /**---------Sign the VC--------- */
     const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
@@ -67,7 +59,7 @@ describe("POST /vc/verify", () => {
     const method = doc.verificationMethod.find((vm) => vm.id === keyId); // find that method in the list of verification methods
 
     //if(!pkId)
-    const pk = method.publicKeyPem;
+    const pk = method.publicKey;
     //const result = await vcValidationModule.validateVC(sVC, pk);
     //console.log(result);
 
@@ -97,10 +89,7 @@ describe("POST /vc/verify", () => {
 
     /**---------Create the signature--------- */
     const canon = canonicalize(uVC);
-    const signer = createSign("SHA256");
-    signer.update(canon);
-    signer.end();
-    const signature = signer.sign(privateKey, "base64");
+    const signature = await sign(canon, privateKey);
 
     /**---------Sign the VC--------- */
     const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
@@ -127,10 +116,7 @@ describe("POST /vc/verify", () => {
 
     /**---------Create the signature--------- */
     const canon = canonicalize(uVC);
-    const signer = createSign("SHA256");
-    signer.update(canon);
-    signer.end();
-    const signature = signer.sign(privateKey, "base64");
+    const signature = await sign(canon, privateKey);
 
     /**---------Sign the VC--------- */
     const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
@@ -156,10 +142,7 @@ describe("POST /vc/verify", () => {
     const uVC = uVCBuilder.build();
 
     /**---------Sign the VC--------- */
-    const signer = createSign("SHA256");
-    signer.update("signature");
-    signer.end();
-    const signature = signer.sign(privateKey, "base64");
+    const signature = await sign("signature", privateKey);
     const sVCBuilder = new VCBuilder(uVC, "date1", "someURL", signature);
 
     const sVC = sVCBuilder.build();

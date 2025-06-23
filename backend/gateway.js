@@ -131,12 +131,12 @@ async function deleteDID(contract, DID) {
 
 async function getMapValue(contract, mapKey) {
   const response = await contract.evaluateTransaction("getMapValue", mapKey);
-  return parseResponse(response);
+  return utf8Decoder.decode(response);
 }
 
 async function storeMapping(contract, mapKey, mapValue) {
   const response = await contract.submitTransaction("storeMapping", mapKey, mapValue);
-  return parseResponse(response);
+  return utf8Decoder.decode(response);
 }
 
 //TO BE PUT IN THE UTILS FOLDER ONCE WE HAVE ONE

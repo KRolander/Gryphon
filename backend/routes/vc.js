@@ -1,7 +1,8 @@
 /*----------IMOPRTS----------*/
-const { createVerify } = require("crypto");
+const { subtle } = globalThis.crypto;
 const canonicalize = require("canonicalize");
 const express = require("express");
+const { saveRegistryFromMap, loadRegistryAsMap, addVC } = require("../../utils/publicRegistry");
 const fs = require("fs");
 const path = require("path");
 
@@ -74,7 +75,7 @@ router.post("/verify", async (req, res) => {
     }
 
     // get issuer DID Document
-    const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+    const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
     if (!issuerDoc) {
       logger.warn({
         action: "POST /vc/verify",
@@ -85,7 +86,7 @@ router.post("/verify", async (req, res) => {
     }
 
     //get its public key
-    const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+    const publicKey = issuerDoc.verificationMethod[0].publicKey;
     if (!publicKey) {
       logger.warn({
         action: "POST /vc/verify",
@@ -97,6 +98,7 @@ router.post("/verify", async (req, res) => {
 
     // run the validate method
     const validity = await validateVC(VC, publicKey, correlationId);
+    // console.log(validity);
     if (validity == true) {
       logger.info({
         action: "POST /vc/verify",
@@ -113,6 +115,7 @@ router.post("/verify", async (req, res) => {
       res.status(200).send("The VC is not valid (it was not issued by the issuer)");
     }
   } catch (error) {
+    // console.log(error);
     const errorMessage = "Error validating the VC";
     logger.error({
       action: "POST /vc/verify",
@@ -132,7 +135,7 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
 
     if (getGateway() == null) await startGateway();
 
-    console.log("Retrieving VC type mapping...");
+    // console.log("Retrieving VC type mapping...");
 
     const mappingValueType = await getMapValue(getContract(VCchannelName, VCchaincodeName), VCType);
 
@@ -191,7 +194,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
       correlationId: correlationId,
       message: successMessage,
     });
-    console.log(successMessage);
+    // console.log(successMessage);
     res.status(200).send("Mapping stored successfully"); // Send the DID to the client
   } catch (error) {
     const errorMessage = "Error storing mapping on the blockchain";
@@ -200,7 +203,7 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
       correlationId: correlationId,
       message: errorMessage,
     });
-    console.log(error);
+    // console.log(error);
     res.status(500).send(errorMessage); // Send an error message to the client
   }
 });
@@ -310,9 +313,9 @@ router.post("/verifyTrustchain", async (req, res) => {
         });
         return res.status(400).send("All VCs require an issuer field");
       }
-
+      // console.log("linia 250");
       // get issuer DID Document
-      const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+      const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
       if (!issuerDoc) {
         logger.warn({
           action: "POST /vc/verifyTrustchain",
@@ -321,10 +324,9 @@ router.post("/verifyTrustchain", async (req, res) => {
         });
         return res.status(500).send("The DID does not exist");
       }
-
+      // console.log("linia 261");
       //get its public key
-      // TODO: Change this access, as it does not work
-      const publicKey = issuerDoc.verificationMethod[0].publicKeyPem;
+      const publicKey = issuerDoc.verificationMethod[0].publicKey;
 
       if (!publicKey) {
         logger.warn({
@@ -334,13 +336,12 @@ router.post("/verifyTrustchain", async (req, res) => {
         });
         return res.status(400).send("This DID does not have a public key");
       }
-
+      // console.log("Before validating linia 273");
       // run the validate method
       const validity = await validateVC(currentVC, publicKey);
-
-      //console.log(currentVC);
+      // console.log("Linia 276 " + validity);
       if (!validity) {
-        if (currentDID == userDID) {
+        if (currentDID === userDID) {
           const invalidMessage = `The VC is invalid, as it was not signed by the issuer. ${currentDID}`;
           logger.info({
             action: "POST /vc/verifyTrustchain",
@@ -362,9 +363,10 @@ router.post("/verifyTrustchain", async (req, res) => {
         // the map from the ledger and with that information it should choose the correct VC from
         // the public repository
 
-        const issuerDoc = getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
+        const issuerDoc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), issuerDID);
         const serviceArray = issuerDoc.service || [];
         const repoEndpoint = serviceArray.find((serv) => serv.id.endsWith("#vcs"));
+        // console.log("Endpoint " + repoEndpoint);
         if (!repoEndpoint) {
           const errorMessage = "Issuer DID document does not contain a valid registry service";
           logger.error({
@@ -377,9 +379,16 @@ router.post("/verifyTrustchain", async (req, res) => {
         const endpoint = repoEndpoint.serviceEndpoint;
         const registry = await fetchRegistry(endpoint, correlationId);
 
+        // console.log("Registry " + registry);
+
+        const map = new Map(Object.entries(registry));
+
+        // console.log("After line 320 \n\n\n\n\n\n");
+        // console.log(map);
+
         let temp = "";
-        if (currentVC.type.length == 2) {
-          if (currentVC.type[0] == "VerifiableCredential") temp = currentVC.type[1];
+        if (currentVC.type.length === 2) {
+          if (currentVC.type[0] === "VerifiableCredential") temp = currentVC.type[1];
           else temp = currentVC.type[0];
         } else {
           const errorMessage = "A VC requires 2 types to be valid";
@@ -391,14 +400,17 @@ router.post("/verifyTrustchain", async (req, res) => {
           return res.status(400).send(errorMessage);
         }
         const vcType = temp; // this indicates the type of the VC
+        // console.log("Getting map value");
         const requiredPermission = await getMapValue(
           getContract(VCchannelName, VCchaincodeName),
           vcType
         );
 
-        const issuerVCs = registry.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
+        const issuerVCs = map.get(issuerDID) || []; // this gets all the VCs that the issuer DID holds
+        // console.log(issuerVCs);
 
         const correctVC = issuerVCs.find((vc) => vc.type.some((t) => t === requiredPermission)); // if there is a VC with the correct permission it will be fond
+        // console.log(correctVC);
         if (!correctVC) {
           const invalidMessage = `The VC is invalid, an organization up the trustchain didn't have the required permission ${issuerDID}`;
           logger.info({
@@ -423,6 +435,7 @@ router.post("/verifyTrustchain", async (req, res) => {
         currentDID = issuerDID;
       }
     }
+    console.log("VC is valid");
     logger.info({
       action: "POST /vc/verifyTrustchain",
       correlationId: correlationId,
@@ -440,6 +453,45 @@ router.post("/verifyTrustchain", async (req, res) => {
     res.status(500).send(errorMessage);
   }
 });
+
+// Import ECDSA public key in SPKI format (base64)
+async function importPublicKey(base64Key) {
+  const keyBuffer = Uint8Array.from(atob(base64Key), (c) => c.charCodeAt(0));
+  return subtle.importKey(
+    "spki",
+    keyBuffer,
+    {
+      name: "ECDSA",
+      namedCurve: "P-256",
+    },
+    true,
+    ["verify"]
+  );
+}
+
+// Verify signature using crypto.subtle
+async function verifyVC(payload, base64Signature, base64PublicKey) {
+  // Import public key
+  const publicKey = await importPublicKey(base64PublicKey);
+
+  // Encode payload to Uint8Array
+  const encoder = new TextEncoder();
+  const data = encoder.encode(payload);
+
+  // Convert base64 signature to ArrayBuffer
+  const signature = Uint8Array.from(atob(base64Signature), (c) => c.charCodeAt(0));
+
+  // Verify the signature
+  return subtle.verify(
+    {
+      name: "ECDSA",
+      hash: { name: "SHA-256" },
+    },
+    publicKey,
+    signature,
+    data
+  );
+}
 
 /**
  * This function is only meant to verify the signature
@@ -471,12 +523,14 @@ async function validateVC(vc, publicKey, correlationId = "unknown") {
     });
     throw new Error(errorMessage);
   }
-  const verifier = createVerify("SHA256"); // hash the string representing the unsigned VC
-  verifier.update(canon);
-  verifier.end();
+  // const verifier = createVerify("SHA256"); // hash the string representing the unsigned VC
+  // verifier.update(canon);
+  // verifier.end();
 
-  const isValid = verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
+  // const isValid = verifier.verify(publicKey, proof.signatureValue, "base64"); // verify that the signature is correct
 
+  const isValid = await verifyVC(canon, proof.signatureValue, publicKey); // verify that the signature is correct
+  // console.log("signature is valid " + isValid);
   if (isValid) {
     logger.info({
       action: "validateVC",

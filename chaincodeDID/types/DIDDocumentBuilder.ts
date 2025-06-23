@@ -2,7 +2,7 @@ interface VerificationMethod {
     id: string;
     type: string;
     controllers: string;
-    publicKeyPem: string;
+    publicKey: string;
 }
 
 interface Service {
@@ -46,7 +46,7 @@ export default class DIDDocumentBuilder {
                     id: keyId,
                     type: "EcdsaSecp256r1VerificationKey2019", 
                     controllers: this.controllers[0],
-                    publicKeyPem: this.publicKey
+                    publicKey: this.publicKey
                 }
             ],
             authentication: [keyId],
