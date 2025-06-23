@@ -347,8 +347,9 @@ router.delete("/deleteDID/", async (req, res) => {
  * @param {string} req.params.did - The DID to delete alongside its document
  *
  * @returns {string} 200: "DID deleted successfully" if the DID and its document were removed from the ledger
- * @returns {object} 404: a JSON object with a reason and a message
- * @returns {object} 500: s JSON object with a reason and an error message
+ * @returns {object} 404: A JSON object with a reason and a message if the DID is not on the ledger
+ * @returns {object} 500: A JSON object with a reason and an error message if anything failed while deleting a DID and
+ * its document
  */
 router.delete("/deleteDID/:did", async (req, res) => {
   const correlationId = generateCorrelationId();
