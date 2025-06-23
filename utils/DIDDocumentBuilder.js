@@ -18,7 +18,7 @@ var DIDDocumentBuilder = /** @class */ (function () {
                     id: keyId,
                     type: "EcdsaSecp256r1VerificationKey2019",
                     controllers: this.controllers[0],
-                    publicKeyPem: this.publicKey
+                    publicKey: this.publicKey
                 }
             ],
             authentication: [keyId],

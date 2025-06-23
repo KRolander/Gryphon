@@ -563,8 +563,8 @@ export default {
         this.loading = true;
         // 1. Send to backend
 
-        const PEMPublicKey = await this.formatPEM(publicKey);
-        const res = await DIDService.createDID(PEMPublicKey, this.newDIDService);
+        // const PEMPublicKey = await this.formatPEM(publicKey);
+        const res = await DIDService.createDID(publicKeyBase64, this.newDIDService);
         console.log(res.data);
 
         // 2. Store in the wallet

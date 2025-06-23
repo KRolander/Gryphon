@@ -21,9 +21,8 @@ const { generateCorrelationId } = require("../utility/loggerUtils");
  */
 router.get("/:org", (req, res) => {
   const correlationId = generateCorrelationId();
-  const org = req.params.org.toLowerCase(); // e.g., "university"
-  const filePath = path.join(__dirname, "../../registries", `${org}.json`);
-
+  const org = req.params.org; // e.g., "university"
+  const filePath = path.join(__dirname, "../registries", `${org}.json`);
   if (!fs.existsSync(filePath)) {
     const warningMessage = "Registry not found for this organization";
     logger.warn({

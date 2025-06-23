@@ -21,7 +21,9 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME
       - KC_BOOTSTRAP_ADMIN_PASSWORD
     volumes:
+      - ./backend/registries:/app/backend/registries:rw
       - ./logging/logs/backend:/var/log/myapp/backend:rw
+      - ./backend/config:/app/backend/config:rw
     networks:
       - monitoring
       - fabric_test

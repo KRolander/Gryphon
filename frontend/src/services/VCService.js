@@ -1,4 +1,5 @@
 import Api from "./Api";
+import { createRouterMatcher as Promise } from "vue-router";
 
 export default {
   createMapping(mappingKey, mappingValue) {
@@ -7,6 +8,10 @@ export default {
 
   getMapping(mappingKey) {
     return Api().get(`vc/getVCTypeMapping/${mappingKey}`);
+  },
+
+  setRootTAO(newRoot) {
+    return Api().patch(`vc/setRootTAO/${newRoot}`);
   },
 
   verify(VC) {
