@@ -237,6 +237,22 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
   }
 });
 
+/**
+ * @route PATCH /vc/setRootTAO/:newRoot
+ * @summary Handles setting the root TAO
+ * @description The method establishes a gateway connection if needed, then verifies if the provided root DID is on the
+ * ledger. After that it reads the file in the config folder and it checks for duplicates or other file errors then
+ * replaces the content with the provided DID.
+ *
+ * @param {object} req.params - The parameters of the request
+ * @param {string} req.params.newRoot - The DID to be set as the root TAO
+ *
+ * @returns {string} 400: "No DID" if the provided DID is not on the ledger
+ * @returns {string} 400: "The provided DID is already a root" if the provided DID is the same as the one in the config
+ *                   file
+ * @returns {string} 200: "Root ${targetRoot} modified successfully!" if the provided DID was written in the config file
+ * @returns {string} 500: "Error adding the new root" if there has been any error while adding the root TAO
+ */
 router.patch("/setRootTAO/:newRoot", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;

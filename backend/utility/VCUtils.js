@@ -42,6 +42,12 @@ async function fetchRegistry(url, correlationId = "unknown") {
   }
 }
 
+/**
+ * @summary This method is used to verify that a DID is a root TAO by reading the config file
+ *
+ * @param {string} did - The DID to be verified if it is a root
+ * @returns {boolean} - Returns weather the DID is a root
+ */
 function isRoot(did) {
   const configPath = path.join(__dirname, "..", "config", "config.json");
   const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
@@ -74,7 +80,6 @@ async function generateKeys() {
 
   return { publicKey, privateKey };
 }
-
 async function importKey(key) {
   const keyBuffer = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
   return await subtle.importKey(
