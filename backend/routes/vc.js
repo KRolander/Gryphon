@@ -121,6 +121,19 @@ router.post("/verify", async (req, res) => {
   }
 });
 
+/**
+ * @route GET /vc/getVCTypeMapping/:mappingKey
+ * @summary Handles getting a VC type value given VC type key
+ * @description The method establishes a gateway connection if needed, then gets the value from the mapping of types
+ * stored on the ledger as key:value, given a key
+ *
+ * @param {object} req.params - The parameters of the request
+ * @param {string} req.params.mappingKey - The key to get the value for
+ *
+ * @returns {object} 200: A JSON object representing the value if it has been successfully retrieved
+ * @returns {string} 500: "Error querying the mapping from blockchain" if there has been any error while getting the
+ *                        value
+ */
 router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
@@ -139,7 +152,7 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
       message: `Mapping for VC of type ${VCType} retrieved successfully!`,
     });
     console.log(`✅ Mapping for VC of type ${VCType} retrieved successfully!`);
-    res.status(200).json(mappingValueType);
+    return res.status(200).json(mappingValueType);
   } catch (error) {
     logger.error({
       action: "POST /vc/getVCTypeMapping",
@@ -147,10 +160,26 @@ router.get("/getVCTypeMapping/:mappingKey", async (req, res) => {
       message: "Error querying the mapping from blockchain",
     });
     console.error("❌ Error retrieving the mapping from blockchain:", error);
-    res.status(500).send("Error querying the mapping from blockchain");
+    return res.status(500).send("Error querying the mapping from blockchain");
   }
 });
 
+/**
+ * @route POST /vc/createMapping/:key/:value
+ * @summary Handles creating a mapping for the VC types
+ * @description The method establishes a gateway connection if needed, then stores on the ledger the mapping for the
+ * VC types
+ *
+ * @param {object} req.params - The parameters of the request
+ * @param {string} req.params.key - The VC type that represents the mapping key
+ * @param {string} req.params.key - The VC type that represents the mapping value
+ *
+ * @returns {string} 400: "Key for the mapping is required" if the mapping key has an invalid value
+ * @returns {string} 400: "Value for the mapping is required" if the mapping value has an invalid value
+ * @returns {string} 200: "Mapping stored successfully" if the mapping has been successfully stored on the ledger
+ * @returns {string} 500: "Error storing mapping on the blockchain" if there has been any error while storing the
+ *                        mapping the ledger
+ */
 router.post("/createMapping/:key/:value", async (req, res, next) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
@@ -202,8 +231,42 @@ router.post("/createMapping/:key/:value", async (req, res, next) => {
   }
 });
 
+/**
+ * @route POST /vc/verifyTrustchain
+ * @summary Handles verifying the validity of a VC by checking the trustchain
+ * @description: The method takes a VC as input and recursively verifies its validity. First, we retrieve the DID
+ * document of the issuer and we verify the signature from our current VC. If the signature is incorrect, we stop the
+ * process declaring the VC as invalid. Otherwise, we retrieve the public registry of the issuer. The issuer should
+ * have a VC that allows it to issue the current VC type. An issuer can issue a type of VC if the mapping exists on the
+ * blockchain (eg. if on the blockchain the mapping Diploma:DiplomaIssuing exists, in order for the issuer to issue VCs
+ * with type Diploma, they would need a VC with the type DiplomaIssuing). If we don't find the necessary VC in the
+ * registry we declare the current VC as invalid, otherwise, we verify the VC from the issuer. This process continues
+ * recursively until we arrive at the rootTAO, an inherently trusted authority set up previously.
+ *
+ * @param {object} req.body - The VC we want to verify
+ *
+ * @returns {string} 400: "VC required" if the body of the request contains no VC
+ * @returns {string} 400: "The VC owned by ${currentDID} does not have the correct type(VerifiableCredential)"
+ *                        if the currentDID does not have the VerifiableCredential type
+ * @returns {string} 500: "The DID does not exist" if the issuer DID does not exist on the blockchain
+ * @returns {string} 400: "This DID does not have a public key" if the DID document of the issuer does not have a
+ *                        public key
+ * @returns {string} 200: "The VC is invalid, as it was not signed by the issuer." if the signature of the VC passed as
+ *                        argument is invalid
+ * @returns {string} 200: "The VC is invalid, there was a problem verifying it up the trustchain." if the signature of
+ *                        any of the VCs from the trustchain is invalid
+ * @returns {string} 500: "Issuer DID document does not contain a valid registry service" if the issuer DID does not
+ *                        have a service endpoint pointing to its public registry
+ * @returns {string} 400: "A VC requires 2 types to be valid" if any VC up the trustchain doesn't have the 2 required
+ *                        types (VerifiableCredential and another one)
+ * @returns {string} 200: "The VC is invalid, an organization up the trustchain didn't have the required permission"
+ *                        if any of the organizations up the trustchain doesn't have the necessary VC in their public
+ *                        registry
+ * @returns {string} 200: "There was a problem up the trustchain. It is possible that a third party took unauthorized
+ *                        control of another VC" if one of the VCs up the trustchain is a malicious user
+ * @returns {string} 200: "The VC is valid" if the process of verifying the VC concludes and the VC is valid
+ */
 router.post("/verifyTrustchain", async (req, res) => {
-  // TODO: In general add more checks to send to the user
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
