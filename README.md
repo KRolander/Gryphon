@@ -120,3 +120,16 @@ docker-compose up -d
 ```
 
 Now, the Grafana dashboard can be accessed by navigating to [http://localhost:3200/](http://localhost:3200) on your browser, where you can monitor and query the incoming logs.
+
+If it's the first time you are accessing Grafana, you will need to connect it to the Loki as a data source in this way:
+- Navigate to [http://localhost:3200/](http://localhost:3200)
+- Log in with the default credentials "admin", "admin". Remember to change those later.
+- On the left panel, click on `Connections`, then `Add new connection`, and search for `Loki`.
+- Keep the default name `loki` and set `URL` to `http://loki:3100`, then scroll to the bottom and click `Save & test`, if the connection is valid you will see a success message.
+
+Now that we have a valid Data Source connected to Grafana, we can monitor the logs through a dashboard, we provide a dashboard that can be imported in this way:
+- On the left panel, click on `Dashboards`, then, in the top right corner, click on `New` and `Import`
+- The provided dashboard is `/logging/dashboard/Gryphon-dashboard.json`, you drag and drop it in the `Upload dashboard JSON file` field and press `Load`
+- Now you can open the dashboard by selecting it from the list in `Dashboards`
+- Right after import, visualizations might not work at first, if the problem persists, navigate to the individual components of the dashboard and click on `Menu`, in the top-right corner of the component, and `Edit`.
+- Then just click the button `Back to dashboard` on top, without changing anything, and the visualization should start working correctly
