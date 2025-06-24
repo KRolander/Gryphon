@@ -61,6 +61,19 @@ const moeTestPath = "./registries/MOE_test.json";
 
 // Signing functionality for the tests
 const encoder = new TextEncoder();
+
+/**
+ * A pair of private and public keys encoded as base64
+ * @typedef {Object} KeyPair
+ * @property {string} publicKey - The public key in base64 format
+ * @property {string} privateKey - The private key in base64 format
+ */
+
+/**
+ * Method to generate a private-public key pair
+ * It uses the Web Crypto API generateKey method with the ECDSA algorithm
+ * @returns {KeyPair} The pair of keys encoded as base64
+ */
 async function generateKeys() {
   const keyPair = await subtle.generateKey(
     {
@@ -70,7 +83,7 @@ async function generateKeys() {
     true, //used for being able to export the key
     ["sign", "verify"]
   );
-  //both are arrayBuffers:
+  // Both are ArrayBuffers:
   const publicKeyBuf = await subtle.exportKey("spki", keyPair.publicKey); //with exportKey not encrypted, use SubtleCrypto.wrapKey() for encryption
   const privateKeyBuf = await subtle.exportKey("pkcs8", keyPair.privateKey); //maybe let the user encrypt
 
@@ -80,6 +93,12 @@ async function generateKeys() {
 
   return { publicKey, privateKey };
 }
+
+/**
+ * Method to import the key
+ * @param {string} key The key in base64 format
+ * @returns {CryptoKey} Our key as a CryptoKey that the Web Crypto API can use
+ */
 async function importKey(key) {
   const keyBuffer = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
   return await subtle.importKey(
@@ -94,6 +113,13 @@ async function importKey(key) {
   );
 }
 
+/**
+ * Method to sign a payload using a private key
+ * It uses the Web Crypto API sign method using ECDSA encryption and passing both the key and the data encoded as buffers
+ * @param {string} payload The string that we want encoded
+ * @param {string} privKey The ECDSA private key encoded as base64
+ * @returns {string} The base64 encoding of the signature
+ */
 async function sign(payload, privKey) {
   // Import the key
   const key = await importKey(privKey);

@@ -594,6 +594,18 @@ export default {
       }
     },
 
+    /**
+     * A pair of private and public keys as ArrayBuffers
+     * @typedef {Object} KeyPair
+     * @property {ArrayBuffer} publicKey - The public key as an ArrayBuffer
+     * @property {ArrayBuffer} privateKey - The private key as an ArrayBuffer
+     */
+
+    /**
+     * Method to generate a private-public key pair
+     * It uses the Web Crypto API generateKey method with the ECDSA algorithm
+     * @returns {KeyPair} The pair of keys as ArrayBuffers
+     */
     async generateKeys() {
       const keyPair = await window.crypto.subtle.generateKey(
         {
