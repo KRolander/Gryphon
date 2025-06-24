@@ -8,8 +8,16 @@ const logger = require("../utility/logger");
 const { generateCorrelationId } = require("../utility/loggerUtils");
 
 /**
- * This function is meant to fetch the public registry
- * of an organization
+ * @route GET /registry/:org
+ * @summary Gets the content of the registry of a provided organization
+ * @description This method builds the path to the registry of the organization provided and checks if the registry
+ * exists at the built path. If it does, it reads the file and returns its content as a JSON object
+ *
+ * @param {object} req.params - The parameters of the request
+ * @param {string} req.params.org - The organization for which you want to fetch data from the registry
+ *
+ * @returns {string} 404: "Registry not found for this organization" if something went wrong when reading the registry
+ * @returns {object} 200: A JSON object with the contents of the registry
  */
 router.get("/:org", (req, res) => {
   const correlationId = generateCorrelationId();
@@ -31,7 +39,7 @@ router.get("/:org", (req, res) => {
     correlationId: correlationId,
     message: "Registry fetched successfully",
   });
-  res.json(registry);
+  res.status(200).json(registry);
 });
 
 module.exports = router;

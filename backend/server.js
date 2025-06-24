@@ -7,7 +7,9 @@ const DIDchannelName = envOrDefault("CHANNEL_NAME", "didchannel"); //the name of
 const VCchannelName = envOrDefault("CHANNEL_NAME", "vcchannel");
 
 const port = 3000;
-
+/**
+ * Entry point for connecting to the VC and DID networks
+ */
 (async () => {
   try {
     await startGateway();

@@ -165,6 +165,11 @@ export function extractSalt(encrypted: string): Uint8Array {
   return encryptedBytes.slice(0, SALT_LENGTH);
 }
 
+/**
+ * Method to import the key
+ * @param {string} key The key in base64 format
+ * @returns {CryptoKey} Our key as a CryptoKey that the Web Crypto API can use
+ */
 async function importKey(key: string): Promise<CryptoKey> {
   const keyBuffer = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
   return await crypto.subtle.importKey(
@@ -179,6 +184,13 @@ async function importKey(key: string): Promise<CryptoKey> {
   );
 }
 
+/**
+ * Method to sign a payload using a private key
+ * It uses the Web Crypto API sign method using ECDSA encryption and passing both the key and the data encoded as buffers
+ * @param {string} payload The string that we want encoded
+ * @param {string} privKey The ECDSA private key encoded as base64
+ * @returns {string} The base64 encoding of the signature
+ */
 export async function sign(payload: string, privKey: string): Promise<string> {
   // Import the key
   const key = await importKey(privKey);
