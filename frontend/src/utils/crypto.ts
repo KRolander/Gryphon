@@ -166,7 +166,7 @@ export function extractSalt(encrypted: string): Uint8Array {
 }
 
 /**
- * Method to import the key
+ * Method to import the private key.
  * @param {string} key The key in base64 format
  * @returns {CryptoKey} Our key as a CryptoKey that the Web Crypto API can use
  */

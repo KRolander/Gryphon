@@ -533,7 +533,11 @@ router.post("/verifyTrustchain", async (req, res) => {
   }
 });
 
-// Import ECDSA public key in SPKI format (base64)
+/**
+ * Import ECDSA public key in SPKI format (base64)
+ * @param {string} base64Key Public key in base64 format
+ * @returns {CryptoKey} The public key as a CryptoKey
+ */
 async function importPublicKey(base64Key) {
   const keyBuffer = Uint8Array.from(atob(base64Key), (c) => c.charCodeAt(0));
   return subtle.importKey(
@@ -548,7 +552,13 @@ async function importPublicKey(base64Key) {
   );
 }
 
-// Verify signature using crypto.subtle
+/**
+ * Verify a signature using the Web Crypto API
+ * @param {string} payload The payload that was signed
+ * @param {string} base64Signature The signature in base64
+ * @param {string} base64PublicKey The public key in base64
+ * @returns {boolean} Whether the signature is valid or not
+ */
 async function verifyVC(payload, base64Signature, base64PublicKey) {
   // Import public key
   const publicKey = await importPublicKey(base64PublicKey);
