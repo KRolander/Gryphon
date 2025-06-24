@@ -244,7 +244,7 @@ describe("PATCH/updateDIDDoc/addController/:did?", () => {
         .patch(`/did/updateDIDDoc/addController/${DID}`)
         .send({ operation: operation, newController: newController });
       expect(response.status).toBe(500);
-      expect(response.text).toBe("Error querying DID from blockchain");
+      expect(response.text).toBe("Error updating DID");
     });
 
     it("should return 500 - addDIDController error", async () => {
@@ -255,7 +255,7 @@ describe("PATCH/updateDIDDoc/addController/:did?", () => {
         .patch(`/did/updateDIDDoc/addController/${DID}`)
         .send({ operation: operation, newController: newController });
       expect(response.status).toBe(500);
-      expect(response.text).toBe("Error querying DID from blockchain");
+      expect(response.text).toBe("Error updating DID");
     });
   });
 
