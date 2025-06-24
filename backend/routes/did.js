@@ -205,7 +205,6 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
-
     if (getGateway() == null) await startGateway();
 
     const targetDID = req.params.did;
@@ -271,7 +270,6 @@ router.patch("/updateDIDDoc/addController/:did", async (req, res) => {
       });
       console.log(successMessage);
       return res.status(200).send("Controller added successfully");
-
     } else if (operation === "modifyService") {
       let doc = await getDIDDoc(getContract(DIDchannelName, DIDchaincodeName), targetDID);
       if (!newController) {

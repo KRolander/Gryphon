@@ -83,7 +83,6 @@ async function newGRPCConnection() {
   });
 }
 
-
 /**
  * @summary Function used to get a Fabric identity for the gateway connection, reading a specific file
  *
