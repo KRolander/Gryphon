@@ -133,3 +133,21 @@ Now that we have a valid Data Source connected to Grafana, we can monitor the lo
 - Now you can open the dashboard by selecting it from the list in `Dashboards`
 - Right after import, visualizations might not work at first, if the problem persists, navigate to the individual components of the dashboard and click on `Menu`, in the top-right corner of the component, and `Edit`.
 - Then just click the button `Back to dashboard` on top, without changing anything, and the visualization should start working correctly
+
+## RootTAO and Verifiable Credential mappings  
+
+For the Trustchain model to work 2 things needs to be managed: the Root Trusted Authority Organization (RootTAO) and the Verifiable Credential Mappings. The RootTAO can only be set by the master admin, while the mappings can be added by both the the master admin and normal admins. 
+
+The RootTAO is the DID of an inherently trusted authority such as the Ministry of Education. Furthermore, the rootTAO needs to issue a VC with the type root to itself.
+
+The Verifiable Credential mappings are set in place to enforce what VC is needed to issue other VCs (for example, to issue a Diploma VC, the issuer would require a VC with the type DiplomaIssuer). To allow this, the admin needs to set the following mapping Diploma:DiplomaIssuing. 
+
+## Public registries
+
+A public registry is an important component of the Trustchain model. If an organization/user wants to issue a Verifiable Credential, they need to store another Verifiable Credential, that allows them to performe that action inside of their public registry. For example, if a university wants to issue a a VC of type Diploma to a student and the mapping (see section `RootTAO and Verifiable Credential mappings`) is Diploma:DiplomaIssuing, then the university needs to provide a (valid) VC with the type Diploma Issuing in their public registry.
+
+Each organizations/user is allowed to have a public registry, for which they can specify its URL in the service field of the DID Document. The public registry needs to be modeled as a map where:
+- Key: A Decentralized Identifier (DID) 
+- Value: A list of VC associated with that DID (it includes only the VCs that the organization wants to disclose) 
+
+We do not provide functionality for the public registry. The public registry needs to be managed by their respective organization. However, we do offer 2 public registries as example. The registries are found in `/backend/registries` and they can be accessed from the URL `http://localhost:3000/registry/:org`. 

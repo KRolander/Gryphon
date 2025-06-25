@@ -45,8 +45,8 @@ async function fetchRegistry(url, correlationId = "unknown") {
 /**
  * @summary This method is used to verify that a DID is a root TAO by reading the config file
  *
- * @param {string} did - The DID to be verified if it is a root
- * @returns {boolean} - Returns weather the DID is a root
+ * @param {string} did The DID to be verified if it is a root
+ * @returns {boolean} Whether the DID is a root
  */
 function isRoot(did) {
   const configPath = path.join(__dirname, "..", "config", "config.json");
@@ -95,7 +95,7 @@ async function generateKeys() {
 }
 
 /**
- * Method to import the key
+ * Method to import the private key.
  * @param {string} key The key in base64 format
  * @returns {CryptoKey} Our key as a CryptoKey that the Web Crypto API can use
  */
@@ -114,7 +114,7 @@ async function importKey(key) {
 }
 
 /**
- * Method to sign a payload using a private key
+ * Method to sign a payload using a private key.
  * It uses the Web Crypto API sign method using ECDSA encryption and passing both the key and the data encoded as buffers
  * @param {string} payload The string that we want encoded
  * @param {string} privKey The ECDSA private key encoded as base64

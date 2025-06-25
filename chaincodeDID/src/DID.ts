@@ -10,9 +10,17 @@ export default class DID extends Contract {
     constructor() {
         super();
     }
-    // DIDExists returns true when the given DID exists in world state.
+    /**
+     * @summary The method used for verifying if a certain DID and its document exist on the ledger
+     *
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID to be searched on the ledger
+     *
+     * @returns {Promise<boolean>} True if the DID and its document are on the ledger, false otherwise
+     */
     @Transaction(false)
     async DIDExists(ctx: Context, DID: string): Promise<boolean> {
+        // Check for extra "" in the DID
         const cleanDID = DID.replace(/^"|"$/g, "");
         const DIDDocJSON = await ctx.stub.getState(cleanDID); // get the DID document from the world state
         if (DIDDocJSON && DIDDocJSON.length > 0) {
@@ -21,9 +29,18 @@ export default class DID extends Contract {
         return false;
     }
 
-    // Returns the DID Document if it exists
+    /**
+     * @summary The method used to get the DID document from the ledger, given a DID
+     *
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID for which the document is searched on the ledger
+     *
+     * @throws {Error} If the document for the given DID is not on the ledger
+     * @returns {Promise<string>} The string representation of the DID document
+     */
     @Transaction(false)
     async getDIDDoc(ctx: Context, DID: string): Promise<string>{
+        // Check for extra "" in the DID
         const cleanDID = DID.replace(/^"|"$/g, "");
         const DIDDocJSON= await ctx.stub.getState(cleanDID);
         if (!DIDDocJSON || DIDDocJSON.length === 0){
@@ -33,6 +50,17 @@ export default class DID extends Contract {
     }
 
     // StoreDID transaction records a new pair of the given DID and DIDDocument to the world state
+    /**
+     * @summary The method used to store a DID and its DID document on the ledger
+     * @description The method checks if the DID is already on the ledger and if not, it stores the provided DID and
+     * the provided DID document
+     *
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID to be stored on the ledger
+     * @param {string} DIDDoc The DID document to be stored on the ledger
+     *
+     * @throws {Error} If the DID and its document are not on the ledger
+     */
     @Transaction()
     public async storeDID(
         ctx: Context,
@@ -42,14 +70,13 @@ export default class DID extends Contract {
 
         // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
+        // Check for extra "" in the DID
         const cleanDID = DID.replace(/^"|"$/g, "");
 
         if (DIDExists) {
             // TODO Make custom error types to use instead of the generic one
             throw new Error(`The DID document with DID ${DID} already exists`);
         }
-
-        // TODO call to method-specific operation
 
         // Check if the DID Document is valid
         const doc = JSON.parse(DIDDoc);
@@ -61,6 +88,20 @@ export default class DID extends Contract {
         );
     }
 
+    /**
+     * @summary The method used for updating a DID document
+     * @description The method checks if the DID is on the ledger. If successful, it creates a DID document with
+     * optional fields and makes a new document by replacing changes in the fields with the ones that are different in
+     * the provided DID document
+     *
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID used to get the document from the ledger
+     * @param {string} DIDDoc The DID document to be stored on the ledger
+     *
+     * @throws {Error} If the DID and its document are not on the ledger
+     * @throws {Error} If the fixed fields have changed (for now only the id)
+     * @returns {Promise<Buffer>} The success state if the document has been correctly updated
+     */
     @Transaction()
     public async updateDIDDoc(
         ctx: Context,
@@ -68,8 +109,9 @@ export default class DID extends Contract {
         DIDDoc: string,
     ): Promise<Buffer> {
 
-        // The DID Document can only be updated if it was already stored
+        // Check for extra "" in the DID
         const cleanDID= DID.replace(/^"|"$/g, "");
+        // The DID Document can only be updated if it was already stored
         const DIDExists = await this.DIDExists(ctx, cleanDID);
 
         if (!DIDExists) {
@@ -79,7 +121,6 @@ export default class DID extends Contract {
         // Retrieve the current DID Document and update the fields
         const oldDoc = JSON.parse(await this.getDIDDoc(ctx, cleanDID)) as DIDDocument;
 
-        // TODO: prompt authentication to verify that the user is the DID controller
         // TODO: throw an error if unauthorized
 
         const changes = JSON.parse(DIDDoc) as Partial<DIDDocument>;
@@ -100,12 +141,21 @@ export default class DID extends Contract {
         return Buffer.from(JSON.stringify({ success: true }));
     }
 
+    /**
+     * @summary The method used to delete a DID from the ledger
+     * @description The method checks if the DID is already on the ledger and deletes it if it is found
+     *
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID to be deleted
+     *
+     * @throws {Error} If the DID and its document are not on the ledger
+     */
     @Transaction()
     public async deleteDID(ctx: Context, DID: string): Promise<void> {
         // TODO: Add authentication to make sure that the user is the controller of the DID
-        // Check if the DID Document exists
-
+        // Check if the DID Document exists on the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
+        // Check for extra "" in the DID
         const cleanDID = DID.replace(/^"|"$/g, "");
         if (!DIDExists) {
             throw new Error(`Cannot delete the DID ${cleanDID}, it doesn't exist`);
