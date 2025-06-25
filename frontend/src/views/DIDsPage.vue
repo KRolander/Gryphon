@@ -552,7 +552,13 @@ export default {
     };
   },
   methods: {
-    // Method to handle the creation of a new DID
+    /**
+     * Handles creation of a new DID.
+     * Generates keys, sends public key and service to backend, stores DID in wallet, refreshes DID list, resets form and closes dialog.
+     *
+     * @param {Object} wallet - Wallet object to store the new DID.
+     * @returns {Promise<void>}
+     */
     async createDID(wallet) {
       if (this.valid) {
         // 0. Create keys
@@ -622,11 +628,24 @@ export default {
       return { publicKey, privateKey };
     },
 
+    /**
+     * Formats a raw key ArrayBuffer into PEM format string.
+     *
+     * @param {ArrayBuffer} key - The raw key bytes.
+     * @returns {Promise<string>} The PEM formatted public key.
+     */
     async formatPEM(key) {
       const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(key)));
       return `-----BEGIN PUBLIC KEY-----\n${publicKeyBase64}\n-----END PUBLIC KEY-----`;
     },
 
+    /**
+     * Retrieves the DID Document for a given DID.
+     * Toggles visibility of the DID Document if already loaded.
+     *
+     * @param {string} DID - The DID string to fetch the document for.
+     * @returns {Promise<void>}
+     */
     async getDIDDocument(DID) {
       if (!this.foreignDID) {
         if (this.showHideToggle[DID]) {
@@ -646,6 +665,15 @@ export default {
       }
     },
 
+    /**
+     * Deletes a DID both on backend and locally in the wallet.
+     * Handles errors where DID might not exist on backend.
+     * Refreshes DID list and resets delete dialog state.
+     *
+     * @param {string} DID - The DID to delete.
+     * @param {Object} wallet - The wallet object to update.
+     * @returns {Promise<void>}
+     */
     async deleteDID(DID, wallet) {
       this.loading = true;
       try {
@@ -675,6 +703,14 @@ export default {
       this.loading = false;
     },
 
+    /**
+     * Modifies the controller or service endpoint of a DID.
+     * Updates DID document and shows alerts based on success or failure.
+     *
+     * @param {string} DID - The DID to modify.
+     * @param {string} operation - The operation type ('addController' or 'modifyService').
+     * @returns {Promise<void>}
+     */
     async modifyController(DID, operation) {
       try {
         if (operation === "addController") {
@@ -712,6 +748,12 @@ export default {
       }
     },
 
+    /**
+     * Retrieves the service endpoint URL from a DID Document.
+     *
+     * @param {Object} didDoc - The DID Document object.
+     * @returns {string} The service endpoint URL or empty string if not found.
+     */
     getServiceEndpoint(didDoc) {
       if (didDoc.service[0].serviceEndpoint) {
         return didDoc.service[0].serviceEndpoint;
@@ -719,6 +761,10 @@ export default {
       return "";
     },
 
+    /**
+     * Verifies if the user’s DIDs are included as controllers in a foreign DID Document.
+     * Sets permission flag accordingly.
+     */
     verifyController() {
       let myControllers = this.DIDs.map((x) => x.did);
       let controllers = this.foreignDOC.controllers;
@@ -733,12 +779,20 @@ export default {
       }
     },
 
+    /**
+     * Resets alert messages and colors related to controller editing.
+     */
     resetAlerts() {
       this.editControllerAlert = false;
       this.editControllerMessage = "";
       this.alertColor = "info";
     },
 
+    /**
+     * Refreshes the list of DIDs from the wallet into the local state.
+     *
+     * @param {Object} wallet - Wallet object containing DIDs.
+     */
     refreshDIDs(wallet) {
       // Fill the page with the DIDs loaded from the wallet
       if (!wallet || !wallet.dids) {

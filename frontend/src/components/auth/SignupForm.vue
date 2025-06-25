@@ -219,6 +219,12 @@ export default {
     },
   },
   methods: {
+    /**
+     * Handles user signup process including form validation, backend calls,
+     * setting tokens, storing users, and redirecting.
+     * @async
+     * @returns {Promise<void>}
+     */
     async signup() {
       console.log(this.internalUsername);
       console.log(this.internalEmail);

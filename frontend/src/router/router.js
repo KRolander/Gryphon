@@ -77,7 +77,15 @@ const history = createWebHistory();
 const router = createRouter({ history, routes });
 
 /* ---------------------- GUARDS ---------------------- */
-// admin guard
+
+/**
+ * Global navigation guard to enforce admin access restrictions.
+ * Redirects non-admin users away from admin routes.
+ *
+ * @param {import('vue-router').RouteLocationNormalized} to - Target route.
+ * @param {import('vue-router').RouteLocationNormalized} from - Source route.
+ * @param {Function} next - Callback to resolve the navigation.
+ **/
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   console.log(userStore.isAdmin);
@@ -88,7 +96,15 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
-// auth guard
+
+/**
+ * Global navigation guard for handling general authentication logic.
+ * Redirects users based on auth state and route access metadata.
+ *
+ * @param {import('vue-router').RouteLocationNormalized} to - Target route.
+ * @param {import('vue-router').RouteLocationNormalized} from - Source route.
+ * @param {Function} next - Callback to resolve the navigation.
+ **/
 router.beforeEach((to, from, next) => {
   console.log(to);
   let isAuthenticated = false; // Replace with actual authentication check

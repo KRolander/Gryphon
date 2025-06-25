@@ -41,6 +41,12 @@ export default {
     ...mapStores(useUserStore),
   },
   methods: {
+    /**
+     * Navigates to the specified path using Vue Router.
+     * @param {Object} path - A route location object.
+     * @example
+     * navigateTo({ path: '/admin' });
+     */
     navigateTo(path) {
       this.$router.push(path);
     },
