@@ -63,8 +63,8 @@ beforeEach(() => {
         id: "".concat(this.DID, "#vcs"),
         type: "VerifiableCredentialService",
         serviceEndpoint: service,
-      }
-    ]
+      },
+    ],
   };
   jest.clearAllMocks(); // Reset mocks before each test so previous calls don't affect new ones
   createDID.mockResolvedValue(DID);
@@ -275,34 +275,33 @@ describe("PATCH/updateDIDDoc/addController/:did?", () => {
   });
 
   describe("testing service logic", () => {
-
-    it ("should return 200 - Endpoint deleted successfully", async () => {
+    it("should return 200 - Endpoint deleted successfully", async () => {
       getDIDDoc.mockResolvedValue(servDoc);
       const response = await request(app)
-          .patch(`/did/updateDIDDoc/addController/${DID}`)
-          .send({ operation: op, newController: "" });
+        .patch(`/did/updateDIDDoc/addController/${DID}`)
+        .send({ operation: op, newController: "" });
       expect(response.status).toBe(200);
       expect(response.text).toBe("Endpoint deleted successfully");
     });
 
-    it ("should return 400 - duplicate service", async () => {
+    it("should return 400 - duplicate service", async () => {
       getDIDDoc.mockResolvedValue(servDoc);
       const response = await request(app)
-          .patch(`/did/updateDIDDoc/addController/${DID}`)
-          .send({ operation: op, newController: service });
+        .patch(`/did/updateDIDDoc/addController/${DID}`)
+        .send({ operation: op, newController: service });
       expect(response.status).toBe(400);
       expect(response.text).toBe(`DID ${DID} already has endpoint ${service}`);
     });
   });
 
-    it("should return 200 - adding new service", async ()=> {
-      getDIDDoc.mockResolvedValue(servDoc);
-      const response = await request(app)
-          .patch(`/did/updateDIDDoc/addController/${DID}`)
-          .send({ operation: op, newController: "newService" });
-      expect(response.status).toBe(200);
-      expect(response.text).toBe("Endpoint modified successfully");
-    });
+  it("should return 200 - adding new service", async () => {
+    getDIDDoc.mockResolvedValue(servDoc);
+    const response = await request(app)
+      .patch(`/did/updateDIDDoc/addController/${DID}`)
+      .send({ operation: op, newController: "newService" });
+    expect(response.status).toBe(200);
+    expect(response.text).toBe("Endpoint modified successfully");
+  });
 
   describe("testing function calls", () => {
     it("good request - getDIDDoc calls", async () => {
