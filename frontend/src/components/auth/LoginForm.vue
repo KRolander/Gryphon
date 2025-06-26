@@ -103,6 +103,14 @@ export default {
     ...mapStores(useUserStore),
   },
   methods: {
+    /**
+     * Submits the login form by sending credentials to the backend.
+     *
+     * Handles UI state (e.g., loading), stores user and token info upon success,
+     * and redirects based on user role. Also manages basic validation.
+     *
+     * @returns {Promise<void>}
+     **/
     async login() {
       //TODO to modify so it recognizes admin maybe from the jwt
       if (this.valid) {

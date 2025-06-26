@@ -105,6 +105,15 @@ export default {
     };
   },
   methods: {
+    /**
+     * Creates a new mapping between VC Types.
+     * Calls VCService to add the key-value mapping.
+     * Shows success or error alerts and manages loading state.
+     *
+     * @param {string} key - The VC type you want to issue.
+     * @param {string} value - The VC type you need to be able to issue it.
+     * @returns {Promise<void>}
+     */
     async createMapping(key, value) {
       try {
         this.loading = true;
@@ -128,6 +137,13 @@ export default {
       }
     },
 
+    /**
+     * Sets a new root TAO.
+     * Shows success or error alerts.
+     *
+     * @param {string} newRoot - The new root TAO DID.
+     * @returns {Promise<void>}
+     */
     async setRootTAO(newRoot) {
       try {
         await VCService.setRootTAO(newRoot);
@@ -147,11 +163,18 @@ export default {
       }
     },
 
+    /**
+     * Resets the alert state and clears alert messages and color.
+     */
     resetAlerts() {
       this.alert = false;
       this.alertMessage = "";
       this.alertColor = "info";
     },
+
+    /**
+     * Redirects the user to the Keycloak admin interface.
+     */
     goToKeycloak() {
       window.location.href = "http://localhost:9090";
     },

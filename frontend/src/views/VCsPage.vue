@@ -499,10 +499,20 @@ export default {
     };
   },
   methods: {
+    /**
+     * Function to update the list of issuable vcs in the UI based on the selected issuer
+     * @param {string} issuer {string} - DID of the issuer
+     * @param {object} wallet - Wallet object
+     */
     onIssuerChanged(issuer, wallet) {
       this.issuableTypes = this.getIssuableVCTypes(wallet, issuer);
       this.issueVCFormData.type = null;
     },
+
+    /**
+     * Refreshes the list of VCs from the wallet.
+     * @param {Object} wallet - Wallet containing the VCs.
+     */
     refreshVCs(wallet) {
       if (!wallet || !wallet.dids) return;
       this.VCs = Object.entries(wallet.dids).map(([did, data]) => {
@@ -517,6 +527,9 @@ export default {
       });
     },
 
+    /**
+     * Initializes the show/hide states for VCs display toggles.
+     */
     initShowVCs() {
       if (this.showVCs !== null) return;
       this.showVCs = {};
@@ -533,6 +546,11 @@ export default {
       }
     },
 
+    /**
+     * Verifies a given Verifiable Credential (VC) string against the trust chain
+     * @param {string} VCText - JSON string of the VC to verify.
+     * @returns {Promise<void>}
+     */
     async verifyVC(VCText) {
       // TODO: Add encryption/decryption
       // Parse the VC we were given
@@ -554,6 +572,10 @@ export default {
       }
     },
 
+    /**
+     * Handles verification of the VC stored in the component's VCToVerify field.
+     * @returns {Promise<void>}
+     */
     async handleVerifyVC() {
       this.verifyVC(this.VCToVerify);
       this.VCToVerify = "";
@@ -563,6 +585,7 @@ export default {
      * A method that returns a list of VC Types that you are authorized to issue
      * @param wallet The wallet storing the VCs
      * @param did The did of the issuer
+     * @returns {string[]} List of issuable VC types.
      */
     getIssuableVCTypes(wallet, did) {
       // Getting the VCs from the wallet
@@ -583,6 +606,9 @@ export default {
       return issuableVCs;
     },
 
+    /**
+     * Resets the form data used to issue a new VC.
+     */
     resetIssueVCForm() {
       this.issueVCFormData = {
         name: "",
@@ -593,6 +619,12 @@ export default {
       };
     },
 
+    /**
+     * Issues a new Verifiable Credential (VC) by creating it and signing it.
+     * Also handles UI updates related to issuing.
+     * @param {Object} wallet - Wallet to update with the new VC.
+     * @returns {Promise<void>}
+     */
     async issueVC(wallet) {
       if (!this.issueVCValid) return;
 
@@ -656,18 +688,38 @@ export default {
       this.issuedVCPopup = true;
     },
 
+    /**
+     * Copies the last issued VC JSON string to the clipboard.
+     * @returns {Promise<void>}
+     */
     async handleAddToClipboardPopup() {
       await this.addToClipboard(this.issuedVC);
     },
 
+    /**
+     * Copies the provided text to the system clipboard.
+     * @param {string} text - Text to copy.
+     * @returns {Promise<void>}
+     */
     async addToClipboard(text) {
       await navigator.clipboard.writeText(text);
     },
 
+    /**
+     * Checks if the credentials list for a given wallet entry is empty.
+     * @param {Object} wallet - Wallet containing VCs.
+     * @param {number} ind - Index of the VC list entry.
+     * @returns {boolean} True if empty, false otherwise.
+     */
     emptyCredentials(wallet, ind) {
       return Object.entries(this.VCs[ind].credentials).length === 0;
     },
 
+    /**
+     * Handles adding a VC parsed from input fields to the wallet and resets related UI state.
+     * @param {Object} wallet - Wallet to add the VC to.
+     * @param {string} did - DID string to add the VC under.
+     */
     handleAddVC(wallet, did) {
       // Call the addVC method
       const VC = JSON.parse(this.addedVCBody);
@@ -680,6 +732,13 @@ export default {
       this.addedVCBody = "";
     },
 
+    /**
+     * Adds a Verifiable Credential (VC) to the wallet, persists changes, and refreshes the UI.
+     * @param {Object} wallet - Wallet to update.
+     * @param {string} did - DID to associate with the VC.
+     * @param {string} name - Name/label for the VC.
+     * @param {Object} VC - The Verifiable Credential object.
+     */
     addVC(wallet, did, name, VC) {
       // TODO: Run verifyVC and check if the vc was issued to the did we are trying to add it to
       // Add the VC to the wallet
@@ -692,11 +751,23 @@ export default {
       this.refreshVCs(wallet);
     },
 
+    /**
+     * Handles deletion of a VC from the wallet and resets deletion dialog UI state.
+     * @param {Object} wallet - Wallet containing the VC.
+     * @param {string} did - DID associated with the VC.
+     * @param {string} name - Name of the VC to delete.
+     */
     handleDeleteVC(wallet, did, name) {
       this.deleteVC(wallet, did, name);
       this.deleteVCDialog = false;
     },
 
+    /**
+     * Deletes a Verifiable Credential (VC) from the wallet, persists changes, and refreshes the UI.
+     * @param {Object} wallet - Wallet to update.
+     * @param {string} did - DID associated with the VC.
+     * @param {string} name - Name of the VC to remove.
+     */
     deleteVC(wallet, did, name) {
       // Remove the VC from the wallet
       wallet.removeVC(did, name);

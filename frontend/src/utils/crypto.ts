@@ -185,7 +185,7 @@ async function importKey(key: string): Promise<CryptoKey> {
 }
 
 /**
- * Method to sign a payload using a private key
+ * Method to sign a payload using a private key.
  * It uses the Web Crypto API sign method using ECDSA encryption and passing both the key and the data encoded as buffers
  * @param {string} payload The string that we want encoded
  * @param {string} privKey The ECDSA private key encoded as base64
