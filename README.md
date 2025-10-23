@@ -1,5 +1,7 @@
 # Digital Identity Management System Using Hyperledger Fabric
 
+A video demonstration, showcasing the functionalities of Gryphon, can be found at [www.youtube.com/watch?v=_MIMSX_yqOI](https://www.youtube.com/watch?v=_MIMSX_yqOI)
+
 ## Fabric setup
 
 To install the necessary prerequisites, go to [Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.5/prereqs.html)
