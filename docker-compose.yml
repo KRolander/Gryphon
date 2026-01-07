@@ -7,9 +7,13 @@ services:
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME
       - KC_BOOTSTRAP_ADMIN_PASSWORD
+
     image: quay.io/keycloak/keycloak:26.2.5
+   
     command: start-dev
 
+    networks:
+      - monitoring  
   gryphon-backend:
     build:
       context: ./
@@ -17,7 +21,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - LOG_PATH=/var/log/myapp/backend
       - KC_BOOTSTRAP_ADMIN_USERNAME
       - KC_BOOTSTRAP_ADMIN_PASSWORD
     volumes:
@@ -39,4 +42,6 @@ services:
 
 networks:
   monitoring: {}
-  fabric_test: {}
+  fabric_test:
+    external: true
+    name: fabric_test
