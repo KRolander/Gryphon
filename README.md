@@ -153,3 +153,41 @@ Each organizations/user is allowed to have a public registry, for which they can
 - Value: A list of VC associated with that DID (it includes only the VCs that the organization wants to disclose) 
 
 We do not provide functionality for the public registry. The public registry needs to be managed by their respective organization. However, we do offer 2 public registries as example. The registries are found in `/backend/registries` and they can be accessed from the URL `http://localhost:3000/registry/:org`. 
+
+# Known issues when installing
+When using Ubuntu 20.04 - the latest version of binaries will not be compatible 
+
+Error message:
+```bash 
+Peer binary and configuration files not found..
+
+Follow the instructions in the Fabric docs to install the Fabric Binaries:
+https://hyperledger-fabric.readthedocs.io/en/latest/install.html
+```
+To test go to `network/example/fabrci-samples/bin` run:
+
+```bash 
+./peer version
+```
+If the error message is:
+
+```bash 
+peer: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.34' not found (required by peer)
+peer: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by peer)
+```
+
+It is because from version 2.5.11 - dockerhub utilize Ubuntu 22.04.
+
+Under **Ubuntu 20.04** please replace in [setup,sh](./scripts/setup.sh) 
+
+```bash
+  ./install-fabric.sh --fabric-version 2.5.14 docker binary
+```
+to 
+
+```bash
+  ./install-fabric.sh --fabric-version 2.5.14 docker
+  ./install-fabric.sh --fabric-version 2.5.10 binary
+```
+
+
