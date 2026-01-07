@@ -29,7 +29,7 @@ const {
 const mspId = envOrDefault("MSP_ID", "Org1MSP");
 
 // Gateway peer endpoint
-const peerEndpoint = envOrDefault("PEER_ENDPOINT", "host.docker.internal:7051");
+const peerEndpoint = envOrDefault("PEER_ENDPOINT", "peer0.org1.example.com:7051");
 
 // Gateway peer SSL host name
 const peerHostAlias = envOrDefault("PEER_HOST_ALIAS", "peer0.org1.example.com"); //connecting to localhost would cause the TLS handshake to fail.
