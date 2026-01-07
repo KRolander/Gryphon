@@ -3,7 +3,7 @@ const axios = require("axios");
 
 // ======================= CONFIG ======================= */
 const keycloakApiClient = axios.create({
-  baseURL: "http://host.docker.internal:9090/",
+  baseURL: "http://keycloak:8080/",
 });
 
 module.exports = keycloakApiClient;
