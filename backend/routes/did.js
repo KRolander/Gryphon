@@ -3,6 +3,12 @@
 const express = require("express");
 const { TextDecoder } = require("util"); // TextDecoder is used to decode the byte array from the blockchain => we get bytes from the blockchain
 
+
+const crypto = require("crypto");
+
+var hash = "sha256";
+var curve = "secp256k1";
+
 //const { DIDDocument } = require("../chaincode/types/DIDDocument.js");
 // gateway
 const {
@@ -97,6 +103,146 @@ router.post("/create", async (req, res, next) => {
   }
   next();
 });
+
+
+/**
+ * @route POST /did/createDID
+ * @summary Creates a new DID data structure which will be stored on the blockchain. Note: the DID (string, 
+ * e.g.: did:hlf:AbCd... is issued by the external DID issuer in that case and sent in a post request)
+ * @description  The DID data structure is populated from the data sent by the DID Issuer (external) service
+ * DID data structure: (JSON)
+ *    - DID (string)
+ *    - DID public key or Controller's public key
+ *    - Controller 
+ *    - Decentralized flag version
+ *    - Metadata 
+ *        - DID Creation Timestamp
+ *        - DID Update Timestamp
+ *        - Action [CreateDID, UpdateDID]
+ *        - Signature :  | DID Creation/Update Timestamp & Action | 
+ * 
+ * @param {object} req.body - The body of the request
+ * 
+ * @param {string} [req.body.publicKey] // Public key assigned to the DID holder / Controller
+ * @param {string} [req.body.DIDDataStructure] // Contains the DID Data Structure issued by the DID issuer
+ * @returns {string} 400: The DID data structure is not complete: missing elements {to be specified}
+ * @returns {string} 200: The string DID data structure: (JSON) if everything went well
+ * @returns {string} 500: "Error storing DID on the blockchain" if DID creation fails for any reason
+//  TODO : *@returns {string} 501: "Error creating this DID on the blockchain is not possible since the DID already exists. You can Update it but not re-create." 
+ */
+
+router.post("/createDID", async (req, res, next) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
+  try {
+    
+    const { publicKey: pubkey, DIDDataStructure: DID_data } = req.body;
+
+
+    ////////////////////////////////////////////////////////////////////
+
+    // Mock chaincode logic
+    if (!DID_data) {
+      const message = "DID Data Structure is required";
+      logger.warn({
+        action: "POST /did/createDID",
+        correlationId: correlationId,
+        message: message,
+      });
+      return res.status(400).send(message);
+    }
+
+
+    let missing_element = [];
+    if (!DID_data.Metadata.DIDCreationTimestamp || DID_data.Metadata.DIDCreationTimestamp === "") {
+      missing_element.push("DIDCreationTimestamp")
+    }
+    if (!DID_data.Metadata.Action || DID_data.Metadata.Action === "") {
+      missing_element.push("Action")
+    }
+    if (!DID_data.Metadata.Signature || DID_data.Metadata.Signature === "") {
+      missing_element.push("Signature")
+    }
+    if (!DID_data.DID || DID_data.DID === "") {
+      missing_element.push("DID")
+    }
+    if (!DID_data.DID_PubKey || DID_data.DID_PubKey === "") {
+      missing_element.push("DID_PubKey")
+    }
+    if (!DID_data.Controller || DID_data.Controller === "") {
+      missing_element.push("Controller")
+    }
+    if (!DID_data.DC_flag_version || DID_data.DC_flag_version === "") {
+      missing_element.push("DC_flag_version")
+    }
+
+    if (missing_element.length > 0) {
+      const arrayLength = missing_element.length;
+      let message = "Missing data from DID Data Structure: ["
+
+      for (var i = 0; i < arrayLength; i++) {
+        message = message + missing_element[i] + " , ";
+      }
+      message = message + "]"
+      logger.warn({
+        action: "POST /did/createDID",
+        correlationId: correlationId,
+        message: message,
+      });
+      return res.status(400).send(message);
+    }
+    // Otherwise no elements missing next step can be computed
+
+
+    // Verifiy if signature is correct
+    // the message was manipulated or the DID was not issued
+    // with the private key corresponding to the public key
+    const signature = DID_data.Metadata.Signature;
+    const publicKey = DID_data.DID_PubKey;
+    const verify = crypto.createVerify(hash);
+    const msg =  DID_data.Metadata.Action + DID_data.Metadata.DIDCreationTimestamp;
+    verify.write(msg);
+    verify.end();
+
+
+    if (!verify.verify(publicKey, signature, 'hex')) {
+      const errorMessage = "Error storing DID on the blockchain - Signature is not Valid!";
+      console.log(errorMessage);
+      logger.error({
+        action: "POST /did/createDID",
+        correlationId: correlationId,
+        message: errorMessage,
+      });
+      res.status(500).send(errorMessage); // Send an error message to the client
+    }
+
+    const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
+    console.log(successMessage);
+    logger.info({
+      action: "POST /did/createDID",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
+    res.status(200).send(DID_data);
+   ////////////////////////////////////////////////////////////////////
+   
+  } catch (error) {
+    const errorMessage = "Error storing DID on the blockchain";
+    console.log(errorMessage);
+    logger.error({
+      action: "POST /did/createDID",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send(errorMessage); // Send an error message to the client
+  }
+  next();
+});
+
+
+
+
 
 /**
  * @route GET /did/getDIDDoc
