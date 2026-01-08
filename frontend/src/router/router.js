@@ -24,25 +24,25 @@ const routes = [
     name: "home",
     path: "/",
     component: HomePage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false }, // false here 
   },
   {
     name: "admin",
     path: "/admin",
     component: AdminSettings,
-    meta: { requiresAuth: true, requiresAdminAuth: true },
+    meta: { requiresAuth: false, requiresAdminAuth: false },
   },
   {
     name: "DIDs",
     path: "/dids",
     component: DIDsPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     name: "VCs",
     path: "/vcs",
     component: VCsPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
 
   //! Every child of the auth route will:
@@ -107,7 +107,7 @@ router.beforeEach((to, from, next) => {
  **/
 router.beforeEach((to, from, next) => {
   console.log(to);
-  let isAuthenticated = false; // Replace with actual authentication check
+  let isAuthenticated = true; // Replace with actual authentication check
 
   // Get token from localStorage and check it's validity
   const token = localStorage.getItem("access_token");
