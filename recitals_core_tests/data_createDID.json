@@ -1,0 +1,15 @@
+{
+    "DIDDataStructure": {
+        "DID": "did:hlf:3ia3YvihEk9FD9iMvWodqm",
+        "DID_PubKey": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEb3BU7usOJYeED+u72Dp5e3+T2eS5UggF\n9wfomjtmzDfyhdATvM5fUhlwc7KzrDQaQEjZOt6XqyErDOJTZ4AHig==\n-----END PUBLIC KEY-----\n",
+        "Controller": "did:hlf:6KMWr3acfcqnLUzGCA3jMw",
+        "DC_flag_version": "v1.0",
+        "Metadata": {
+            "DIDCreationTimestamp": "2026-01-08T15:12:43.394Z",
+            "DIDUpdateTimestamp": "NA",
+            "Action": "CreateDID",
+            "Signature": "3045022100a21c7a79adba82192ac0c9b34fb3c4f81736312297813caa18cff5e9284dfc470220332de3c8a804ede95d7694404ef97e5e718d302e98eb62959e7e00ddd05d5c76"
+        }
+    },
+    "publicKey" : "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEb3BU7usOJYeED+u72Dp5e3+T2eS5UggF\n9wfomjtmzDfyhdATvM5fUhlwc7KzrDQaQEjZOt6XqyErDOJTZ4AHig==\n-----END PUBLIC KEY-----\n"
+}
