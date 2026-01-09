@@ -1,5 +1,7 @@
 const axios = require('axios');
 const bs58 = require("bs58");
+const stringify = require("fast-json-stable-stringify");
+const sortKeysRecursive = require("sort-keys-recursive");
 
 const crypto = require("crypto");
 
@@ -110,7 +112,7 @@ async function testCreateDID() {
 
     // Test of a successful DID creation
     try {
-        const response = await axios.post('http://localhost:3000/did/createDID', {
+        const response = await axios.post('http://localhost:3000/did/createDIDDataStruct', {
             publicKey: DID_Data_Structure.DID_PubKey,
             DIDDataStructure: DID_Data_Structure
         });
@@ -130,23 +132,106 @@ async function testCreateDID() {
 
     // Test of an unsuccessful DID creation
     // Expected error : Missing field from the DID Structure 
-    DID_Data_Structure.DID = ""
+    // DID_Data_Structure.DID = ""
+    // try {
+    //     const response = await axios.post('http://localhost:3000/did/createDIDDataStruct', {
+    //         publicKey: DID_Data_Structure.DID_PubKey,
+    //         DIDDataStructure: DID_Data_Structure
+    //     });
+
+    //     console.log('Status:', response.status);
+    //     console.log('Data:', response.data);
+    // } catch (err) {
+    //     console.log('------------------------------------------------------');
+    //     console.log('[Unsuccessful DID Creation]:');
+    //     console.log('------------------------------------------------------');
+    //     console.error('Error:', err.response ? err.response.data : err.message);
+    //     console.log('------------------------------------------------------');
+
+    // }
+}
+
+async function testCreateDIDDoc() {
+
+    // Test of a successful DID creation
     try {
-        const response = await axios.post('http://localhost:3000/did/createDID', {
-            publicKey: DID_Data_Structure.DID_PubKey,
-            DIDDataStructure: DID_Data_Structure
+        const response = await axios.post('http://localhost:3000/did/DIDcreate', {
+            publicKey: "myPublicKey", DIDDataStructure : "DIDStructure"
         });
 
+        console.log('------------------------------------------------------');
+        console.log('[Successful DID Creation]:');
+        console.log('------------------------------------------------------');
         console.log('Status:', response.status);
         console.log('Data:', response.data);
-    } catch (err) {
-        console.log('------------------------------------------------------');
-        console.log('[Unsuccessful DID Creation]:');
-        console.log('------------------------------------------------------');
-        console.error('Error:', err.response ? err.response.data : err.message);
         console.log('------------------------------------------------------');
 
+    } catch (err) {
+        console.error('Error:', err.response ? err.response.data : err.message);
     }
+
+}
+
+
+async function testJsonConversions() {
+
+    // Construct DID Data - mocks the DID issuer (external) service
+
+    let metadata = {
+        DIDCreationTimestamp: "",
+        DIDUpdateTimestamp: "NA", // Since it is a creation
+        Action: "CreateDID",
+        Signature: ""
+    }
+
+    let DID_Data_Structure = {
+        DID: "",
+        DID_PubKey: "",
+        Controller: "did:hlf:6KMWr3acfcqnLUzGCA3jMw",
+        DC_flag_version: "v1.0",
+        Metadata: metadata
+    }
+
+    // Create a random DID string
+    DID_Data_Structure.DID = await createDIDstring();
+    const firstDID = DID_Data_Structure.DID;
+
+    // DID issuer will ask for the time stamp before creation ofthe DID data strucure
+    DID_Data_Structure.Metadata.DIDCreationTimestamp = new Date().toISOString()
+
+    // DID issuer will generate a key pair corresponding to the DID to store
+    const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
+        namedCurve: curve,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    DID_Data_Structure.DID_PubKey = publicKey.toString("hex")
+
+
+    // DID issuer will compute the signature of  | DID Creation/Update Timestamp & Action |
+    const sign = crypto.createSign(hash);
+    const message = DID_Data_Structure.Metadata.Action + DID_Data_Structure.Metadata.DIDCreationTimestamp
+    sign.write(message);
+    sign.end();
+
+    var signature = sign.sign(privateKey, 'hex');
+
+    DID_Data_Structure.Metadata.Signature = signature
+
+    // Convert object to json-string
+    const DID_DataStructStr = stringify(sortKeysRecursive(DID_Data_Structure));
+
+    console.log(DID_DataStructStr);
+
+
+    // Convert json-string to the object
+    const recovered_DID_DataStruct = JSON.parse(DID_DataStructStr);
+
+    console.log(recovered_DID_DataStruct);
+
 }
 
 testCreateDID();
+
+// testCreateDIDDoc();
+// testJsonConversions();

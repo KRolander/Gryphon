@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "axios": "^1.13.2",
-    "bs58": "^6.0.0"
+    "bs58": "^6.0.0",
+    "fast-json-stable-stringify": "^2.1.0",
+    "sort-keys-recursive": "^2.1.10"
   }
 }
