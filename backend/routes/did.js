@@ -15,8 +15,10 @@ const {
   startGateway,
   getGateway,
   storeDID,
+  storeDID_dataStruct,
   getContract,
   getDIDDoc,
+  getDID_dataStruct,
   addDIDController,
   deleteDID,
 } = require("../gateway.js");
@@ -27,6 +29,7 @@ const { default: DIDDocumentBuilder } = require("../../utils/DIDDocumentBuilder.
 const logger = require("../utility/logger.js");
 const { generateCorrelationId } = require("../utility/loggerUtils");
 const { envOrDefault } = require("../utility/gatewayUtilities");
+const sortKeysRecursive = require("sort-keys-recursive");
 
 /* ------------------ CONFIG ------------------*/
 const router = express.Router();
@@ -80,7 +83,15 @@ router.post("/create", async (req, res, next) => {
 
     const doc = docBuilder.build();
 
-    const resultBytes = await storeDID(getContract(DIDchannelName, DIDchaincodeName), DID, doc);
+    const myData = {
+      DID: "myDID",
+      DID_PubKey: "myPubKey"
+    };
+
+    const _resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID, myData);
+
+
+    // const resultBytes = await storeDID(getContract(DIDchannelName, DIDchaincodeName), DID, doc);
 
     const successMessage = `DID ${DID} stored successfully!`;
     console.log(successMessage);
@@ -106,7 +117,7 @@ router.post("/create", async (req, res, next) => {
 
 
 /**
- * @route POST /did/createDID
+ * @route POST /did/createDIDDataStruct
  * @summary Creates a new DID data structure which will be stored on the blockchain. Note: the DID (string, 
  * e.g.: did:hlf:AbCd... is issued by the external DID issuer in that case and sent in a post request)
  * @description  The DID data structure is populated from the data sent by the DID Issuer (external) service
@@ -124,28 +135,30 @@ router.post("/create", async (req, res, next) => {
  * @param {object} req.body - The body of the request
  * 
  * @param {string} [req.body.publicKey] // Public key assigned to the DID holder / Controller
- * @param {string} [req.body.DIDDataStructure] // Contains the DID Data Structure issued by the DID issuer
+ * @param {object} req.body.DIDDataStructure // Contains the DID Data Structure issued by the DID issuer
  * @returns {string} 400: The DID data structure is not complete: missing elements {to be specified}
  * @returns {string} 200: The string DID data structure: (JSON) if everything went well
  * @returns {string} 500: "Error storing DID on the blockchain" if DID creation fails for any reason
 //  TODO : *@returns {string} 501: "Error creating this DID on the blockchain is not possible since the DID already exists. You can Update it but not re-create." 
  */
 
-router.post("/createDID", async (req, res, next) => {
+router.post("/createDIDDataStruct", async (req, res, next) => {
   const correlationId = generateCorrelationId();
   req.params.correlationId = correlationId;
   try {
-    
+    // Check if the gateway has already been started
+    if (getGateway() == null) {
+      await startGateway();
+    }
+
     const { publicKey: pubkey, DIDDataStructure: DID_data } = req.body;
-
-
-    ////////////////////////////////////////////////////////////////////
+    
 
     // Mock chaincode logic
     if (!DID_data) {
       const message = "DID Data Structure is required";
       logger.warn({
-        action: "POST /did/createDID",
+        action: "POST /did/createDIDDataStruct",
         correlationId: correlationId,
         message: message,
       });
@@ -185,7 +198,144 @@ router.post("/createDID", async (req, res, next) => {
       }
       message = message + "]"
       logger.warn({
-        action: "POST /did/createDID",
+        action: "POST /did/createDIDDataStruct",
+        correlationId: correlationId,
+        message: message,
+      });
+      return res.status(400).send(message);
+    }
+    // Otherwise no elements missing next step can be computed
+
+
+    // Call chain code to store the DID data structure
+    const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
+
+    const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
+    console.log(successMessage);
+    logger.info({
+      action: "POST /did/createDIDDataStruct",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
+    res.status(200).json(DID_data);
+    ////////////////////////////////////////////////////////////////////
+  } catch (error) {
+    const errorMessage = "Error storing DID on the blockchain";
+    console.log(errorMessage);
+    logger.error({
+      action: "POST /did/createDIDDataStruct",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send(errorMessage); // Send an error message to the client
+  }
+  next();
+});
+
+
+
+
+/**
+ * @route POST /did/updateDIDDataStruct
+ * @summary Update means that the DID holder/controller aims to modify the DID Document
+ * this is possible if the holder is able to sign the time stamp and action {UpdateDID} and the 
+ * and existing DID data structure corresponding to a DID string is already stored on the ledger
+ * The chaincode cryptographically verfies the signature if it is true the DID Update Timestamp
+ * is updated and the result is returned to the DID Issuer. The chaincode als vefifies the Controller
+ * if it is diffenet from what previously was stored then the controller is updated.
+ * @description  The Updated DID data structure is populated from the data sent by the DID Issuer (external) service
+ * DID data structure: (JSON)
+ *    - DID (string)
+ *    - DID public key or Controller's public key
+ *    - Controller 
+ *    - Decentralized flag version
+ *    - Metadata 
+ *        - DID Creation Timestamp
+ *        - DID Update Timestamp
+ *        - Action [CreateDID, UpdateDID]
+ *        - Signature :  | DID Creation/Update Timestamp & Action | 
+ * 
+ * @param {object} req.body - The body of the request
+ * 
+ * @param {string} [req.body.publicKey] // Public key assigned to the DID holder / Controller
+ * @param {object} req.body.DIDDataStructure // Contains the DID Data Structure issued by the DID issuer
+ * @returns {string} 400: The DID data structure is not complete: missing elements {to be specified}
+ * @returns {string} 200: The string DID data structure: (JSON) if everything went well
+ * @returns {string} 500: "Error storing DID on the blockchain" if DID creation fails for any reason
+//  TODO : *@returns {string} 501: "Error creating this DID on the blockchain is not possible since the DID already exists. You can Update it but not re-create." 
+ */
+
+router.post("/updateDIDDataStruct", async (req, res, next) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
+  try {
+    // Check if the gateway has already been started
+    if (getGateway() == null) {
+      await startGateway();
+    }
+
+    const { publicKey: pubkey, DIDDataStructure: DID_data } = req.body;
+    
+
+    // const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
+
+    // const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
+    // console.log(successMessage);
+    // logger.info({
+    //   action: "POST /did/createDIDDataStruct",
+    //   correlationId: correlationId,
+    //   message: successMessage,
+    // });
+
+    // res.status(200).json(DID_data);
+    ////////////////////////////////////////////////////////////////////
+
+    // Mock chaincode logic
+    if (!DID_data) {
+      const message = "DID Data Structure is required";
+      logger.warn({
+        action: "POST /did/updateDIDDataStruct",
+        correlationId: correlationId,
+        message: message,
+      });
+      return res.status(400).send(message);
+    }
+
+
+    let missing_element = [];
+    if (!DID_data.Metadata.DIDCreationTimestamp || DID_data.Metadata.DIDCreationTimestamp === "") {
+      missing_element.push("DIDCreationTimestamp")
+    }
+    if (!DID_data.Metadata.Action || DID_data.Metadata.Action === "") {
+      missing_element.push("Action")
+    }
+    if (!DID_data.Metadata.Signature || DID_data.Metadata.Signature === "") {
+      missing_element.push("Signature")
+    }
+    if (!DID_data.DID || DID_data.DID === "") {
+      missing_element.push("DID")
+    }
+    if (!DID_data.DID_PubKey || DID_data.DID_PubKey === "") {
+      missing_element.push("DID_PubKey")
+    }
+    if (!DID_data.Controller || DID_data.Controller === "") {
+      missing_element.push("Controller")
+    }
+    if (!DID_data.DC_flag_version || DID_data.DC_flag_version === "") {
+      missing_element.push("DC_flag_version")
+    }
+
+    if (missing_element.length > 0) {
+      const arrayLength = missing_element.length;
+      let message = "Missing data from DID Data Structure: ["
+
+      for (var i = 0; i < arrayLength; i++) {
+        message = message + missing_element[i] + " , ";
+      }
+      message = message + "]"
+      logger.warn({
+        action: "POST /did/updateDIDDataStruct",
         correlationId: correlationId,
         message: message,
       });
@@ -209,29 +359,33 @@ router.post("/createDID", async (req, res, next) => {
       const errorMessage = "Error storing DID on the blockchain - Signature is not Valid!";
       console.log(errorMessage);
       logger.error({
-        action: "POST /did/createDID",
+        action: "POST /did/updateDIDDataStruct",
         correlationId: correlationId,
         message: errorMessage,
       });
       res.status(500).send(errorMessage); // Send an error message to the client
     }
 
+    // Call chain code to store the DID data structure
+    const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
+
+    // const _resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID, DID);
+
     const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
     console.log(successMessage);
     logger.info({
-      action: "POST /did/createDID",
+      action: "POST /did/updateDIDDataStruct",
       correlationId: correlationId,
       message: successMessage,
     });
 
-    res.status(200).send(DID_data);
-   ////////////////////////////////////////////////////////////////////
-   
+    res.status(200).json(DID_data);
+    ////////////////////////////////////////////////////////////////////
   } catch (error) {
     const errorMessage = "Error storing DID on the blockchain";
     console.log(errorMessage);
     logger.error({
-      action: "POST /did/createDID",
+      action: "POST /did/updateDIDDataStruct",
       correlationId: correlationId,
       message: errorMessage,
     });
@@ -239,8 +393,6 @@ router.post("/createDID", async (req, res, next) => {
   }
   next();
 });
-
-
 
 
 
@@ -298,6 +450,52 @@ router.get("/getDIDDoc/:did", async (req, res) => {
     res.status(500).send("Error querying DID from blockchain");
   }
 });
+
+/**
+ * @route GET /did/getDID/:did
+ * @summary Handles getting the DID Data structure of a DID when the DID is provided
+ * @description The method establishes a gateway connection to the DLT if needed, then retrieves the DID data for the provided
+ * DID from the ledger
+ *
+ * @param {object} req.params - The parameters of the request
+ * @param {string} req.params.did - The DID to retrieve the DID Data structure for the assoviated DID
+ *
+ * @returns {object} 200: The DID Data Structure as a JSON for the provided DID if everything went well
+ * @returns {string} 500: "Error querying DID from DLT" if retrieval fails for any reason
+ */
+router.get("/getDID/:did", async (req, res) => {
+  const correlationId = generateCorrelationId();
+  req.params.correlationId = correlationId;
+  try {
+    const DID = req.params.did;
+
+    if (getGateway() == null) await startGateway();
+
+    console.log("Retrieving DID Data Structure...");
+
+    const doc = await getDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID);
+
+    console.log(`✅ DID Data structure for ${DID} retrieved succesfully!`);
+    const successMessage = `DID Data structure for ${DID} retrieved succesfully!`;
+    logger.info({
+      action: "GET /did/getDID",
+      correlationId: correlationId,
+      message: successMessage,
+    });
+
+    res.status(200).json(doc);
+  } catch (error) {
+    console.error("❌ Error retrieving the DID Data structure from DLT:", error);
+    const errorMessage = "Error retrieving the DID Data structure from DLT";
+    logger.info({
+      action: "GET /did/getDID",
+      correlationId: correlationId,
+      message: errorMessage,
+    });
+    res.status(500).send("Error querying DID data structure from DLT");
+  }
+});
+
 
 /**
  * @route PATCH /did/updateDIDDoc/addController

@@ -141,6 +141,22 @@ async function storeDID(contract, DID, DIDDoc) {
 }
 
 /**
+ * @summary Function used for storing a DID and its DID Data structure on the ledger
+ * @description The function communicates with the DID chaincode ("storeDID_dataStruct" transaction) for storing. It ensures a
+ *              deterministic structure of the DID Data structure then sends the transaction to the chaincode via the contract
+ *
+ * @param {Contract} contract - The contract used for interacting with the DID chaincode
+ * @param {string} DID - The DID to store on the ledger
+ * @param {object} DID_dataStruct - The JSON object representing the DID Data structure to be stored on the ledger
+ * @returns {Promise<string>} - A stringified JSON object representation of the DID Data structure
+ */
+async function storeDID_dataStruct(contract, DID, DID_dataStruct) {
+  const DID_dataStructStr = stringify(sortKeysRecursive(DID_dataStruct));
+  await contract.submitTransaction("storeDIDdataStruct", stringify(DID), DID_dataStructStr);
+  return DID_dataStructStr;
+}
+
+/**
  * @summary Function used for getting a DID document from the ledger
  * @description The function communicates with the DID chaincode ("getDIDDoc" transaction) for retrieving the DID
  *              document for the provided DID
@@ -151,6 +167,20 @@ async function storeDID(contract, DID, DIDDoc) {
  */
 async function getDIDDoc(contract, DID) {
   const response = await contract.evaluateTransaction("getDIDDoc", stringify(DID));
+  return parseResponse(response);
+}
+
+/**
+ * @summary Function used for getting a DID data structure from the ledger
+ * @description The function communicates with the DID chaincode ("getDID_DataStructure" transaction) for retrieving the DID
+ *              data strucutre for the provided DID
+ *
+ * @param {Contract} contract - The contract used for interacting with the DID chaincode
+ * @param {string} DID - The DID to get the DID data structure for
+ * @returns {Promise<object>} - The JSON object representation of the DIDDocument
+ */
+async function getDID_dataStruct(contract, DID) {
+  const response = await contract.evaluateTransaction("getDIDDataStructure", stringify(DID));
   return parseResponse(response);
 }
 
@@ -260,9 +290,11 @@ module.exports = {
   startGateway,
   getGateway,
   storeDID,
+  storeDID_dataStruct,
   getContract,
   getNetwork,
   getDIDDoc,
+  getDID_dataStruct,
   addDIDController,
   deleteDID,
   getMapValue,
