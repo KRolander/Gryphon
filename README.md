@@ -50,63 +50,21 @@ In our case, if the execution was successful, there should be 4 `dev-peer` Docke
 
 If the Fabric network setup was successful and, the network is running, we can now run the main components of our application:
 
-1. Keycloak server, which manages authentication
-2. Frontend Web application
-3. Backend APIs and Gateway to Fabric network
+1. Frontend Web application
+2. Backend APIs and Gateway to Fabric network
 
-Before running this commands, it's important to provide a `.env` file in the root directory (the same that contains the file `docker-compose.yml`) with the credentials of the Keycloak administrator in the following format:
 
-```text
-KC_BOOTSTRAP_ADMIN_USERNAME=admin
-KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-```
-
-With this file in the root directory, we can now run the 3 components of our application, using the following `Docker compose` command from the root directory:
+With this file in the root directory, we can now run the 2 components of our application, using the following `Docker compose` command from the root directory:
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
-If the Keycloak server was pulled and executed for the first time, follow the steps described in the [next section](#keycloak-setup), before starting to use the application.
+**Backend Listens: http://localhost:3000**
+**Frontend Listens: http://localhost:5173**
 
-Now you should be able to open and start using our Web app by navigating to [http://localhost:5173/](http://localhost:5173) on your browser.
 
-### Keycloak Setup
-
-At the point of writing this, there is no code that will dynamically create a realm or client for this application. Thus, you need to create a new realm called `users`. This is case sensitive, so MAKE SURE you write the name in all lowercase.
-
-Now, in order to do this, you must first navigate to:
-
-```
-localhost:9090
-```
-
-Here, you will have to log in to the admin account. Unless specified otherwise, the username and password are the same, namely `admin`.
-
-Now, you will see a menu on the left side of the screen. Navigate to `Manage realms`
-
-Finally, click the blue button that says `Create realm`
-
-When the dialogue pops up, all you need to do is enter the `realm name` which is `users`, and click on `Create`.
-
-Now, go to Realm Settings, then User profile and delete the `firstname` and `lastname` attributes.
-
-Next, go to `Client Scopes` and search for `roles`. Then, select `Mappers` and `client-roles`. Then, three important things:
-
-- Client ID: admin-cli
-- Add to ID token: On
-- Add to userinfo: On
-
-Go to `Clients`, select `admin-cli` and `Roles`. Add the following roles:
-
-- admin
-- master_admin
-
-Finally, add a User with the same username and password that you defined in the `.env` file. Assign the role of `master_admin` to this user. Make sure you also add an email (and mark it as verified) for this user.
-
-After doing this, the authentication system should run flawlessly.
-
-## Logging Setup
+## Logging Setup (Optional)
 
 To enable logging and monitoring of the application, you can run our monitoring suite, made up of:
 
@@ -136,23 +94,36 @@ Now that we have a valid Data Source connected to Grafana, we can monitor the lo
 - Right after import, visualizations might not work at first, if the problem persists, navigate to the individual components of the dashboard and click on `Menu`, in the top-right corner of the component, and `Edit`.
 - Then just click the button `Back to dashboard` on top, without changing anything, and the visualization should start working correctly
 
-## RootTAO and Verifiable Credential mappings  
+## DID Data structure
+* `DID` : DID string (e.g., "did:hlf:3ia3YvihEk9FD9iMvWodqm")
+* `DID_PubKey` : Public key assigned to the issue DID - crypto spec: ECDSA - secp256k1 curve. The private key pair of this key is used to sign the `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action` (e.g., "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEb3BU7usOJYeED+u72Dp5e3 T2eS5UggF\n9wfomjtmzDfyhdATvM5fUhlwc7KzrDQaQEjZOt6XqyErDOJTZ4AHig==\n-----END PUBLIC KEY-----\n")
+* `Controller` : The controller of the DID, in general it is the same as the DID, but it can also be the DID of another entity (e.g., government's DID, ministry of education's DID).
+* `DC_flag_version` : Deactivation Flag Version
+* `Metadata` :
+### Metadata
+* `DIDCreationTimestamp` : creation time stamp (e.g., "2026-01-08T15:12:43.394Z")
+* `DIDUpdateTimestamp` : when the DID Document has to be updated, this timestamp is added, so users can know the data of modification.
+* `Action` : *CreateDID* when the DID is created and *UpdateDID* when the DID Document is updated, therefore the DID data structure also has to be modified
+* `Signature` : Signature issued by the private key associated with the DID - signature done on the hash of `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action`. Crypo spec: ECDSA - secp256k1 curve, Hash SHA-256
 
-For the Trustchain model to work 2 things needs to be managed: the Root Trusted Authority Organization (RootTAO) and the Verifiable Credential Mappings. The RootTAO can only be set by the master admin, while the mappings can be added by both the the master admin and normal admins. 
+# Examples
+[Core tests](./recitals_core_tests/core_tests.js): contains the core functionality tests allowing to create, get, and update DID data.
 
-The RootTAO is the DID of an inherently trusted authority such as the Ministry of Education. Furthermore, the rootTAO needs to issue a VC with the type root to itself.
+[Create and Get Test](./recitals_core_tests/example_store_DID.js): creates a DID and DID data structure that will be stored on the DLT and the example verifies if the DID data structure has been successfully stored.
 
-The Verifiable Credential mappings are set in place to enforce what VC is needed to issue other VCs (for example, to issue a Diploma VC, the issuer would require a VC with the type DiplomaIssuer). To allow this, the admin needs to set the following mapping Diploma:DiplomaIssuing. 
+[Update DID](./recitals_core_tests/example_update_DID.js): Updates and existing DID data structure. Note: a valid DID string has to be provided which has already been used for storing the DID data structure on the DLT. 
 
-## Public registries
+[Create DID via curl](./recitals_core_tests/curl_reateDID.bash): DID data will be sent via curl and [data_createDID.json](./recitals_core_tests/data_createDID.json) containing the DID data will be stored on the DLT.
 
-A public registry is an important component of the Trustchain model. If an organization/user wants to issue a Verifiable Credential, they need to store another Verifiable Credential, that allows them to performe that action inside of their public registry. For example, if a university wants to issue a a VC of type Diploma to a student and the mapping (see section `RootTAO and Verifiable Credential mappings`) is Diploma:DiplomaIssuing, then the university needs to provide a (valid) VC with the type Diploma Issuing in their public registry.
 
-Each organizations/user is allowed to have a public registry, for which they can specify its URL in the service field of the DID Document. The public registry needs to be modeled as a map where:
-- Key: A Decentralized Identifier (DID) 
-- Value: A list of VC associated with that DID (it includes only the VCs that the organization wants to disclose) 
+# API endpoints
+**DataFlow** Client → REST API (backend) → Fabric Gateway → Chaincode → Ledger
 
-We do not provide functionality for the public registry. The public registry needs to be managed by their respective organization. However, we do offer 2 public registries as example. The registries are found in `/backend/registries` and they can be accessed from the URL `http://localhost:3000/registry/:org`. 
+| Method   | URL                                      | Description                              | Responses                               |
+| -------- | ---------------------------------------- | ---------------------------------------- |---------------------------------------- |
+| `POST`   | `/did/createDIDDataStruct`                   | Create a new DID data structure. The backend verifies if the required DID data structure field exist. If yes, the backend calls the dedicated chaincode, which verifies if the `Action` is `createDID` and it verifies the `Signature` with the associated `DID_PubKey` public key. If the signature is valid, the DID data structure is stored on the DLT.    | **`200`**: Storage of the DID data structure was successful<br> **`400`** : Empty field detected in the DID data structure. <br> **`500`**: Error occurred when storing the DID on the blockchain. | 
+| `GET`    | `/did/getDID/:did`                             | Retrieves the DID data structure related to `:did`.                  | **`200`** Returns the DID data structure. <br> **`500`**: The DID was not yet stored on the DLT or other DLT related error occurred. |
+|  `POST`    |  `/did/updateDIDDataStruct`             | The client has to provide a DID data structure based on the original or previously modified. The `DIDUpdateTimestamp` \ `Controller` \ `DC_flag_version` might be different. The `Action` - *UpdateDID*. The backed verifies if there is no missing field in the DID data structure. The DLT chaincode updates the previously stored DID data structure.  | **`200`** Returns the DID data structure. <br> **`400`** : Empty field detected in the DID data structure. <br>  **`500`**: The signature was not valid or other kind of error occurred when storing the DID on the blockchain.                            |
 
 # Known issues when installing
 When using Ubuntu 20.04 - the latest version of binaries will not be compatible 
