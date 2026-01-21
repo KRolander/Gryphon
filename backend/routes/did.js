@@ -16,6 +16,7 @@ const {
   getGateway,
   storeDID,
   storeDID_dataStruct,
+  updateDID_dataStruct,
   getContract,
   getDIDDoc,
   getDID_dataStruct,
@@ -83,15 +84,7 @@ router.post("/create", async (req, res, next) => {
 
     const doc = docBuilder.build();
 
-    const myData = {
-      DID: "myDID",
-      DID_PubKey: "myPubKey"
-    };
-
-    const _resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID, myData);
-
-
-    // const resultBytes = await storeDID(getContract(DIDchannelName, DIDchaincodeName), DID, doc);
+    const resultBytes = await storeDID(getContract(DIDchannelName, DIDchaincodeName), DID, doc);
 
     const successMessage = `DID ${DID} stored successfully!`;
     console.log(successMessage);
@@ -276,20 +269,7 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
     }
 
     const { publicKey: pubkey, DIDDataStructure: DID_data } = req.body;
-    
 
-    // const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
-
-    // const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
-    // console.log(successMessage);
-    // logger.info({
-    //   action: "POST /did/createDIDDataStruct",
-    //   correlationId: correlationId,
-    //   message: successMessage,
-    // });
-
-    // res.status(200).json(DID_data);
-    ////////////////////////////////////////////////////////////////////
 
     // Mock chaincode logic
     if (!DID_data) {
@@ -304,8 +284,8 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
 
 
     let missing_element = [];
-    if (!DID_data.Metadata.DIDCreationTimestamp || DID_data.Metadata.DIDCreationTimestamp === "") {
-      missing_element.push("DIDCreationTimestamp")
+    if (!DID_data.Metadata.DIDUpdateTimestamp || DID_data.Metadata.DIDUpdateTimestamp === "") {
+      missing_element.push("DIDUpdateTimestamp")
     }
     if (!DID_data.Metadata.Action || DID_data.Metadata.Action === "") {
       missing_element.push("Action")
@@ -343,33 +323,10 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
     }
     // Otherwise no elements missing next step can be computed
 
+    // Call chain code to update the DID data structure
 
-    // Verifiy if signature is correct
-    // the message was manipulated or the DID was not issued
-    // with the private key corresponding to the public key
-    const signature = DID_data.Metadata.Signature;
-    const publicKey = DID_data.DID_PubKey;
-    const verify = crypto.createVerify(hash);
-    const msg =  DID_data.Metadata.Action + DID_data.Metadata.DIDCreationTimestamp;
-    verify.write(msg);
-    verify.end();
-
-
-    if (!verify.verify(publicKey, signature, 'hex')) {
-      const errorMessage = "Error storing DID on the blockchain - Signature is not Valid!";
-      console.log(errorMessage);
-      logger.error({
-        action: "POST /did/updateDIDDataStruct",
-        correlationId: correlationId,
-        message: errorMessage,
-      });
-      res.status(500).send(errorMessage); // Send an error message to the client
-    }
-
-    // Call chain code to store the DID data structure
-    const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
-
-    // const _resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID, DID);
+    const res_json_response = await updateDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data)
+    // const res_json_response = DID_data
 
     const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
     console.log(successMessage);
@@ -379,10 +336,10 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
       message: successMessage,
     });
 
-    res.status(200).json(DID_data);
+    res.status(200).json(res_json_response);
     ////////////////////////////////////////////////////////////////////
   } catch (error) {
-    const errorMessage = "Error storing DID on the blockchain";
+    const errorMessage = "Error updating DID on the blockchain";
     console.log(errorMessage);
     logger.error({
       action: "POST /did/updateDIDDataStruct",

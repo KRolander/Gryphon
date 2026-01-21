@@ -60,7 +60,7 @@ export default class DID extends Contract {
      * @returns {Promise<string>} The string representation of the DID Data structure
      */
     @Transaction(false)
-    async getDID_DataStructure(ctx: Context, DID: string): Promise<string> {
+    async getDIDDataStructure(ctx: Context, DID: string): Promise<string> {
         // Check for extra "" in the DID
         const cleanDID = DID.replace(/^"|"$/g, "");
         const DID_DataStructJSON = await ctx.stub.getState(cleanDID);
@@ -128,7 +128,7 @@ export default class DID extends Contract {
         DID: string,
         DID_dataStruct: string, // marshalled into string
     ): Promise<void> {
-        var hash = "sha256";
+        const hash = "sha256";
 
         // Check if the DID is already in the ledger
         const DIDExists = await this.DIDExists(ctx, DID);
@@ -150,8 +150,8 @@ export default class DID extends Contract {
         verify.write(msg);
         verify.end();
 
-        if (!verify.verify(publicKey, signature, 'hex')){
-            throw new Error(`The DID_dataStruct's signature is not valid`);
+        if (!verify.verify(publicKey, signature, "hex")){
+            throw new Error("The DID_dataStruct's signature is not valid");
         }
             // Put the DID document on the ledger
             await ctx.stub.putState(
@@ -212,6 +212,90 @@ export default class DID extends Contract {
         );
         return Buffer.from(JSON.stringify({ success: true }));
     }
+
+
+     /**
+     * @summary The method used for updating a DID data structure
+     * actually when the issuer aims to modify the DID Document it first checks
+     * if the DID already exists in the ledger.
+     * @description The method checks if the DID is on the ledger and verifies by the cryptographic signature 
+     * verification if the DID Issuer has right to modify the DID, meaning it signed the 
+     * Updata Action and the Update Timestemp with the private key corresponding to the given DID 
+     * @param {Context} ctx The transaction context used for interacting with smart contracts
+     * @param {string} DID The DID used to get the document from the ledger
+     * @param {string} DID_dataStruct The DID document to be stored on the ledger
+     *
+     * @throws {Error} If the DID and its document are not on the ledger
+     * @throws {Error} If the fixed fields have changed (for now only the id)
+     * @returns {Promise<string>} The success state if the document has been correctly updated
+     */
+     @Transaction()
+     public async updateDID(
+         ctx: Context,
+         DID: string,
+         DID_dataStruct: string,
+     ): Promise<string> {
+ 
+         // Check for extra "" in the DID
+         const cleanDID = DID.replace(/^"|"$/g, "");
+         // The DID Document can only be updated if it was already stored
+         const DIDExists = await this.DIDExists(ctx, cleanDID);
+ 
+         if (!DIDExists) {
+            throw new Error(`Cannot update DID Document, the DID ${cleanDID} doesn't exists`);
+         }
+
+         const Updated_DIDData = JSON.parse(DID_dataStruct);
+
+         // Verify signature           
+         // Convert json-string to the object
+        const hash = "sha256";
+
+        const publicKey = Updated_DIDData.DID_PubKey;
+        const signature = Updated_DIDData.Metadata.Signature;
+        const verify = crypto.createVerify(hash);
+
+        const msg = Updated_DIDData.Metadata.Action + Updated_DIDData.Metadata.DIDUpdateTimestamp;
+        verify.write(msg);
+        verify.end();
+
+        if (!verify.verify(publicKey, signature, "hex")){
+            throw new Error("The DID_dataStruct's signature is not valid");
+        }
+
+         // Retrieve the current DID Data Structure and update the fields
+         const old_DIDData = JSON.parse(await this.getDIDDataStructure(ctx, cleanDID));
+ 
+        const new_metadata = {
+            DIDCreationTimestamp: old_DIDData.Metadata.DIDCreationTimestamp,
+            DIDUpdateTimestamp: Updated_DIDData.Metadata.DIDUpdateTimestamp,
+            Action: old_DIDData.Metadata.Action,
+            Signature: Updated_DIDData.Metadata.Signature
+        };
+    
+        const new_DIDData = {
+            DID: old_DIDData.DID,
+            DID_PubKey: old_DIDData.DID_PubKey,
+            Controller: old_DIDData.Controller,
+            DC_flag_version: old_DIDData.DC_flag_version,
+            Metadata: new_metadata
+        };         
+
+        if(old_DIDData.Controller !== Updated_DIDData.Controller) {
+            new_DIDData.Controller = Updated_DIDData.Controller
+        }
+
+        if(old_DIDData.DC_flag_version !== Updated_DIDData.DC_flag_version) {
+            new_DIDData.DC_flag_version = Updated_DIDData.DC_flag_version
+        }
+ 
+         // Put the updated DID Data Strucure on the ledger
+         await ctx.stub.putState(
+             cleanDID,
+             Buffer.from(stringify(sortKeysRecursive(new_DIDData))),
+         );
+         return JSON.stringify(new_DIDData)
+     }
 
     /**
      * @summary The method used to delete a DID from the ledger

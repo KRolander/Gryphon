@@ -172,7 +172,7 @@ async function getDIDDoc(contract, DID) {
 
 /**
  * @summary Function used for getting a DID data structure from the ledger
- * @description The function communicates with the DID chaincode ("getDID_DataStructure" transaction) for retrieving the DID
+ * @description The function communicates with the DID chaincode ("getDIDDataStructure" transaction) for retrieving the DID
  *              data strucutre for the provided DID
  *
  * @param {Contract} contract - The contract used for interacting with the DID chaincode
@@ -183,6 +183,29 @@ async function getDID_dataStruct(contract, DID) {
   const response = await contract.evaluateTransaction("getDIDDataStructure", stringify(DID));
   return parseResponse(response);
 }
+
+
+
+/**
+ * @summary Function used to update a DID and its DID Data structure on the ledger
+ * @description The function communicates with the DID chaincode ("updateDID" transaction) for storing. It ensures a
+ *              deterministic structure of the DID Data structure then sends the transaction to the chaincode via the contract
+ *
+ * @param {Contract} contract - The contract used for interacting with the DID chaincode
+ * @param {string} DID - The DID to store on the ledger
+ * @param {object} DID_dataStruct - The JSON object representing the DID Data structure to be updated on the ledger
+ * the fields DIDUpdateTimestamp - will be updated automatically, Controller - can be updated, and DC_flag_version - can be updated. 
+ * @returns {Promise<string>} - A stringified JSON object representation of the DID Data structure
+ */
+async function updateDID_dataStruct(contract, DID, DID_dataStruct) {
+  const DID_dataStructStr = stringify(sortKeysRecursive(DID_dataStruct));
+  const response = await contract.submitTransaction("updateDID", stringify(DID), DID_dataStructStr);
+  return parseResponse(response);
+}
+
+
+
+
 
 /**
  * @summary Function used for updating the DID document of a provided DID
@@ -291,6 +314,7 @@ module.exports = {
   getGateway,
   storeDID,
   storeDID_dataStruct,
+  updateDID_dataStruct,
   getContract,
   getNetwork,
   getDIDDoc,
