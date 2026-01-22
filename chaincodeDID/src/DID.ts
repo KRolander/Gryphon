@@ -227,7 +227,7 @@ export default class DID extends Contract {
      *
      * @throws {Error} If the DID and its document are not on the ledger
      * @throws {Error} If the fixed fields have changed (for now only the id)
-     * @returns {Promise<string>} The success state if the document has been correctly updated
+     * @returns {Promise<\\>} The success state if the document has been correctly updated
      */
      @Transaction()
      public async updateDID(

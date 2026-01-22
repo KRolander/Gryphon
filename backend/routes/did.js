@@ -145,7 +145,7 @@ router.post("/createDIDDataStruct", async (req, res, next) => {
     }
 
     const { publicKey: pubkey, DIDDataStructure: DID_data } = req.body;
-    
+
 
     // Mock chaincode logic
     if (!DID_data) {
@@ -201,7 +201,20 @@ router.post("/createDIDDataStruct", async (req, res, next) => {
 
 
     // Call chain code to store the DID data structure
-    const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
+    try {
+      const resultBytes = await storeDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data);
+
+    } catch (InvalidSigErr) {
+  
+
+      if (InvalidSigErr.details[0].message.includes("signature is not valid")) {
+        return res.status(501).send(InvalidSigErr.details);
+      } else if (InvalidSigErr.details[0].message.includes("already exists")) {
+        return res.status(500).send(InvalidSigErr.details);
+      } else {
+        throw new Error(InvalidSigErr);
+      }
+    }
 
     const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
     console.log(successMessage);
@@ -256,6 +269,7 @@ router.post("/createDIDDataStruct", async (req, res, next) => {
  * @returns {string} 400: The DID data structure is not complete: missing elements {to be specified}
  * @returns {string} 200: The string DID data structure: (JSON) if everything went well
  * @returns {string} 500: "Error storing DID on the blockchain" if DID creation fails for any reason
+ * @returns {string} 501: "Invalid signature"
 //  TODO : *@returns {string} 501: "Error creating this DID on the blockchain is not possible since the DID already exists. You can Update it but not re-create." 
  */
 
@@ -324,9 +338,12 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
     // Otherwise no elements missing next step can be computed
 
     // Call chain code to update the DID data structure
-
-    const res_json_response = await updateDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data)
-    // const res_json_response = DID_data
+    var res_json_response
+    try {
+      res_json_response = await updateDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data)
+    } catch (InvalidSigErr) {
+      return res.status(501).send(InvalidSigErr.message)
+    }
 
     const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
     console.log(successMessage);
