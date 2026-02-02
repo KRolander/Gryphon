@@ -130,4 +130,57 @@ async function createDID_DataStructure_Test() {
 
 }
 
-createDID_DataStructure_Test()
+
+
+async function getDID_DataStructure_Test() {
+
+  const DID = "did:hlf:TVBG0KVr6REzGT9V77T2f"
+
+  try {
+    console.log("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+    console.log("TEST: Get DID Data Structure with success - expected response (200)")
+    console.log("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+
+    const response = await axios.get('http://localhost:3000/did/getDID/' + DID);
+
+    console.log('------------------------------------------------------');
+    console.log('[Successful DID Get DID Data structure]:');
+    console.log('------------------------------------------------------');
+    console.log('Status:', response.status);
+    console.log('Data:', response.data);
+    console.log('------------------------------------------------------');
+
+
+    console.log("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    console.log("TEST: Get DID Data Structure with error - the DID does not exist yet");
+    console.log("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+    const DID_note_exist = "did:hlf:TVBG0KVr6REzGT9V77T2f";
+
+    try {
+      const response_500 = await axios.get('http://localhost:3000/did/getDID/' + DID_note_exist);
+  
+
+    } catch (error_500) {
+
+      console.log("Expected Error status (500) - response received:", error_500.response.status);
+      console.log("Error message:", error_500.response.data);
+
+      if (error_500.response.status != "500") throw Error("Expected error 500 - got :", error_500.response.status);
+    }
+
+
+    console.log("✅ All tests passed!");
+  } catch (err) {
+    console.error("Test failed:", err.message);
+  }
+
+}
+
+
+async function runTests() {
+  await createDID_DataStructure_Test();
+  await getDID_DataStructure_Test();
+}
+
+runTests();
