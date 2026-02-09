@@ -369,8 +369,8 @@ async function updateDID_DataStruct_Test() {
 
 
 async function runTests() {
-  // await createDID_DataStructure_Test();
-  // await getDID_DataStructure_Test();
+  await createDID_DataStructure_Test();
+  await getDID_DataStructure_Test();
   await updateDID_DataStruct_Test();
 }
 
