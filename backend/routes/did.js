@@ -342,7 +342,13 @@ router.post("/updateDIDDataStruct", async (req, res, next) => {
     try {
       res_json_response = await updateDID_dataStruct(getContract(DIDchannelName, DIDchaincodeName), DID_data.DID, DID_data)
     } catch (InvalidSigErr) {
-      return res.status(501).send(InvalidSigErr.message)
+      if (InvalidSigErr.details[0].message.includes("signature is not valid")) {
+        return res.status(501).send(InvalidSigErr.details);
+      } else if (InvalidSigErr.details[0].message.includes("already exists")) {
+        return res.status(500).send(InvalidSigErr.details);
+      } else {
+        throw new Error(InvalidSigErr);
+      }
     }
 
     const successMessage = `DID data strucure: ${DID_data} stored successfully!`;
