@@ -1,6 +1,64 @@
 # Digital Identity Management System Using Hyperledger Fabric
 
-A video demonstration, showcasing the functionalities of Gryphon, can be found at [www.youtube.com/watch?v=_MIMSX_yqOI](https://www.youtube.com/watch?v=_MIMSX_yqOI)
+This implementation is based on [**Gryphon**](git@github.com:Iron-Trust/Gryphon.git) Digital Identity Management System. This system is used to store the DID related data which allows a decentralized traecability of the versions of DID documents issued by the DID issuer. Moreover, the implementation increases the trust in the update process of the DID documents through the distributed signature verification (issued by the smart contracts aka chaincodes). 
+* When the DID document has to be updated the self-sovereign wallet containing the private key associated with the DID signs the timestamp and the signature is verified by the smart contract of the DLT (Hyperledger Fabric). When the signature is not valid the DID document update is aborted. This method reinforces that only the keyholder (private key associated with the DID) is able to approve the update or the creation of the given DID. Note that in this implementation there are three main API endpoints which can be accessed by the DID Issuer and DID Resolver Applications. The self-sovereign wallet seamlessly interacts with the DID Issuer and DID Resolver Applications while the DID Resolver/Issuer applications interact with the Gryphon platform which contains a backend implementation containing API endpoints and a gateway interface to enable the communication with the DLT - Hyperledger Fabric network.
+It should be noted, that metadata (DID Data Structure) is also stored on the distributed ledger state allowing a distributed traceabiliy of the DID related data such as the version and timestamp of DID modification and DID creation and a distributed verification of the signatures related to DID operations - *DID issuance and resolving* -. 
+
+**Note**: This implementation of Gryphon has been modified to respond to [**Recitals EU Horizon project's**](https://recitals-project.eu/index.html) requirements.
+
+
+Basic data flow between the different modules:
+```bash
+Self-sovereign Wallet <----> DID Issuer/Resolver <----> DLT (Hyperledger Fabric) 
+                                      |
+                                      |
+                                      <-----> Public Registry (DID Dociment storage)
+```                            
+
+Note: the Self-sovereign wallet and Public Registry does not take part of this implementation.
+
+## DID Data structure
+* `DID` : DID string (e.g., "did:hlf:3ia3YvihEk9FD9iMvWodqm")
+* `DID_PubKey` : Public key assigned to the issue DID - crypto spec: ECDSA - secp256k1 curve. The private key pair of this key is used to sign the `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action` (e.g., "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEb3BU7usOJYeED+u72Dp5e3 T2eS5UggF\n9wfomjtmzDfyhdATvM5fUhlwc7KzrDQaQEjZOt6XqyErDOJTZ4AHig==\n-----END PUBLIC KEY-----\n")
+* `Controller` : The controller of the DID, in general it is the same as the DID, but it can also be the DID of another entity (e.g., government's DID, ministry of education's DID).
+* `DC_flag_version` : Deactivation Flag Version
+* `Metadata` :
+### Metadata
+* `DIDCreationTimestamp` : creation time stamp (e.g., "2026-01-08T15:12:43.394Z")
+* `DIDUpdateTimestamp` : when the DID Document has to be updated, this timestamp is added, so users can know the data of modification.
+* `Action` : *CreateDID* when the DID is created and *UpdateDID* when the DID Document is updated, therefore the DID data structure also has to be modified
+* `Signature` : Signature issued by the private key associated with the DID - signature done on the hash of `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action`. Crypo spec: ECDSA - secp256k1 curve, Hash SHA-256
+
+# Examples
+[Core tests](./recitals_core_tests/core_tests.js): contains the core functionality tests allowing to create, get, and update DID data.
+
+[Create and Get Test](./recitals_core_tests/example_store_DID.js): creates a DID and DID data structure that will be stored on the DLT and the example verifies if the DID data structure has been successfully stored.
+
+[Update DID](./recitals_core_tests/example_update_DID.js): Updates and existing DID data structure. Note: a valid DID string has to be provided which has already been used for storing the DID data structure on the DLT. 
+
+[Create DID via curl](./recitals_core_tests/curl_reateDID.bash): DID data will be sent via curl and [data_createDID.json](./recitals_core_tests/data_createDID.json) containing the DID data will be stored on the DLT.
+
+# Unit/Integration tests
+The implemention comes with unit/integration tests for the main functionalities: DID - Create/Update/Get
+
+* [**Unit Tests**](./recitals_core_tests/did_unit_tests.js)
+
+These tests are used to highlight how the API end points can be accessed from other modules and demonstrates the different API responses, that the calling module (DID Issuer/Resolver) can expect. 
+
+**Note**: the implementation has to be set up before running the Unit Tests.
+
+# API endpoints
+**DataFlow** Client (DID Issuer/Resolver) → REST API (backend) → Fabric Gateway → Chaincode → Ledger
+
+| Method   | URL                                      | Description                              | Responses                               |
+| -------- | ---------------------------------------- | ---------------------------------------- |---------------------------------------- |
+| `POST`   | `/did/createDIDDataStruct`                   | Create a new DID data structure. The backend verifies if the required DID data structure field exist. If yes, the backend calls the dedicated chaincode, which verifies if the `Action` is `createDID` and it verifies the `Signature` with the associated `DID_PubKey` public key. If the signature is valid, the DID data structure is stored on the DLT.    | **`200`**: Storage of the DID data structure was successful<br> **`400`** : Empty field detected in the DID data structure. <br> **`500`**: Error: DID already exists / Error occurred when storing the DID on the blockchain  <br> **`501`** The signature was not valid or the DID data structure was manipulated.| 
+| `GET`    | `/did/getDID/:did`                             | Retrieves the DID data structure related to `:did`.                  | **`200`** Returns the DID data structure. <br> **`500`**: The DID was not yet stored on the DLT or other DLT related error occurred. |
+|  `POST`    |  `/did/updateDIDDataStruct`             | The client has to provide a DID data structure based on the original or previously modified. The `DIDUpdateTimestamp` \ `Controller` \ `DC_flag_version` might be different. The `Action` - *UpdateDID*. The backed verifies if there is no missing field in the DID data structure. The DLT chaincode updates the previously stored DID data structure.  | **`200`** Returns the DID data structure. <br> **`400`** : Empty field detected in the DID data structure. <br>  **`500`**: Error occurred when storing the DID on the blockchain. <br> **`501`** The signature was not valid or the DID data structure was manipulated.                       |
+
+# Implementation Setup
+These setups are necessary to run the examples and tests.
+
 
 ## Fabric setup
 
@@ -64,66 +122,7 @@ docker-compose up -d --build
 **Frontend Listens: http://localhost:5173**
 
 
-## Logging Setup (Optional)
 
-To enable logging and monitoring of the application, you can run our monitoring suite, made up of:
-
-1. [Grafana](https://grafana.com/), a composable observability platform, provides a centralized dashboard to monitor logs.
-2. [Loki](https://grafana.com/oss/loki/), a highly-scalable log aggregation system from the Grafana developers, provides storage for the logs
-3. [Alloy](https://grafana.com/docs/alloy/latest/), a log collector from the Grafana developers, fetches and processes local logs and sends them to Loki.
-
-These tools can be run together by using the following `Docker compose` command from the root directory:
-
-```bash
-cd logging
-docker-compose up -d
-```
-
-Now, the Grafana dashboard can be accessed by navigating to [http://localhost:3200/](http://localhost:3200) on your browser, where you can monitor and query the incoming logs.
-
-If it's the first time you are accessing Grafana, you will need to connect it to the Loki as a data source in this way:
-- Navigate to [http://localhost:3200/](http://localhost:3200)
-- Log in with the default credentials "admin", "admin". Remember to change those later.
-- On the left panel, click on `Connections`, then `Add new connection`, and search for `Loki`.
-- Keep the default name `loki` and set `URL` to `http://loki:3100`, then scroll to the bottom and click `Save & test`, if the connection is valid you will see a success message.
-
-Now that we have a valid Data Source connected to Grafana, we can monitor the logs through a dashboard, we provide a dashboard that can be imported in this way:
-- On the left panel, click on `Dashboards`, then, in the top right corner, click on `New` and `Import`
-- The provided dashboard is `/logging/dashboard/Gryphon-dashboard.json`, you drag and drop it in the `Upload dashboard JSON file` field and press `Load`
-- Now you can open the dashboard by selecting it from the list in `Dashboards`
-- Right after import, visualizations might not work at first, if the problem persists, navigate to the individual components of the dashboard and click on `Menu`, in the top-right corner of the component, and `Edit`.
-- Then just click the button `Back to dashboard` on top, without changing anything, and the visualization should start working correctly
-
-## DID Data structure
-* `DID` : DID string (e.g., "did:hlf:3ia3YvihEk9FD9iMvWodqm")
-* `DID_PubKey` : Public key assigned to the issue DID - crypto spec: ECDSA - secp256k1 curve. The private key pair of this key is used to sign the `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action` (e.g., "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEb3BU7usOJYeED+u72Dp5e3 T2eS5UggF\n9wfomjtmzDfyhdATvM5fUhlwc7KzrDQaQEjZOt6XqyErDOJTZ4AHig==\n-----END PUBLIC KEY-----\n")
-* `Controller` : The controller of the DID, in general it is the same as the DID, but it can also be the DID of another entity (e.g., government's DID, ministry of education's DID).
-* `DC_flag_version` : Deactivation Flag Version
-* `Metadata` :
-### Metadata
-* `DIDCreationTimestamp` : creation time stamp (e.g., "2026-01-08T15:12:43.394Z")
-* `DIDUpdateTimestamp` : when the DID Document has to be updated, this timestamp is added, so users can know the data of modification.
-* `Action` : *CreateDID* when the DID is created and *UpdateDID* when the DID Document is updated, therefore the DID data structure also has to be modified
-* `Signature` : Signature issued by the private key associated with the DID - signature done on the hash of `DIDCreationTimestamp / DIDUpdateTimestamp` concatenated with the `Action`. Crypo spec: ECDSA - secp256k1 curve, Hash SHA-256
-
-# Examples
-[Core tests](./recitals_core_tests/core_tests.js): contains the core functionality tests allowing to create, get, and update DID data.
-
-[Create and Get Test](./recitals_core_tests/example_store_DID.js): creates a DID and DID data structure that will be stored on the DLT and the example verifies if the DID data structure has been successfully stored.
-
-[Update DID](./recitals_core_tests/example_update_DID.js): Updates and existing DID data structure. Note: a valid DID string has to be provided which has already been used for storing the DID data structure on the DLT. 
-
-[Create DID via curl](./recitals_core_tests/curl_reateDID.bash): DID data will be sent via curl and [data_createDID.json](./recitals_core_tests/data_createDID.json) containing the DID data will be stored on the DLT.
-
-
-# API endpoints
-**DataFlow** Client → REST API (backend) → Fabric Gateway → Chaincode → Ledger
-
-| Method   | URL                                      | Description                              | Responses                               |
-| -------- | ---------------------------------------- | ---------------------------------------- |---------------------------------------- |
-| `POST`   | `/did/createDIDDataStruct`                   | Create a new DID data structure. The backend verifies if the required DID data structure field exist. If yes, the backend calls the dedicated chaincode, which verifies if the `Action` is `createDID` and it verifies the `Signature` with the associated `DID_PubKey` public key. If the signature is valid, the DID data structure is stored on the DLT.    | **`200`**: Storage of the DID data structure was successful<br> **`400`** : Empty field detected in the DID data structure. <br> **`500`**: Error: DID already exists / Error occurred when storing the DID on the blockchain  <br> **`501`** The signature was not valid or the DID data structure was manipulated.| 
-| `GET`    | `/did/getDID/:did`                             | Retrieves the DID data structure related to `:did`.                  | **`200`** Returns the DID data structure. <br> **`500`**: The DID was not yet stored on the DLT or other DLT related error occurred. |
-|  `POST`    |  `/did/updateDIDDataStruct`             | The client has to provide a DID data structure based on the original or previously modified. The `DIDUpdateTimestamp` \ `Controller` \ `DC_flag_version` might be different. The `Action` - *UpdateDID*. The backed verifies if there is no missing field in the DID data structure. The DLT chaincode updates the previously stored DID data structure.  | **`200`** Returns the DID data structure. <br> **`400`** : Empty field detected in the DID data structure. <br>  **`500`**: Error occurred when storing the DID on the blockchain. <br> **`501`** The signature was not valid or the DID data structure was manipulated.                       |
 
 # Known issues when installing
 When using Ubuntu 20.04 - the latest version of binaries will not be compatible 
@@ -160,5 +159,4 @@ to
   ./install-fabric.sh --fabric-version 2.5.14 docker
   ./install-fabric.sh --fabric-version 2.5.10 binary
 ```
-
 
