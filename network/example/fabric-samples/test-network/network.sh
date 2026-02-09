@@ -3,7 +3,8 @@
 # Copyright IBM Corp All Rights Reserved
 #
 # SPDX-License-Identifier: Apache-2.0
-#
+#/home/roland/Documents/REIT/Recitals/Fabric_DIDs/Project/Gryphon/network/example/fabric-samples/test-network/../bin:/home/roland/.npm-global/bin:/home/roland/.local/bin:/home/roland/anaconda3/condabin:/home/roland/.npm-global/bin:/home/roland/.cargo/bin:/home/roland/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/roland/.dotnet/tools:/home/roland/.dotnet/tools:/home/roland/anaconda3/bin:/usr/local/go/bin:/home/roland/anaconda3/bin:/usr/local/go/bin
+#/home/roland/Documents/Fabric/fabric-samples/test-network/../bin:/home/roland/anaconda3/condabin:/home/roland/.npm-global/bin:/home/roland/.cargo/bin:/home/roland/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/roland/.dotnet/tools:/home/roland/anaconda3/bin:/usr/local/go/bin
 
 # This script brings up a Hyperledger Fabric network for testing smart contracts
 # and applications. The test network consists of two organizations with one
@@ -18,9 +19,20 @@
 # this script is actually in and infer location from there. (putting first)
 
 ROOTDIR=$(cd "$(dirname "$0")" && pwd)
-export PATH=${ROOTDIR}/../bin:${PWD}/../bin:$PATH
+# export PATH=${ROOTDIR}/../bin:$PATH
+export PATH=${PWD}/../bin:$PATH
+
+
+echo "###########################################################################"
+echo $ROOTDIR
+echo $PATH
+
+
+
 export FABRIC_CFG_PATH=${PWD}/configtx
-export VERBOSE=false
+export VERBOSE=true
+echo $FABRIC_CFG_PATH
+echo "###########################################################################"
 
 # push to the required directory & set a trap to go back if needed
 pushd ${ROOTDIR} > /dev/null
@@ -60,6 +72,10 @@ NONWORKING_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 # binaries/images are available. In the future, additional checking for the presence
 # of go or other items could be added.
 function checkPrereqs() {
+  echo "[INFO] - checkPrereqs - START" 
+  which peer || echo "Peer not found in PATH"
+  peer version
+  echo "Peer version exit code: $?"
   ## Check if your have cloned the peer binaries and configuration files.
   peer version > /dev/null 2>&1
 
@@ -70,6 +86,9 @@ function checkPrereqs() {
     errorln "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
     exit 1
   fi
+
+  echo "[INFO] - checkPrereqs - Peer binary check - DONE" 
+
   # use the fabric peer container to see if the samples and binaries match your
   # docker images
   LOCAL_VERSION=$(peer version | sed -ne 's/^ Version: //p')
@@ -155,12 +174,16 @@ function checkPrereqs() {
 
 # Create Organization crypto material using cryptogen or CAs
 function createOrgs() {
+  echo "############# createOrgs #############"
+
   if [ -d "organizations/peerOrganizations" ]; then
     rm -Rf organizations/peerOrganizations && rm -Rf organizations/ordererOrganizations
   fi
 
   # Create crypto material using cryptogen
   if [ "$CRYPTO" == "cryptogen" ]; then
+    echo "############# cryptogen #############"
+
     which cryptogen
     if [ "$?" -ne 0 ]; then
       fatalln "cryptogen tool not found. exiting"
@@ -296,11 +319,14 @@ function createOrgs() {
 
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
-
+  echo ">>> Network UP <<<"
   checkPrereqs
+  echo ">>> checkPrereqs DONE <<<"
+
 
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
+    echo ">>> Generate Orgs"
     createOrgs
   fi
 
@@ -651,12 +677,21 @@ if [ "$MODE" == "prereq" ]; then
   infoln "Installing binaries and fabric images. Fabric Version: ${IMAGETAG}  Fabric CA Version: ${CA_IMAGETAG}"
   installPrereqs
 elif [ "$MODE" == "up" ]; then
+  echo ">>>>> networkUp"
+
   infoln "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
   networkUp
+  echo ">>>>> networkUp DONE"
+
+
 elif [ "$MODE" == "createChannel" ]; then
+  echo ">>>>> createChannel"
   infoln "Creating channel '${CHANNEL_NAME}'."
   infoln "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"
   createChannel $BFT
+  echo ">>>>> createChannel DONE"
+
+
 elif [ "$MODE" == "down" ]; then
   infoln "Stopping network"
   networkDown

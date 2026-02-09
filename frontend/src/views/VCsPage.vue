@@ -513,7 +513,7 @@ export default {
      * Refreshes the list of VCs from the wallet.
      * @param {Object} wallet - Wallet containing the VCs.
      */
-    refreshVCs(wallet) {
+    refreshVCs(wallet) { // TODO: Double check how it is loaded
       if (!wallet || !wallet.dids) return;
       this.VCs = Object.entries(wallet.dids).map(([did, data]) => {
         const credentials = wallet.getVCs(did);
@@ -522,7 +522,7 @@ export default {
           did,
           name: data.metadata?.name || "Unnamed DID",
           privateKey: data.keyPair.privateKey,
-          credentials,
+          credentials
         };
       });
     },

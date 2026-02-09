@@ -1,23 +1,23 @@
 {
-  "did:hlf:BQ4iAJSCuszR2CkbmpsKbz": [
+  "did:hlf:BTdL4veAfzWhrYK9sXFVDg": [
     {
       "@context": "https://www.w3.org/2018/credentials/v1",
       "type": [
         "VerifiableCredential",
-        "B"
+        "DiplomaIssuerAuth"
       ],
-      "issuer": "did:hlf:5piW1zaDFWUCKUkG2N5kx1",
-      "issuanceDate": "2025-06-22T17:58:58.087Z",
+      "issuer": "did:hlf:PNcPn6W9V15DC3cNi7NYqt",
+      "issuanceDate": "2025-11-24T12:56:53.259Z",
       "credentialSubject": {
-        "id": "did:hlf:BQ4iAJSCuszR2CkbmpsKbz",
-        "canIssue": "C"
+        "id": "did:hlf:BTdL4veAfzWhrYK9sXFVDg",
+        "canIssue": "BachelorDiploma"
       },
       "proof": {
         "type": "EcdsaSecp256r1VerificationKey2019",
-        "created": "2025-06-22T17:58:58.087Z",
+        "created": "2025-11-24T12:56:53.259Z",
         "proofPurpose": "assertionMethod",
-        "verificationMethod": "did:hlf:5piW1zaDFWUCKUkG2N5kx1#keys-1",
-        "signatureValue": "V5TLpOGvZv+zt+zmcnNLnn2Vlp5qYMqQgCWYSgg7WF76d3tltucrZXS2SHIms57EzPoRVwe89Q8PApS4puXa9w=="
+        "verificationMethod": "did:hlf:PNcPn6W9V15DC3cNi7NYqt#keys-1",
+        "signatureValue": "DRHUazeI4mbxgH9mMDb2LnOxtzlJTQUkvWR+FqphRmjVr2oAX3BG6mpDYmccziKtu//LGblcFL3nx54fkqHR6A=="
       }
     }
   ]

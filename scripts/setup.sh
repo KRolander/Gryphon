@@ -7,13 +7,19 @@ source "$(dirname "$0")/utils.sh"
 function networkSetup() {
   cd "network/example" || exit
 
-  ./install-fabric.sh --fabric-version 2.5.13 docker binary
+  ./install-fabric.sh --fabric-version 2.5.14 docker
+  ./install-fabric.sh --fabric-version 2.5.10 binary
+
 
   # Access the directory that contains the network.sh script
   cd "fabric-samples/test-network" || exit
 
   # Shut down the network - start from clean slate
+  echo "##################### Down #####################"
   ./network.sh down
+
+  echo "##################### Up #####################"
+
 
   # Start the test-network
   # And create a channel between the peers named didchannel

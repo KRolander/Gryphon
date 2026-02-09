@@ -1,23 +1,23 @@
 {
-  "did:hlf:5piW1zaDFWUCKUkG2N5kx1": [
+  "did:hlf:PNcPn6W9V15DC3cNi7NYqt": [
     {
       "@context": "https://www.w3.org/2018/credentials/v1",
       "type": [
         "VerifiableCredential",
         "root"
       ],
-      "issuer": "did:hlf:5piW1zaDFWUCKUkG2N5kx1",
-      "issuanceDate": "2025-06-22T17:51:08.221Z",
+      "issuer": "did:hlf:PNcPn6W9V15DC3cNi7NYqt",
+      "issuanceDate": "2025-11-24T12:46:55.548Z",
       "credentialSubject": {
-        "id": "did:hlf:5piW1zaDFWUCKUkG2N5kx1",
-        "canIssue": "B"
+        "id": "did:hlf:PNcPn6W9V15DC3cNi7NYqt",
+        "canIssue": "DiplomaIssuerAuth"
       },
       "proof": {
         "type": "EcdsaSecp256r1VerificationKey2019",
-        "created": "2025-06-22T17:51:08.221Z",
+        "created": "2025-11-24T12:46:55.548Z",
         "proofPurpose": "assertionMethod",
-        "verificationMethod": "did:hlf:5piW1zaDFWUCKUkG2N5kx1#keys-1",
-        "signatureValue": "1ZQhbd33FDAR5ln3QrGR0JRBS0rVXqwvT7IurGHzhFUcVtBJLdPh/DhFHrWy4W/mDrJ8ak+5cdbYSI8sE+jDxA=="
+        "verificationMethod": "did:hlf:PNcPn6W9V15DC3cNi7NYqt#keys-1",
+        "signatureValue": "eEHtvvPaGXv1DBhITpQBY3UpDA7UJR/6FxW67GNuBThAygeU7mEclY7649tH/YOVUN/tgOYF0Qxa/RH0bMexqQ=="
       }
     }
   ]
